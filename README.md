@@ -1,2 +1,3 @@
 # Bunny-code-frontend-test
-Test for vue frontend project
+
+Test for vue frontend project.
