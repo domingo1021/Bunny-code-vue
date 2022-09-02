@@ -7,22 +7,30 @@ const socket = io('http://localhost:3000')
 
 <template>
   <header>
-    <nav>
-      <RouterLink to="/home">Home</RouterLink>
-      <RouterLink to="/about">About</RouterLink>
-      <RouterLink to="/workspace">Workspace</RouterLink>
+    <nav id="top-navbar">
+      <div class="flex-container">
+        <div class="flex-container-2">
+          <div>Bunny code</div>
+          <RouterLink to="/" class="nav-item">Home</RouterLink>
+          <RouterLink to="/about" class="nav-item">About</RouterLink>
+          <RouterLink to="/workspace" class="nav-item">Workspace</RouterLink>
+        </div>
+        <div class="right-flex">
+          <div class="nav-item">123</div>
+          <div class="nav-item">223</div>
+          <div class="nav-item">333</div>
+        </div>
+      </div>
     </nav>
   </header>
-  <router-view :socket="socket"></router-view>
+  <body>
+    <main>
+      <router-view :socket="socket"></router-view>
+    </main>
+  </body>
 </template>
 
 <style scoped>
-nav {
-  width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
-}
 nav a.router-link-exact-active {
   color: var(--color-text);
 }
@@ -36,5 +44,43 @@ nav a {
 }
 nav a:first-of-type {
   border: 0;
+}
+
+#top-navbar {
+  top: 0;
+  left: 0;
+  position: fixed;
+  z-index: 99;
+  width: 100vw;
+  height: 80px;
+  background-color: rgb(255, 255, 255);
+  border-bottom: 40px solid #2c2c2c;
+}
+.flex-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  padding-top: 8px;
+  padding-left: 30px;
+  padding-right: 50px;
+}
+
+.flex-container-2 {
+  display: flex;
+  flex-direction: row;
+}
+
+.right-flex {
+  display: flex;
+  flex-direction: row-reverse;
+  margin-top: auto;
+}
+
+.nav-item {
+  margin-left: 15px;
+}
+
+header + body {
+  padding-top: 80px;
 }
 </style>
