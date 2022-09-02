@@ -81,17 +81,33 @@ const checkEvent = (e) => {
     console.log("enter");
     currCodes.value.push("");
     targetLine.value = currCodes.value.length - 1;
+    prevCodes = currCodes.value[targetLine.value];
+    codeRecords.value.push({
+      type: "enter",
+      line: targetLine.value,
+      timestamp: Date.now().toString() + "000000",
+    });
   } else if (e.keyCode === 38) {
-    console.log("down");
+    console.log("up");
     if (targetLine.value > 0) {
       targetLine.value = targetLine.value - 1;
-      input.value[targetLine.value].focus()
+      codeRecords.value.push({
+        type: "up",
+        line: targetLine.value,
+        timestamp: Date.now().toString() + "000000",
+      });
+      input.value[targetLine.value].focus();
     }
   } else if (e.keyCode === 40) {
-    console.log("up");
-    if (targetLine.value < currCodes.value.length -1) {
-      targetLine.value = targetLine.value + 1
-      input.value[targetLine.value].focus()
+    console.log("down");
+    if (targetLine.value < currCodes.value.length - 1) {
+      targetLine.value = targetLine.value + 1;
+      codeRecords.value.push({
+        type: "down",
+        line: targetLine.value,
+        timestamp: Date.now().toString() + "000000",
+      });
+      input.value[targetLine.value].focus();
     }
   } else if (e.ctrlKey && e.keyCode === 83) {
     props.socket.emit("save", `Saving data ${JSON.stringify(codeRecords.value)}`)
@@ -120,7 +136,7 @@ onUpdated(() => {
 
 <template>
   <ul>
-    <li v-for="(code) in codeRecords">{{code.code}}</li>
+    <li v-for="(code) in codeRecords">{{code.type}} - {{code.code}}</li>
   </ul>
   <div v-for="(code, index) in currCodes">
     <input :id="`code-${index.toString()}`" ref="input" v-model="currCodes[index]" type="text" @keydown="checkEvent" @input="addCode" @click="changeTarget">
