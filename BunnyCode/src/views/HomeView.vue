@@ -5,7 +5,5 @@ const props = defineProps({
 </script>
 
 <template>
-  <main>
-    <TheWelcome />
-  </main>
+  <main></main>
 </template>
