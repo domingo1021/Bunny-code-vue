@@ -6,10 +6,14 @@ const props = defineProps({
 });
 
 const input = ref([]);
-let targetLine = ref(0);
+let targetLine = ref(0); 
 let prevCodes = [""];
 const currCodes = ref([""]);
 const codeRecords = ref([]);
+
+props.socket.on("return", (msg)=>{
+  console.log(msg);
+})
 
 const addCode = (e) => {
   if (codeRecords.value.length > 50) {
@@ -41,7 +45,7 @@ const addCode = (e) => {
       }
     }
     codeRecords.value.push({
-      type: "delete",
+      action: "delete",
       line: targetLine.value,
       index: result.index,
       code: result.keyword,
@@ -64,7 +68,7 @@ const addCode = (e) => {
       }
     }
     codeRecords.value.push({
-      type: "create",
+      action: "create",
       line: targetLine.value,
       index: result.index,
       code: result.keyword,
@@ -83,7 +87,7 @@ const checkEvent = (e) => {
     targetLine.value = currCodes.value.length - 1;
     prevCodes = currCodes.value[targetLine.value];
     codeRecords.value.push({
-      type: "enter",
+      action: "enter",
       line: targetLine.value,
       timestamp: Date.now().toString() + "000000",
     });
@@ -92,7 +96,7 @@ const checkEvent = (e) => {
     if (targetLine.value > 0) {
       targetLine.value = targetLine.value - 1;
       codeRecords.value.push({
-        type: "up",
+        action: "up",
         line: targetLine.value,
         timestamp: Date.now().toString() + "000000",
       });
@@ -103,14 +107,14 @@ const checkEvent = (e) => {
     if (targetLine.value < currCodes.value.length - 1) {
       targetLine.value = targetLine.value + 1;
       codeRecords.value.push({
-        type: "down",
+        action: "down",
         line: targetLine.value,
         timestamp: Date.now().toString() + "000000",
       });
       input.value[targetLine.value].focus();
     }
   } else if (e.ctrlKey && e.keyCode === 83) {
-    props.socket.emit("save", `Saving data ${JSON.stringify(codeRecords.value)}`)
+    props.socket.emit("save", JSON.stringify(codeRecords.value))
     console.log("Control + Save")
   }
 };
@@ -136,11 +140,13 @@ onUpdated(() => {
 
 <template>
   <ul>
-    <li v-for="(code) in codeRecords">{{code.type}} - {{code.code}}</li>
+    <li v-for="(code) in codeRecords">{{code.action}} - {{code.code}}</li>
   </ul>
-  <div v-for="(code, index) in currCodes">
-    <input :id="`code-${index.toString()}`" ref="input" v-model="currCodes[index]" type="text" @keydown="checkEvent" @input="addCode" @click="changeTarget">
-  </div>
+  <form id="code-area" @keydown="checkEvent">
+    <div v-for="(code, index) in currCodes">
+      <input :id="`code-${index.toString()}`" ref="input" v-model="currCodes[index]" type="text" @input="addCode" @click="changeTarget">
+    </div>
+  </form>
 </template>
 
 
@@ -148,5 +154,8 @@ onUpdated(() => {
 h1 {
   color: red;
 }
-
+#code-area{
+  border: 1px solid;
+  background-color: rgb(217, 237, 255);
+}
 </style>
