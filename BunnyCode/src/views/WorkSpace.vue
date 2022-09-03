@@ -1,5 +1,6 @@
 <script setup>
-import { onMounted, onUpdated, ref } from 'vue'
+import { onMounted, onUnmounted, onUpdated, ref } from 'vue'
+import axios from 'axios'
 
 const props = defineProps({
   socket: Object,
@@ -35,6 +36,8 @@ const addCode = (e) => {
           index: i,
           keyword: prev[i],
         }
+        console.log('prev: ', prev)
+        console.log(i, result)
         break
       }
     }
@@ -80,7 +83,7 @@ const addCode = (e) => {
   prevCodes = currentValue
 }
 
-const checkEvent = (e) => {
+const checkEvent = async (e) => {
   if (e.keyCode === 13) {
     console.log('enter')
     currCodes.value.push('')
@@ -95,6 +98,7 @@ const checkEvent = (e) => {
     console.log('up')
     if (targetLine.value > 0) {
       targetLine.value = targetLine.value - 1
+      prevCodes = currCodes.value[targetLine.value]
       codeRecords.value.push({
         action: 'up',
         line: targetLine.value,
@@ -106,6 +110,7 @@ const checkEvent = (e) => {
     console.log('down')
     if (targetLine.value < currCodes.value.length - 1) {
       targetLine.value = targetLine.value + 1
+      prevCodes = currCodes.value[targetLine.value]
       codeRecords.value.push({
         action: 'down',
         line: targetLine.value,
@@ -114,8 +119,16 @@ const checkEvent = (e) => {
       input.value[targetLine.value].focus()
     }
   } else if (e.ctrlKey && e.keyCode === 83) {
-    props.socket.emit('save', JSON.stringify(codeRecords.value))
+    const saveResponse = await axios.post(
+      'http://localhost:3000/api/1.0/record',
+      {
+        userID: 1,
+        projectID: 1,
+        batchData: JSON.stringify(codeRecords.value),
+      },
+    )
     console.log('Control + Save')
+    console.log(saveResponse)
   }
 }
 
@@ -125,14 +138,17 @@ const changeTarget = (e) => {
   console.log(targetLine.value)
 }
 
-onMounted(() => {
+onMounted(async () => {
+  //TODO: socket send msg to backend, update version writing status.
   input.value[targetLine.value].focus()
-  // console.log(currCodes.value.length - 1)
-  // input.value[currCodes.value.length - 1].focus();
 })
 
 onUpdated(() => {
   input.value[targetLine.value].focus()
+})
+
+onUnmounted(() => {
+  props.socket.emit('leave workspace', 'hello')
 })
 
 //TODO: Event: When user add ctrl+s (keyboard event), send axios to backend

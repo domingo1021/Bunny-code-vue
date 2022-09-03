@@ -22,6 +22,11 @@ const router = createRouter({
       name: "workspace",
       component: () => import("../views/WorkSpace.vue"),
     },
+    {
+      path: "/playback",
+      name: "playback",
+      component: () => import("../views/PlayBackView.vue"),
+    },
   ],
 });
 
