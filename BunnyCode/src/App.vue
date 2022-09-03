@@ -14,6 +14,9 @@ const socket = io('http://localhost:3000')
           <RouterLink to="/" class="nav-item">Home</RouterLink>
           <RouterLink to="/about" class="nav-item">About</RouterLink>
           <RouterLink to="/workspace" class="nav-item">Workspace</RouterLink>
+          <RouterLink to="/playback" class="nav-item">
+            Playback (tmp)
+          </RouterLink>
         </div>
         <div class="right-flex">
           <div class="nav-item">123</div>
