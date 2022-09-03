@@ -1,3 +1,5 @@
 # Bunny-code-frontend-test
 
-Test for vue frontend project.
+Frontend project of `Bunny code`.
+
+For more information, please check [here](https://github.com/domingo1021/Bunny-code)
