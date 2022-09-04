@@ -11,7 +11,8 @@ let targetLine = ref(0)
 let prevCodes = ['']
 const currCodes = ref([''])
 const codeRecords = ref([])
-
+const jwt = localStorage.getItem('jwt');
+console.log(jwt);
 props.socket.on('return', (msg) => {
   console.log(msg)
 })
@@ -119,16 +120,34 @@ const checkEvent = async (e) => {
       input.value[targetLine.value].focus()
     }
   } else if (e.ctrlKey && e.keyCode === 83) {
-    const saveResponse = await axios.post(
-      'http://localhost:3000/api/1.0/record',
-      {
-        userID: 1,
-        projectID: 1,
-        batchData: JSON.stringify(codeRecords.value),
-      },
-    )
+    // const saveResponse = await axios.post(
+    //   'http://localhost:3000/api/1.0/record',
+    //   {
+    //     userID: 1,
+    //     projectID: 1,
+    //     batchData: JSON.stringify(codeRecords.value),
+    //   },
+    // )
     console.log('Control + Save')
-    console.log(saveResponse)
+    const allCodes = currCodes.value.reduce((prev, curr) => {
+      return prev + curr + "\n";
+    }, "")
+    console.log(allCodes);
+    const submitForm = new FormData();
+    const blob = new Blob([JSON.stringify(allCodes)], {type: 'application/javascript'})
+    submitForm.append('files', blob, "test.js")
+    submitForm.append('projectID', 1);
+    submitForm.append('versionID', 2);
+    submitForm.append('reqCategory', 'code_file');
+    const response = await axios({ 
+      method: "post",
+      url: "https://domingoos.store/api/1.0/record/file",
+      headers: {
+        "Authorization": `Bearer ${jwt}`
+      },
+      data: submitForm,
+    })
+    console.log(response);
   }
 }
 
