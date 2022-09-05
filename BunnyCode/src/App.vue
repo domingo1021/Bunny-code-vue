@@ -1,6 +1,6 @@
 <script setup>
-import { RouterLink, RouterView } from 'vue-router'
-import io from 'socket.io-client'
+import { RouterLink, RouterView } from "vue-router";
+import io from "socket.io-client";
 
 // const socket = io('http://localhost:3000')
 const socket = io ( 'wss://domingoos.store', { path:'/api/socket/' });

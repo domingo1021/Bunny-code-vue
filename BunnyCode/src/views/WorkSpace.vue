@@ -1,212 +1,120 @@
 <script setup>
-import { onMounted, onUnmounted, onUpdated, ref } from 'vue'
-import axios from 'axios'
+import { onMounted, onUnmounted, onUpdated, ref } from "vue";
+// import axios from "axios";
+import CodeBoardComponent from "@/components/CodeBoardComponent.vue";
 
 const props = defineProps({
   socket: Object,
-})
-
-const input = ref([])
-let targetLine = ref(0)
-let prevCodes = ['']
-const currCodes = ref([''])
-const codeRecords = ref([])
-const jwt = localStorage.getItem('jwt');
+});
+// const input = ref([]);
+// let targetLine = ref(0);
+// let prevCodes = [""];
+// const currCodes = ref([""]);
+// const codeRecords = ref([]);
+const child = ref([]);
+const jwt = localStorage.getItem("jwt");
+const targetFileNum = ref(0);
 console.log(jwt);
-props.socket.on('return', (msg) => {
-  console.log(msg)
-})
+const currentFile = ref("test.js");
+const files = ref([
+  {
+    filename: "test.js",
+    language: "JS",
+    updated: true,
+    localVariables: {
+      input: [],
+      targetLine: 0,
+      prevCodes: "",
+      currCodes: [""],
+      codeRecords: [],
+    },
+  },
+  {
+    filename: "twoSum.js",
+    language: "JS",
+    updated: false,
+    localVariables: {
+      input: ref([]),
+      targetLine: ref(0),
+      prevCodes: "",
+      currCodes: ref([""]),
+      codeRecords: ref([]),
+    },
+  },
+]);
 
-const addCode = (e) => {
-  if (codeRecords.value.length > 50) {
-    alert('記得儲存程式碼！')
-  }
-
-  // Binary check the index of input code.
-  let prev = prevCodes.split('')
-  const curr = currCodes.value[targetLine.value].split('')
-  let result = {}
-  if (prev.length > curr.length) {
-    console.log('backspace')
-    if (prevCodes == '') {
-      return
-    }
-    for (let i = 0; i < curr.length; i++) {
-      if (prev[i] !== curr[i]) {
-        result = {
-          index: i,
-          keyword: prev[i],
-        }
-        console.log('prev: ', prev)
-        console.log(i, result)
-        break
-      }
-    }
-    if (!result.keyword) {
-      result = {
-        index: prev.length - 1,
-        keyword: prev[prev.length - 1],
-      }
-    }
-    codeRecords.value.push({
-      action: 'delete',
-      line: targetLine.value,
-      index: result.index,
-      code: result.keyword,
-      timestamp: Date.now().toString() + '000000',
-    })
-  } else if (prev.length < curr.length) {
-    for (let i = 0; i < prev.length; i++) {
-      if (prev[i] !== curr[i]) {
-        result = {
-          index: i,
-          keyword: curr[i],
-        }
-        break
-      }
-    }
-    if (!result.keyword) {
-      result = {
-        index: curr.length - 1,
-        keyword: curr[curr.length - 1],
-      }
-    }
-    codeRecords.value.push({
-      action: 'create',
-      line: targetLine.value,
-      index: result.index,
-      code: result.keyword,
-      timestamp: Date.now().toString() + '000000',
-    })
-  }
-  const currentValue = currCodes.value[targetLine.value]
-  console.log(codeRecords.value)
-  prevCodes = currentValue
+function changeCurrFile(targetFile, index) {
+  currentFile.value = targetFile;
+  targetFileNum.value = index
 }
-
-const checkEvent = async (e) => {
-  if (e.keyCode === 13) {
-    console.log('enter')
-    currCodes.value.push('')
-    targetLine.value = currCodes.value.length - 1
-    prevCodes = currCodes.value[targetLine.value]
-    codeRecords.value.push({
-      action: 'enter',
-      line: targetLine.value,
-      timestamp: Date.now().toString() + '000000',
-    })
-  } else if (e.keyCode === 38) {
-    console.log('up')
-    if (targetLine.value > 0) {
-      targetLine.value = targetLine.value - 1
-      prevCodes = currCodes.value[targetLine.value]
-      codeRecords.value.push({
-        action: 'up',
-        line: targetLine.value,
-        timestamp: Date.now().toString() + '000000',
-      })
-      input.value[targetLine.value].focus()
-    }
-  } else if (e.keyCode === 40) {
-    console.log('down')
-    if (targetLine.value < currCodes.value.length - 1) {
-      targetLine.value = targetLine.value + 1
-      prevCodes = currCodes.value[targetLine.value]
-      codeRecords.value.push({
-        action: 'down',
-        line: targetLine.value,
-        timestamp: Date.now().toString() + '000000',
-      })
-      input.value[targetLine.value].focus()
-    }
-  } else if (e.ctrlKey && e.keyCode === 83) {
-    // const saveResponse = await axios.post(
-    //   'http://localhost:3000/api/1.0/record',
-    //   {
-    //     userID: 1,
-    //     projectID: 1,
-    //     batchData: JSON.stringify(codeRecords.value),
-    //   },
-    // )
-    console.log('Control + Save')
-    const allCodes = currCodes.value.reduce((prev, curr) => {
-      return prev + curr + "\n";
-    }, "")
-    console.log(allCodes);
-    const submitForm = new FormData();
-    const blob = new Blob([JSON.stringify(allCodes)], {type: 'application/javascript'})
-    submitForm.append('files', blob, "test.js")
-    submitForm.append('projectID', 1);
-    submitForm.append('versionID', 2);
-    submitForm.append('reqCategory', 'code_file');
-    const response = await axios({ 
-      method: "post",
-      url: "https://domingoos.store/api/1.0/record/file",
-      headers: {
-        "Authorization": `Bearer ${jwt}`
-      },
-      data: submitForm,
-    })
-    console.log(response);
-  }
-}
-
-const changeTarget = (e) => {
-  targetLine.value = Number(e.target.id.split('-')[1])
-  prevCodes = currCodes.value[targetLine.value]
-  console.log(targetLine.value)
-}
-
-onMounted(async () => {
-  //TODO: socket send msg to backend, update version writing status.
-  input.value[targetLine.value].focus()
-})
-
-onUpdated(() => {
-  input.value[targetLine.value].focus()
-})
 
 onUnmounted(() => {
-  props.socket.emit('leave workspace', 'hello')
-})
+  props.socket.emit("leave workspace", "hello");
+});
 
-//TODO: Event: When user add ctrl+s (keyboard event), send axios to backend
+function updateInput(emitObject){
+  child.value[0].input[emitObject.line].focus();
+}
+
+function updateTargetLine(fileNumber, line){
+  // files.value[fileNumber].localVariables.targetLine = line;
+}
+
+function updatePrevCodes(emitObject){
+files.value[emitObject.fileNumber].localVariables.prevCodes = emitObject.newCodes;
+}
+
+function updateCurrCodes(emitObject){
+  files.value[emitObject.fileNumber].localVariables.currCodes[emitObject.line] = emitObject.newCodes;
+}
+
+function pushCodeRecords(fileNumber, newRecords){
+  // files.value[fileNumber].localVariables.codeRecords.value.push(newRecords);
+}
+
+function pushCurrCodes(fileNumber){
+  // files.value[fileNumber].localVariables.currCodes.value.push("");
+}
+
 </script>
 
 <template>
-  <div style="display: flex; height: 100vh;">
-    <div
-      id="left-bar"
-      style="
-        padding-left: 10px;
-        padding-right: 20px;
-        background-color: rgb(36, 36, 36);
-        color: rgb(255, 255, 255);
-      "
-    >
+  <div style="display: flex; height: 100vh">
+    <div id="left-bar">
       <div>File</div>
       <div>Code</div>
       <div>Fork</div>
       <div>Message</div>
     </div>
-    <div id="main-content" style="width: 100vw;">
-      <form id="code-area" @keydown="checkEvent">
-        <div v-for="(code, index) in currCodes" style="display: flex;">
-          <div class="code-index">{{ index }}</div>
-          <input
-            :id="`code-${index.toString()}`"
-            class="code-input"
-            ref="input"
-            v-model="currCodes[index]"
-            type="text"
-            @input="addCode"
-            @click="changeTarget"
-          />
-        </div>
-      </form>
-      <ul>
-        <li v-for="code in codeRecords">{{ code.action }} - {{ code.code }}</li>
-      </ul>
+    <div id="info-bar">
+      <div
+        v-for="(info,index) in files"
+        :key=index
+        style="display: flex"
+        @click="changeCurrFile(info.filename, index)"
+      >
+        <div style="color: yellow; margin-right: 10px">{{ info.language }}</div>
+        <div>{{ info.filename }}</div>
+      </div>
+    </div>
+    <div id="main-content">
+      <div v-for="(info, index) in files" :key="index">
+        <CodeBoardComponent
+          v-if="currentFile == info.filename"
+          :variables="info.localVariables"
+          :socket="socket"
+          :jwt="jwt"
+          :fileNumber="index"
+          ref="child"
+          @updateInput="updateInput"
+          @updateTargetLine= "updateTargetLine"
+          @updatePrevCodes="updatePrevCodes"
+          @updateCurrCodes="updateCurrCodes"
+          @pushCodeRecords="pushCodeRecords"
+          @pushCurrCodes="pushCurrCodes"
+        />
+        <!-- <CodeBoardComponent v-else style="display: none;" :codes="info.codes" :socket="socket" :jwt="jwt"/> -->
+      </div>
     </div>
   </div>
 </template>
@@ -215,22 +123,45 @@ onUnmounted(() => {
 h1 {
   color: red;
 }
+
 #code-area {
   border: 1px solid;
   background-color: rgb(36, 36, 36);
   color: rgb(255, 255, 255);
 }
+
+#left-bar {
+  padding-left: 10px;
+  padding-right: 20px;
+  background-color: #2c2c2c;
+  color: rgb(255, 255, 255);
+}
+
+#info-bar {
+  border-left: 1px solid rgb(255, 255, 255);
+  padding-left: 30px;
+  padding-right: 20px;
+  width: 200px;
+  background-color: rgb(36, 36, 36);
+  color: rgb(255, 255, 255);
+}
+
 .code-index {
   width: 50px;
   padding-right: 20px;
   padding-left: 20px;
   border-right: 1px solid rgb(255, 255, 255);
 }
+
+#main-content {
+  width: 100%;
+}
+
 .code-input {
   padding-left: 20px;
   border-width: 0px;
   width: 100%;
-  background-color: rgb(36, 36, 36);
+  background-color: rgb(78, 78, 78);
   color: rgb(255, 255, 255);
 }
 </style>
