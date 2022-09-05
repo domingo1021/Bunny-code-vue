@@ -24,6 +24,7 @@ const files = ref([
     localVariables: {
       input: [],
       targetLine: 0,
+      currIndex: 0,
       prevCodes: "",
       currCodes: [""],
       codeRecords: [],
@@ -36,6 +37,7 @@ const files = ref([
     localVariables: {
       input: ref([]),
       targetLine: ref(0),
+      currIndex: 0,
       prevCodes: "",
       currCodes: ref([""]),
       codeRecords: ref([]),
@@ -53,32 +55,28 @@ onUnmounted(() => {
 });
 
 function updateInput(emitObject){
-  console.log("New line in input:", emitObject.line)
   child.value[0].input[emitObject.line].focus();
 }
 
 function updateTargetLine(emitObject){
-  console.log("emitObject: ", emitObject);
   files.value[emitObject.fileNumber].localVariables.targetLine = emitObject.line;
-  // console.log(files.value[emitObject.fileNumber].localVariables.targetLine);
-}
-
-function updatePrevCodes(emitObject){
-
-  files.value[emitObject.fileNumber].localVariables.prevCodes = emitObject.newCodes;
 }
 
 function updateCurrCodes(emitObject){
   files.value[emitObject.fileNumber].localVariables.currCodes[emitObject.line] = emitObject.newCodes;
 }
 
+function updateCurrIndex(emitObject){
+  files.value[emitObject.fileNumber].localVariables.currIndex = emitObject.index;
+}
+
 function pushCodeRecords(emitObject){
+  console.log(emitObject.newRecords);
   files.value[emitObject.fileNumber].localVariables.codeRecords.push(emitObject.newRecords);
-  console.log(files.value[emitObject.fileNumber].localVariables.codeRecords)
 }
 
 function pushCurrCodes(emitObject){
-  files.value[emitObject.fileNumber].localVariables.currCodes.splice(emitObject.line, 0, "");
+  files.value[emitObject.fileNumber].localVariables.currCodes.splice(emitObject.line, 0, emitObject.codes);
 }
 
 </script>
@@ -114,7 +112,7 @@ function pushCurrCodes(emitObject){
           ref="child"
           @updateInput="updateInput"
           @updateTargetLine= "updateTargetLine"
-          @updatePrevCodes="updatePrevCodes"
+          @updateCurrIndex="updateCurrIndex"
           @updateCurrCodes="updateCurrCodes"
           @pushCodeRecords="pushCodeRecords"
           @pushCurrCodes="pushCurrCodes"

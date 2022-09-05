@@ -15,7 +15,7 @@ const input = ref([]);
 const emit = defineEmits([
   "updateInput",
   "updateTargetLine",
-  "updatePrevCodes",
+  "updateCurrIndex",
   "updateCurrCodes",
   "pushCodeRecords",
   "pushCurrCodes",
@@ -25,84 +25,54 @@ const addCode = (e) => {
   if (props.variables.codeRecords.length > 50) {
     alert("記得儲存程式碼！");
   }
+  let action;
+  if (e.inputType == "deleteContentBackward") {
+    action = "delete";
+  } else if (e.inputType == "insertText") {
+    action = "create";
+  }
   emit("updateCurrCodes", {
     fileNumber: props.fileNumber,
     line: props.variables.targetLine,
     newCodes: e.target.value,
   });
-  // Binary check the index of input code.
-  let prev = props.variables.prevCodes.split("");
-  const curr = props.variables.currCodes[props.variables.targetLine].split("");
-  let result = {};
-  if (prev.length > curr.length) {
-    console.log("backspace");
-    if (props.variables.prevCodes == "") {
-      return;
-    }
-    for (let i = 0; i < curr.length; i++) {
-      if (prev[i] !== curr[i]) {
-        result = {
-          index: i,
-          keyword: prev[i],
-        };
-        console.log("prev: ", prev);
-        console.log(i, result);
-        break;
-      }
-    }
-    if (!result.keyword) {
-      result = {
-        index: prev.length - 1,
-        keyword: prev[prev.length - 1],
-      };
-    }
-    emit("pushCodeRecords", {
+  emit("pushCodeRecords", {
+    fileNumber: props.fileNumber,
+    newRecords: {
+      action: action,
+      line: props.variables.targetLine,
+      index: props.variables.currIndex,
+      code: e.data,
+      timestamp: Date.now().toString() + "000000",
+    },
+  });
+  if (props.variables.currIndex < e.target.value.length) {
+    emit("updateCurrIndex", {
       fileNumber: props.fileNumber,
-      newRecords: {
-        action: "delete",
-        line: props.variables.targetLine,
-        index: result.index,
-        code: result.keyword,
-        timestamp: Date.now().toString() + "000000",
-      },
-    });
-  } else if (prev.length < curr.length) {
-    for (let i = 0; i < prev.length; i++) {
-      if (prev[i] !== curr[i]) {
-        result = {
-          index: i,
-          keyword: curr[i],
-        };
-        break;
-      }
-    }
-    if (!result.keyword) {
-      result = {
-        index: curr.length - 1,
-        keyword: curr[curr.length - 1],
-      };
-    }
-    emit("pushCodeRecords", {
-      fileNumber: props.fileNumber,
-      newRecords: {
-        action: "create",
-        line: props.variables.targetLine,
-        index: result.index,
-        code: result.keyword,
-        timestamp: Date.now().toString() + "000000",
-      },
+      index: props.variables.currIndex + 1,
     });
   }
-  const currentValue = props.variables.currCodes[props.variables.targetLine];
-  emit("updatePrevCodes", {
-    fileNumber: props.fileNumber,
-    newCodes: currentValue,
-  });
+  // const currentValue = props.variables.currCodes[props.variables.targetLine];
+  // emit("updatePrevCodes", {
+  //   fileNumber: props.fileNumber,
+  //   newCodes: currentValue,
+  // });
 };
 
 const checkEvent = async (e) => {
+  // key code,
+  // left: 37,
+  // right: 39,
   if (e.keyCode === 13) {
     console.log("enter");
+    let lineCode = props.variables.currCodes[props.variables.targetLine];
+    let nextLine = lineCode.substring(props.variables.currIndex);
+    lineCode = lineCode.substring(0, props.variables.currIndex);
+    emit("updateCurrCodes", {
+      fileNumber: props.fileNumber,
+      line: props.variables.targetLine,
+      newCodes: lineCode,
+    });
     emit("updateTargetLine", {
       fileNumber: props.fileNumber,
       line: props.variables.targetLine + 1,
@@ -110,19 +80,20 @@ const checkEvent = async (e) => {
     emit("pushCurrCodes", {
       fileNumber: props.fileNumber,
       line: props.variables.targetLine,
-    });
-    // emit("update")
-    emit("updatePrevCodes", {
-      fileNumber: props.fileNumber,
-      newCodes: props.variables.currCodes[props.variables.targetLine],
+      codes: nextLine,
     });
     emit("pushCodeRecords", {
       fileNumber: props.fileNumber,
       newRecords: {
         action: "enter",
+        index: props.variables.currIndex,
         line: props.variables.targetLine,
         timestamp: Date.now().toString() + "000000",
       },
+    });
+    emit("updateCurrIndex", {
+      fileNumber: props.fileNumber,
+      index: props.variables.currCodes[props.variables.targetLine].length,
     });
   } else if (e.keyCode === 38) {
     console.log("up");
@@ -131,10 +102,14 @@ const checkEvent = async (e) => {
         fileNumber: props.fileNumber,
         line: props.variables.targetLine - 1,
       });
-      emit("updatePrevCodes", {
+      emit("updateCurrIndex", {
         fileNumber: props.fileNumber,
-        newCodes: props.variables.currCodes[props.variables.targetLine],
+        index: 0,
       });
+      // emit("updatePrevCodes", {
+      //   fileNumber: props.fileNumber,
+      //   newCodes: props.variables.currCodes[props.variables.targetLine],
+      // });
       emit("pushCodeRecords", {
         fileNumber: props.fileNumber,
         newRecords: {
@@ -154,10 +129,14 @@ const checkEvent = async (e) => {
         fileNumber: props.fileNumber,
         line: props.variables.targetLine + 1,
       });
-      emit("updatePrevCodes", {
+      emit("updateCurrIndex", {
         fileNumber: props.fileNumber,
-        newCodes: props.variables.currCodes[props.variables.targetLine],
+        index: props.variables.currCodes[props.variables.targetLine].length,
       });
+      // emit("updatePrevCodes", {
+      //   fileNumber: props.fileNumber,
+      //   newCodes: props.variables.currCodes[props.variables.targetLine],
+      // });
       emit("pushCodeRecords", {
         fileNumber: props.fileNumber,
         newRecords: {
@@ -168,6 +147,25 @@ const checkEvent = async (e) => {
       });
       emit("updateInput", {
         line: props.variables.targetLine,
+      });
+    }
+  } else if (e.keyCode === 37) {
+    console.log("left");
+    if (props.variables.currIndex > 0) {
+      emit("updateCurrIndex", {
+        fileNumber: props.fileNumber,
+        index: props.variables.currIndex - 1,
+      });
+    }
+  } else if (e.keyCode === 39) {
+    console.log("right");
+    if (
+      props.variables.currIndex <
+      props.variables.currCodes[props.variables.targetLine].length
+    ) {
+      emit("updateCurrIndex", {
+        fileNumber: props.fileNumber,
+        index: props.variables.currIndex + 1,
       });
     }
   } else if (e.ctrlKey && e.keyCode === 83) {
@@ -183,7 +181,7 @@ const checkEvent = async (e) => {
     const allCodes = props.variables.currCodes.reduce((prev, curr) => {
       return prev + curr + "\n";
     }, "");
-    console.log(allCodes);
+    console.log("entire code:", allCodes);
     const submitForm = new FormData();
     const blob = new Blob([JSON.stringify(allCodes)], {
       type: "application/javascript",
@@ -193,15 +191,15 @@ const checkEvent = async (e) => {
     submitForm.append("versionID", 2);
     submitForm.append("reqCategory", "code_file");
     console.log("prepare to submit !");
-    const response = await axios({
-      method: "post",
-      url: "https://domingoos.store/api/1.0/record/file",
-      headers: {
-        Authorization: `Bearer ${props.jwt}`,
-      },
-      data: submitForm,
-    });
-    console.log(response);
+    // const response = await axios({
+    //   method: "post",
+    //   url: "https://domingoos.store/api/1.0/record/file",
+    //   headers: {
+    //     Authorization: `Bearer ${props.jwt}`,
+    //   },
+    //   data: submitForm,
+    // });
+    // console.log(response);
   }
 };
 
@@ -210,15 +208,14 @@ const changeTarget = (e) => {
     fileNumber: props.fileNumber,
     line: Number(e.target.id.split("-")[1]),
   });
-  emit("updatePrevCodes", {
-    fileNumber: props.fileNumber,
-    newCodes: props.variables.currCodes[props.variables.targetLine],
-  });
+  // emit("updatePrevCodes", {
+  //   fileNumber: props.fileNumber,
+  //   newCodes: props.variables.currCodes[props.variables.targetLine],
+  // });
 };
 
 onMounted(async () => {
   //TODO: socket send msg to backend, update version writing status.
-  console.log(props.fileNumber, props.variables.targetLine);
   emit("updateInput", {
     fileNumber: props.fileNumber,
     line: props.variables.targetLine,
