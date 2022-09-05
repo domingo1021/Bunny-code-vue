@@ -53,27 +53,32 @@ onUnmounted(() => {
 });
 
 function updateInput(emitObject){
+  console.log("New line in input:", emitObject.line)
   child.value[0].input[emitObject.line].focus();
 }
 
-function updateTargetLine(fileNumber, line){
-  // files.value[fileNumber].localVariables.targetLine = line;
+function updateTargetLine(emitObject){
+  console.log("emitObject: ", emitObject);
+  files.value[emitObject.fileNumber].localVariables.targetLine = emitObject.line;
+  // console.log(files.value[emitObject.fileNumber].localVariables.targetLine);
 }
 
 function updatePrevCodes(emitObject){
-files.value[emitObject.fileNumber].localVariables.prevCodes = emitObject.newCodes;
+
+  files.value[emitObject.fileNumber].localVariables.prevCodes = emitObject.newCodes;
 }
 
 function updateCurrCodes(emitObject){
   files.value[emitObject.fileNumber].localVariables.currCodes[emitObject.line] = emitObject.newCodes;
 }
 
-function pushCodeRecords(fileNumber, newRecords){
-  // files.value[fileNumber].localVariables.codeRecords.value.push(newRecords);
+function pushCodeRecords(emitObject){
+  files.value[emitObject.fileNumber].localVariables.codeRecords.push(emitObject.newRecords);
+  console.log(files.value[emitObject.fileNumber].localVariables.codeRecords)
 }
 
-function pushCurrCodes(fileNumber){
-  // files.value[fileNumber].localVariables.currCodes.value.push("");
+function pushCurrCodes(emitObject){
+  files.value[emitObject.fileNumber].localVariables.currCodes.splice(emitObject.line, 0, "");
 }
 
 </script>
@@ -101,10 +106,11 @@ function pushCurrCodes(fileNumber){
       <div v-for="(info, index) in files" :key="index">
         <CodeBoardComponent
           v-if="currentFile == info.filename"
-          :variables="info.localVariables"
           :socket="socket"
           :jwt="jwt"
           :fileNumber="index"
+          :fileName="info.filename"
+          :variables="info.localVariables"
           ref="child"
           @updateInput="updateInput"
           @updateTargetLine= "updateTargetLine"

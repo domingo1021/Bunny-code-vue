@@ -6,6 +6,7 @@ const props = defineProps({
   socket: Object,
   jwt: String,
   fileNumber: Number,
+  fileName: String,
   variables: Object,
 });
 
@@ -24,10 +25,9 @@ const addCode = (e) => {
   if (props.variables.codeRecords.length > 50) {
     alert("記得儲存程式碼！");
   }
-  console.log("hello", e);
   emit("updateCurrCodes", {
     fileNumber: props.fileNumber,
-    line: e.target.id.split("-")[1],
+    line: props.variables.targetLine,
     newCodes: e.target.value,
   });
   // Binary check the index of input code.
@@ -56,12 +56,15 @@ const addCode = (e) => {
         keyword: prev[prev.length - 1],
       };
     }
-    emit("updateCodeRecords", {
-      action: "delete",
-      line: props.variables.targetLine.value,
-      index: result.index,
-      code: result.keyword,
-      timestamp: Date.now().toString() + "000000",
+    emit("pushCodeRecords", {
+      fileNumber: props.fileNumber,
+      newRecords: {
+        action: "delete",
+        line: props.variables.targetLine,
+        index: result.index,
+        code: result.keyword,
+        timestamp: Date.now().toString() + "000000",
+      },
     });
   } else if (prev.length < curr.length) {
     for (let i = 0; i < prev.length; i++) {
@@ -80,11 +83,14 @@ const addCode = (e) => {
       };
     }
     emit("pushCodeRecords", {
-      action: "create",
-      line: props.variables.targetLine.value,
-      index: result.index,
-      code: result.keyword,
-      timestamp: Date.now().toString() + "000000",
+      fileNumber: props.fileNumber,
+      newRecords: {
+        action: "create",
+        line: props.variables.targetLine,
+        index: result.index,
+        code: result.keyword,
+        timestamp: Date.now().toString() + "000000",
+      },
     });
   }
   const currentValue = props.variables.currCodes[props.variables.targetLine];
@@ -97,98 +103,132 @@ const addCode = (e) => {
 const checkEvent = async (e) => {
   if (e.keyCode === 13) {
     console.log("enter");
-    emit("pushCurrCodes");
-    emit("updateTargetLine", props.variables.currCodes.value.length - 1);
-    emit(
-      "updatePrevCodes",
-      props.variables.currCodes.value[props.variables.targetLine.value]
-    );
+    emit("updateTargetLine", {
+      fileNumber: props.fileNumber,
+      line: props.variables.targetLine + 1,
+    });
+    emit("pushCurrCodes", {
+      fileNumber: props.fileNumber,
+      line: props.variables.targetLine,
+    });
+    // emit("update")
+    emit("updatePrevCodes", {
+      fileNumber: props.fileNumber,
+      newCodes: props.variables.currCodes[props.variables.targetLine],
+    });
     emit("pushCodeRecords", {
-      action: "enter",
-      line: props.variables.targetLine.value,
-      timestamp: Date.now().toString() + "000000",
+      fileNumber: props.fileNumber,
+      newRecords: {
+        action: "enter",
+        line: props.variables.targetLine,
+        timestamp: Date.now().toString() + "000000",
+      },
     });
   } else if (e.keyCode === 38) {
     console.log("up");
-    if (props.variables.targetLine.value > 0) {
-      emit("updateTargetLine", props.variables.currCodes.value.length - 1);
-      emit(
-        "updatePrevCodes",
-        props.variables.currCodes.value[props.variables.targetLine.value]
-      );
-      emit("pushCodeRecords", {
-        action: "up",
-        line: props.variables.targetLine.value,
-        timestamp: Date.now().toString() + "000000",
+    if (props.variables.targetLine > 0) {
+      emit("updateTargetLine", {
+        fileNumber: props.fileNumber,
+        line: props.variables.targetLine - 1,
       });
-      emit("updateInput", props.variables.targetLine.value);
+      emit("updatePrevCodes", {
+        fileNumber: props.fileNumber,
+        newCodes: props.variables.currCodes[props.variables.targetLine],
+      });
+      emit("pushCodeRecords", {
+        fileNumber: props.fileNumber,
+        newRecords: {
+          action: "up",
+          line: props.variables.targetLine.value,
+          timestamp: Date.now().toString() + "000000",
+        },
+      });
+      emit("updateInput", {
+        line: props.variables.targetLine,
+      });
     }
+  } else if (e.keyCode === 40) {
+    console.log("down");
+    if (props.variables.targetLine < props.variables.currCodes.length - 1) {
+      emit("updateTargetLine", {
+        fileNumber: props.fileNumber,
+        line: props.variables.targetLine + 1,
+      });
+      emit("updatePrevCodes", {
+        fileNumber: props.fileNumber,
+        newCodes: props.variables.currCodes[props.variables.targetLine],
+      });
+      emit("pushCodeRecords", {
+        fileNumber: props.fileNumber,
+        newRecords: {
+          action: "down",
+          line: props.variables.targetLine.value,
+          timestamp: Date.now().toString() + "000000",
+        },
+      });
+      emit("updateInput", {
+        line: props.variables.targetLine,
+      });
+    }
+  } else if (e.ctrlKey && e.keyCode === 83) {
+    // const saveResponse = await axios.post(
+    //   'http://localhost:3000/api/1.0/record',
+    //   {
+    //     userID: 1,
+    //     projectID: 1,
+    //     batchData: JSON.stringify(codeRecords.value),
+    //   },
+    // )
+    console.log("Control + Save");
+    const allCodes = props.variables.currCodes.reduce((prev, curr) => {
+      return prev + curr + "\n";
+    }, "");
+    console.log(allCodes);
+    const submitForm = new FormData();
+    const blob = new Blob([JSON.stringify(allCodes)], {
+      type: "application/javascript",
+    });
+    submitForm.append("files", blob, props.fileName);
+    submitForm.append("projectID", 1);
+    submitForm.append("versionID", 2);
+    submitForm.append("reqCategory", "code_file");
+    console.log("prepare to submit !");
+    const response = await axios({
+      method: "post",
+      url: "https://domingoos.store/api/1.0/record/file",
+      headers: {
+        Authorization: `Bearer ${props.jwt}`,
+      },
+      data: submitForm,
+    });
+    console.log(response);
   }
-  // else if (e.keyCode === 40) {
-  //   console.log("down");
-  //   if (targetLine.value < currCodes.value.length - 1) {
-  //     targetLine.value = targetLine.value + 1;
-  //     prevCodes = currCodes.value[targetLine.value];
-  //     codeRecords.value.push({
-  //       action: "down",
-  //       line: targetLine.value,
-  //       timestamp: Date.now().toString() + "000000",
-  //     });
-  //     input.value[targetLine.value].focus();
-  //   }
-  // } else if (e.ctrlKey && e.keyCode === 83) {
-  //   // const saveResponse = await axios.post(
-  //   //   'http://localhost:3000/api/1.0/record',
-  //   //   {
-  //   //     userID: 1,
-  //   //     projectID: 1,
-  //   //     batchData: JSON.stringify(codeRecords.value),
-  //   //   },
-  //   // )
-  //   console.log("Control + Save");
-  //   const allCodes = currCodes.value.reduce((prev, curr) => {
-  //     return prev + curr + "\n";
-  //   }, "");
-  //   console.log(allCodes);
-  //   const submitForm = new FormData();
-  //   const blob = new Blob([JSON.stringify(allCodes)], {
-  //     type: "application/javascript",
-  //   });
-  //   submitForm.append("files", blob, "test.js");
-  //   submitForm.append("projectID", 1);
-  //   submitForm.append("versionID", 2);
-  //   submitForm.append("reqCategory", "code_file");
-  //   const response = await axios({
-  //     method: "post",
-  //     url: "https://domingoos.store/api/1.0/record/file",
-  //     headers: {
-  //       Authorization: `Bearer ${jwt}`,
-  //     },
-  //     data: submitForm,
-  //   });
-  //   console.log(response);
-  // }
 };
 
 const changeTarget = (e) => {
-  // targetLine.value = Number(e.target.id.split("-")[1]);
-  // prevCodes = currCodes.value[targetLine.value];
-  // console.log(targetLine.value);
+  emit("updateTargetLine", {
+    fileNumber: props.fileNumber,
+    line: Number(e.target.id.split("-")[1]),
+  });
+  emit("updatePrevCodes", {
+    fileNumber: props.fileNumber,
+    newCodes: props.variables.currCodes[props.variables.targetLine],
+  });
 };
 
 onMounted(async () => {
   //TODO: socket send msg to backend, update version writing status.
-  // emit("updateInput", props.fileNumber, props.variables.targetLine.value)
-  console.log(props.fileNumber, props.variables.targetLine)
+  console.log(props.fileNumber, props.variables.targetLine);
   emit("updateInput", {
     fileNumber: props.fileNumber,
     line: props.variables.targetLine,
   });
-  // input.value[targetLine.value].focus();
 });
 
 onUpdated(() => {
-  // input.value[targetLine.value].focus();
+  emit("updateInput", {
+    line: props.variables.targetLine,
+  });
 });
 
 onUnmounted(() => {
@@ -198,11 +238,10 @@ onUnmounted(() => {
 defineExpose({
   input,
 });
-
-//TODO: Event: When user add ctrl+s (keyboard event), send axios to backend
 </script>
+
 <template>
-  <form id="code-area" @keydown="checkEvent">
+  <div id="code-area" @keydown="checkEvent">
     <div
       v-for="(code, index) in props.variables.currCodes"
       style="display: flex"
@@ -216,9 +255,10 @@ defineExpose({
         :value="props.variables.currCodes[index]"
         @input="addCode"
         @click="changeTarget"
+        autocomplete="off"
       />
     </div>
-  </form>
+  </div>
   <ul>
     <li v-for="code in props.variables.codeRecords">
       {{ code.action }} - {{ code.code }}
