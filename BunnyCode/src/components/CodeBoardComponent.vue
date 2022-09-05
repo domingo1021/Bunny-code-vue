@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, onUnmounted, onUpdated, ref } from "vue";
+import { onMounted, onUnmounted, onUpdated, ref, nextTick } from "vue";
 import axios from "axios";
 
 const props = defineProps({
@@ -20,6 +20,8 @@ const emit = defineEmits([
   "pushCodeRecords",
   "pushCurrCodes",
   "deleteCurrCodes",
+  "inputToFront",
+  "pushTerminal",
 ]);
 
 const addCode = (e) => {
@@ -112,6 +114,11 @@ const checkEvent = async (e) => {
       fileNumber: props.fileNumber,
       index: props.variables.currCodes[props.variables.targetLine].length,
     });
+    await nextTick()
+    emit("inputToFront", {
+      line: props.variables.targetLine,
+    });
+    console.log(props.variables.codeRecords);
   } else if (e.keyCode === 8) {
     console.log(`delete at ${props.variables.currIndex}`);
     if (props.variables.currIndex === 0 && props.variables.targetLine > 0) {
@@ -215,15 +222,20 @@ const checkEvent = async (e) => {
       });
     }
   } else if (e.ctrlKey && e.keyCode === 83) {
-    // const saveResponse = await axios.post(
-    //   'http://localhost:3000/api/1.0/record',
-    //   {
-    //     userID: 1,
-    //     projectID: 1,
-    //     batchData: JSON.stringify(codeRecords.value),
-    //   },
-    // )
     console.log("Control + Save");
+    const saveResponse = await axios.post(
+      "https://domingoos.store/api/1.0/record",
+      {
+        userID: 1,
+        projectID: 1,
+        versionID: 2,
+        fileName: props.fileName,
+        checkpointNumber: 1,
+        batchData: JSON.stringify(props.variables.codeRecords),
+      }
+    );
+    console.log("save response: ", saveResponse)
+    //Save code file.
     const allCodes = props.variables.currCodes.reduce((prev, curr) => {
       return prev + curr + "\n";
     }, "");
@@ -237,15 +249,15 @@ const checkEvent = async (e) => {
     submitForm.append("versionID", 2);
     submitForm.append("reqCategory", "code_file");
     console.log("prepare to submit !");
-    // const response = await axios({
-    //   method: "post",
-    //   url: "https://domingoos.store/api/1.0/record/file",
-    //   headers: {
-    //     Authorization: `Bearer ${props.jwt}`,
-    //   },
-    //   data: submitForm,
-    // });
-    // console.log(response);
+    const response = await axios({
+      method: "post",
+      url: "https://domingoos.store/api/1.0/record/file",
+      headers: {
+        Authorization: `Bearer ${props.jwt}`,
+      },
+      data: submitForm,
+    });
+    console.log(response);
   }
 };
 
@@ -254,11 +266,22 @@ const changeTarget = (e) => {
     fileNumber: props.fileNumber,
     line: Number(e.target.id.split("-")[1]),
   });
-  // emit("updatePrevCodes", {
-  //   fileNumber: props.fileNumber,
-  //   newCodes: props.variables.currCodes[props.variables.targetLine],
-  // });
 };
+
+async function runCode(){
+  const allCodes = props.variables.currCodes.reduce((prev, curr) => {
+    return prev + curr + "\n";
+  }, "");
+  console.log("entire code:", allCodes);
+  const result = await axios.post("https://domingoos.store/api/1.0/compiler", {
+    userID : 1,
+    codes: allCodes,
+  });
+  emit("pushTerminal", {
+    fileNumber: props.fileNumber,
+    result: result.data,
+  });
+}
 
 onMounted(async () => {
   //TODO: socket send msg to backend, update version writing status.
@@ -272,6 +295,9 @@ onUpdated(() => {
   emit("updateInput", {
     line: props.variables.targetLine,
   });
+  // emit("inputToFront", {
+  //     line: props.variables.targetLine,
+  //   });
 });
 
 onUnmounted(() => {
@@ -302,6 +328,7 @@ defineExpose({
       />
     </div>
   </div>
+  <button @click="runCode">Run code</button>
   <ul>
     <li v-for="code in props.variables.codeRecords">
       {{ code.action }} - {{ code.code }}
