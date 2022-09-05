@@ -15,10 +15,10 @@ const child = ref([]);
 const jwt = localStorage.getItem("jwt");
 const targetFileNum = ref(0);
 console.log(jwt);
-const currentFile = ref("test.js");
+const currentFile = ref(0);
 const files = ref([
   {
-    filename: "test.js",
+    filename: "oneSum.js",
     language: "JS",
     updated: true,
     localVariables: {
@@ -28,6 +28,7 @@ const files = ref([
       prevCodes: "",
       currCodes: [""],
       codeRecords: [],
+      console: [""],
     },
   },
   {
@@ -35,19 +36,20 @@ const files = ref([
     language: "JS",
     updated: false,
     localVariables: {
-      input: ref([]),
-      targetLine: ref(0),
+      input: [],
+      targetLine: 0,
       currIndex: 0,
       prevCodes: "",
-      currCodes: ref([""]),
-      codeRecords: ref([]),
+      currCodes: [""],
+      codeRecords: [],
+      console: [""],
     },
   },
 ]);
 
 function changeCurrFile(targetFile, index) {
-  currentFile.value = targetFile;
-  targetFileNum.value = index
+  currentFile.value = index;
+  targetFileNum.value = index;
 }
 
 onUnmounted(() => {
@@ -70,13 +72,16 @@ function updateCurrIndex(emitObject){
   files.value[emitObject.fileNumber].localVariables.currIndex = emitObject.index;
 }
 
-function pushCodeRecords(emitObject){
-  console.log(emitObject.newRecords);
+function pushCodeRecords(emitObject) {
   files.value[emitObject.fileNumber].localVariables.codeRecords.push(emitObject.newRecords);
 }
 
-function pushCurrCodes(emitObject){
+function pushCurrCodes(emitObject) {
   files.value[emitObject.fileNumber].localVariables.currCodes.splice(emitObject.line, 0, emitObject.codes);
+}
+
+function deleteCurrCodes(emitObject) {
+  files.value[emitObject.fileNumber].localVariables.currCodes.splice(emitObject.line, 1);
 }
 
 </script>
@@ -103,7 +108,7 @@ function pushCurrCodes(emitObject){
     <div id="main-content">
       <div v-for="(info, index) in files" :key="index">
         <CodeBoardComponent
-          v-if="currentFile == info.filename"
+          v-if="currentFile == index"
           :socket="socket"
           :jwt="jwt"
           :fileNumber="index"
@@ -116,6 +121,7 @@ function pushCurrCodes(emitObject){
           @updateCurrCodes="updateCurrCodes"
           @pushCodeRecords="pushCodeRecords"
           @pushCurrCodes="pushCurrCodes"
+          @deleteCurrCodes="deleteCurrCodes"
         />
         <!-- <CodeBoardComponent v-else style="display: none;" :codes="info.codes" :socket="socket" :jwt="jwt"/> -->
       </div>

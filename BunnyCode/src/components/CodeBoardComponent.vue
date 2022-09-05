@@ -19,16 +19,32 @@ const emit = defineEmits([
   "updateCurrCodes",
   "pushCodeRecords",
   "pushCurrCodes",
+  "deleteCurrCodes",
 ]);
 
 const addCode = (e) => {
-  if (props.variables.codeRecords.length > 50) {
-    alert("記得儲存程式碼！");
-  }
+  // if (props.variables.codeRecords.length > 50) {
+  //   alert("記得儲存程式碼！");
+  // }
   let action;
+  let newCode;
   if (e.inputType == "deleteContentBackward") {
+    newCode = props.variables.currCodes[props.variables.targetLine].substring(
+      props.variables.currIndex - 1,
+      props.variables.currIndex
+    );
     action = "delete";
   } else if (e.inputType == "insertText") {
+    newCode = e.data;
+    // if (e.data == "(") {
+    //   newCode = "()";
+    // } else if (e.data == "[") {
+    //   newCode = "[]";
+    // } else if (e.data == "{") {
+    //   newCode = "{}";
+    // }
+    // console.log(props.variables.currCodes[props.variables.targetLine].substring(0, props.variables.currIndex));
+    // e.target.value = props.variables.currCodes[props.variables.targetLine].substring(0, props.variables.currIndex) + newCode + props.variables.currCodes[props.variables.targetLine].substring(props.variables.currIndex);
     action = "create";
   }
   emit("updateCurrCodes", {
@@ -42,27 +58,28 @@ const addCode = (e) => {
       action: action,
       line: props.variables.targetLine,
       index: props.variables.currIndex,
-      code: e.data,
+      code: newCode,
       timestamp: Date.now().toString() + "000000",
     },
   });
-  if (props.variables.currIndex < e.target.value.length) {
+  console.log(props.variables.currIndex, e.target.value.length);
+  if (
+    // props.variables.currIndex < e.target.value.length &&
+    action === "create"
+  ) {
     emit("updateCurrIndex", {
       fileNumber: props.fileNumber,
-      index: props.variables.currIndex + 1,
+      index: props.variables.currIndex + newCode.length,
+    });
+  } else if (action === "delete") {
+    emit("updateCurrIndex", {
+      fileNumber: props.fileNumber,
+      index: props.variables.currIndex - 1,
     });
   }
-  // const currentValue = props.variables.currCodes[props.variables.targetLine];
-  // emit("updatePrevCodes", {
-  //   fileNumber: props.fileNumber,
-  //   newCodes: currentValue,
-  // });
 };
 
 const checkEvent = async (e) => {
-  // key code,
-  // left: 37,
-  // right: 39,
   if (e.keyCode === 13) {
     console.log("enter");
     let lineCode = props.variables.currCodes[props.variables.targetLine];
@@ -95,6 +112,43 @@ const checkEvent = async (e) => {
       fileNumber: props.fileNumber,
       index: props.variables.currCodes[props.variables.targetLine].length,
     });
+  } else if (e.keyCode === 8) {
+    console.log(`delete at ${props.variables.currIndex}`);
+    if (props.variables.currIndex === 0 && props.variables.targetLine > 0) {
+      let codeAfter = props.variables.currCodes[props.variables.targetLine];
+      console.log(codeAfter);
+      emit("deleteCurrCodes", {
+        fileNumber: props.fileNumber,
+        line: props.variables.targetLine,
+      });
+      emit("updateTargetLine", {
+        fileNumber: props.fileNumber,
+        line: props.variables.targetLine - 1,
+      });
+      emit("updateCurrCodes", {
+        fileNumber: props.fileNumber,
+        line: props.variables.targetLine,
+        newCodes:
+          props.variables.currCodes[props.variables.targetLine] + codeAfter,
+      });
+      emit("updateCurrIndex", {
+        fileNumber: props.fileNumber,
+        index: props.variables.currCodes[props.variables.targetLine].length,
+      });
+      emit("updateInput", {
+        line: props.variables.targetLine,
+      });
+      emit("pushCodeRecords", {
+        fileNumber: props.fileNumber,
+        newRecords: {
+          action: "delete",
+          line: props.variables.targetLine + 1,
+          index: 0,
+          code: "",
+          timestamp: Date.now().toString() + "000000",
+        },
+      });
+    }
   } else if (e.keyCode === 38) {
     console.log("up");
     if (props.variables.targetLine > 0) {
@@ -106,10 +160,6 @@ const checkEvent = async (e) => {
         fileNumber: props.fileNumber,
         index: 0,
       });
-      // emit("updatePrevCodes", {
-      //   fileNumber: props.fileNumber,
-      //   newCodes: props.variables.currCodes[props.variables.targetLine],
-      // });
       emit("pushCodeRecords", {
         fileNumber: props.fileNumber,
         newRecords: {
@@ -133,10 +183,6 @@ const checkEvent = async (e) => {
         fileNumber: props.fileNumber,
         index: props.variables.currCodes[props.variables.targetLine].length,
       });
-      // emit("updatePrevCodes", {
-      //   fileNumber: props.fileNumber,
-      //   newCodes: props.variables.currCodes[props.variables.targetLine],
-      // });
       emit("pushCodeRecords", {
         fileNumber: props.fileNumber,
         newRecords: {
@@ -238,7 +284,7 @@ defineExpose({
 </script>
 
 <template>
-  <div id="code-area" @keydown="checkEvent">
+  <div id="code-area" @keyup="checkEvent">
     <div
       v-for="(code, index) in props.variables.currCodes"
       style="display: flex"
