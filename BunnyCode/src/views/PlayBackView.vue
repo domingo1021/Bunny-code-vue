@@ -71,7 +71,9 @@ const triggerEvent = (recordObject) => {
     targetLine.value = targetLine.value + 1;
     input.value[targetLine.value].focus();
   } else if (action === "enter") {
+    console.log("Object: ", recordObject)
     const newLine = currCodes.value[targetLine.value].substring(recordObject.index);
+    console.log(newLine, "黑", currCodes.value[targetLine.value].substring(0, recordObject.index));
     currCodes.value[targetLine.value] = currCodes.value[targetLine.value].substring(0, recordObject.index);
     currCodes.value.push(newLine);
     targetLine.value = targetLine.value + 1;

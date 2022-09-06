@@ -79,6 +79,7 @@ function pushCodeRecords(emitObject) {
   files.value[emitObject.fileNumber].localVariables.codeRecords.push(
     emitObject.newRecords
   );
+  console.log("line: ", emitObject.newRecords.line, "index: ", emitObject.newRecords.index);
 }
 
 function pushCurrCodes(emitObject) {
@@ -91,7 +92,7 @@ function pushCurrCodes(emitObject) {
 
 function pushTerminal(emitObject) {
   console.log(emitObject);
-  terminalResult.value.push(emitObject.result);
+  terminalResult.value.push(...emitObject.result);
 }
 
 function deleteCurrCodes(emitObject) {
