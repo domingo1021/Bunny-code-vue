@@ -64,7 +64,6 @@ const addCode = (e) => {
       timestamp: Date.now().toString() + "000000",
     },
   });
-  console.log(props.variables.currIndex, e.target.value.length);
   if (
     // props.variables.currIndex < e.target.value.length &&
     action === "create"
@@ -85,21 +84,22 @@ const checkEvent = async (e) => {
   if (e.keyCode === 13) {
     console.log("enter");
     let lineCode = props.variables.currCodes[props.variables.targetLine];
-    let nextLine = lineCode.substring(props.variables.currIndex);
-    lineCode = lineCode.substring(0, props.variables.currIndex);
+    let nextLine;
+    console.log("currIndex: ", props.variables.currIndex);
+    if (props.variables.currIndex === 1) {
+      console.log(1);
+      nextLine = lineCode;
+      lineCode = "";
+    } else {
+      console.log(2);
+      nextLine = lineCode.substring(props.variables.currIndex);
+      lineCode = lineCode.substring(0, props.variables.currIndex);
+    }
+    console.log("lineCode:", lineCode);
     emit("updateCurrCodes", {
       fileNumber: props.fileNumber,
       line: props.variables.targetLine,
       newCodes: lineCode,
-    });
-    emit("updateTargetLine", {
-      fileNumber: props.fileNumber,
-      line: props.variables.targetLine + 1,
-    });
-    emit("pushCurrCodes", {
-      fileNumber: props.fileNumber,
-      line: props.variables.targetLine,
-      codes: nextLine,
     });
     emit("pushCodeRecords", {
       fileNumber: props.fileNumber,
@@ -110,11 +110,20 @@ const checkEvent = async (e) => {
         timestamp: Date.now().toString() + "000000",
       },
     });
+    emit("updateTargetLine", {
+      fileNumber: props.fileNumber,
+      line: props.variables.targetLine + 1,
+    });
+    emit("pushCurrCodes", {
+      fileNumber: props.fileNumber,
+      line: props.variables.targetLine,
+      codes: nextLine,
+    });
     emit("updateCurrIndex", {
       fileNumber: props.fileNumber,
-      index: props.variables.currCodes[props.variables.targetLine].length,
+      index: 0,
     });
-    await nextTick()
+    await nextTick();
     emit("inputToFront", {
       line: props.variables.targetLine,
     });
@@ -225,6 +234,7 @@ const checkEvent = async (e) => {
     console.log("Control + Save");
     const saveResponse = await axios.post(
       "https://domingoos.store/api/1.0/record",
+      // "https://domingoos.store/api/1.0/record",
       {
         userID: 1,
         projectID: 1,
@@ -234,7 +244,7 @@ const checkEvent = async (e) => {
         batchData: JSON.stringify(props.variables.codeRecords),
       }
     );
-    console.log("save response: ", saveResponse)
+    console.log("save response: ", saveResponse);
     //Save code file.
     const allCodes = props.variables.currCodes.reduce((prev, curr) => {
       return prev + curr + "\n";
@@ -268,18 +278,28 @@ const changeTarget = (e) => {
   });
 };
 
-async function runCode(){
+async function runCode() {
   const allCodes = props.variables.currCodes.reduce((prev, curr) => {
     return prev + curr + "\n";
   }, "");
   console.log("entire code:", allCodes);
-  const result = await axios.post("https://domingoos.store/api/1.0/compiler", {
-    userID : 1,
-    codes: allCodes,
-  });
+  let result;
+  try {
+    const compilerResult = await axios.post(
+      "https://domingoos.store/api/1.0/compiler",
+      {
+        userID: 1,
+        codes: allCodes,
+        fileName: props.fileName,
+      }
+    );
+    result = compilerResult.data.split("\n");
+  } catch (error) {
+    result = "QQ 好像有 bug";
+  }
   emit("pushTerminal", {
     fileNumber: props.fileNumber,
-    result: result.data,
+    result: result,
   });
 }
 

@@ -1,6 +1,7 @@
 <template>
   <div class="about">
     <h1>This is an about page</h1>
+    <textarea name="" id="" cols="30" rows="10"></textarea>
   </div>
 </template>
 
