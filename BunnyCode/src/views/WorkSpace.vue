@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, onUnmounted, onUpdated, ref } from "vue";
+import { onUnmounted, ref } from "vue";
 // import axios from "axios";
 import TerminalComponent from "../components/TerminalComponent.vue";
 import CodeBoardComponent from "@/components/CodeBoardComponent.vue";

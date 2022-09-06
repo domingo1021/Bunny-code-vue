@@ -1,11 +1,3 @@
-<script setup>
-import { RouterLink, RouterView } from "vue-router";
-import io from "socket.io-client";
-
-// const socket = io('http://localhost:3000')
-const socket = io ( 'wss://domingoos.store', { path:'/api/socket/' });
-</script>
-
 <template>
   <header>
     <nav id="top-navbar">
@@ -18,6 +10,7 @@ const socket = io ( 'wss://domingoos.store', { path:'/api/socket/' });
           <RouterLink to="/playback" class="nav-item">
             Playback (tmp)
           </RouterLink>
+          <RouterLink to="/code-mirror" class="nav-item">Code Mirror</RouterLink>
         </div>
         <div class="right-flex">
           <div class="nav-item">123</div>
@@ -29,10 +22,20 @@ const socket = io ( 'wss://domingoos.store', { path:'/api/socket/' });
   </header>
   <body>
     <main>
+      <!-- <textarea v-model="content" id="editor"></textarea> -->
       <router-view :socket="socket"></router-view>
     </main>
   </body>
 </template>
+
+
+<script setup>
+import {  RouterLink, RouterView } from "vue-router";
+import io from "socket.io-client";
+
+const socket = io("wss://domingoos.store", { path: "/api/socket/" });
+
+</script>
 
 <style scoped>
 nav a.router-link-exact-active {
