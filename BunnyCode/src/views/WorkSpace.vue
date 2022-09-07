@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, onUnmounted, onUpdated, ref } from "vue";
+import { onUnmounted, ref } from "vue";
 // import axios from "axios";
 import TerminalComponent from "../components/TerminalComponent.vue";
 import CodeBoardComponent from "@/components/CodeBoardComponent.vue";
@@ -160,13 +160,6 @@ function inputToFront(emitObject) {
 h1 {
   color: red;
 }
-
-/* footer{
-  position: absolute;
-  bottom: 200px;
-  width: 100%;
-  height: 50px;
-} */
 
 #code-area {
   border: 1px solid;

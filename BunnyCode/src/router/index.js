@@ -27,6 +27,16 @@ const router = createRouter({
       name: "playback",
       component: () => import("../views/PlayBackView.vue"),
     },
+    {
+      path: "/code-mirror",
+      name: "code-mirror",
+      component: () => import("../views/CodeMirrorView.vue"),
+    },
+    {
+      path: "/code-mirror-playback",
+      name: "code-mirror-playback",
+      component: () => import("../views/PlaybackMirror.vue"),
+    }
   ],
 });
 
