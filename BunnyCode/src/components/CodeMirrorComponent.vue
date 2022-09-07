@@ -2,11 +2,13 @@
   <div @input="updateContent" @keyup="checkEventUp">
     <textarea id="editor" cols="30" rows="10"></textarea>
   </div>
+  <button @click="runCode">Run code</button>
   <button @click="checkSame">click</button>
 </template>
 
 <script setup>
 import * as CodeMirror from "codemirror";
+import axios from "axios";
 import "codemirror/lib/codemirror.css";
 import "codemirror/theme/dracula.css";
 import "codemirror/mode/javascript/javascript.js";
@@ -25,6 +27,7 @@ const emit = defineEmits([
   "updateCurrCodes",
   "updateCurrLine",
   "pushCodeRecords",
+  "pushTerminal",
 ]);
 
 let editor = null;
@@ -53,7 +56,7 @@ function updateContent(e) {
   });
   emit("updateCurrIndex", {
     fileNumber: props.info.fileNumber,
-    index: props.info.index + addCode.length,
+    index: props.info.index + 1,
   });
   emit("updateCurrCodes", {
     fileNumber: props.info.fileNumber,
@@ -61,7 +64,7 @@ function updateContent(e) {
   });
 }
 
-function checkEventUp(e) {
+async function checkEventUp(e) {
   console.log(e.key);
   if (e.key === "Enter") {
     console.log("Enter");
@@ -179,15 +182,20 @@ function checkEventUp(e) {
     }
   } else if (e.key === "ArrowRight") {
     console.log("right");
+    // console.log("index: ",  props.info.index ,
+        // props.info.fileContent.split("\n")[props.info.line].length - 1)
+    // console.log("line: ",  props.info.line, props.info.fileContent.split("\n").length - 1)
     if (
       props.info.index ===
-        props.info.fileContent.split("\n")[props.info.line].length - 1 &&
+        props.info.fileContent.split("\n")[props.info.line].length &&
       props.info.line === props.info.fileContent.split("\n").length - 1
     ) {
+      console.log("out");
       return;
     } else if (
       props.info.index ===
-      props.info.fileContent.split("\n")[props.info.line].length - 1
+      props.info.fileContent.split("\n")[props.info.line].length &&
+      props.info.fileContent.split("\n").length > 0
     ) {
       emit("pushCodeRecords", {
         fileNumber: props.info.fileNumber,
@@ -223,20 +231,71 @@ function checkEventUp(e) {
         index: props.info.index + 1,
       });
     }
+  } else if (e.ctrlKey && e.keyCode === 83) {
+    console.log("Control + Save");
+    const saveResponse = await axios.post(
+      "https://domingoos.store/api/1.0/record",
+      // "https://domingoos.store/api/1.0/record",
+      {
+        userID: 1,
+        projectID: 1,
+        versionID: 2,
+        fileName: props.fileName,
+        checkpointNumber: 1,
+        batchData: JSON.stringify(props.info.codeRecords),
+      }
+    );
+    console.log("save response: ", saveResponse);
+    //Save code file.
+    const allCodes = props.info.fileContent
+    console.log("entire code:", allCodes);
+    const submitForm = new FormData();
+    const blob = new Blob([JSON.stringify(allCodes)], {
+      type: "application/javascript",
+    });
+    submitForm.append("files", blob, props.fileName);
+    submitForm.append("projectID", 1);
+    submitForm.append("versionID", 2);
+    submitForm.append("reqCategory", "code_file");
+    console.log("prepare to submit !");
+    const response = await axios({
+      method: "post",
+      url: "https://domingoos.store/api/1.0/record/file",
+      headers: {
+        Authorization: `Bearer ${props.jwt}`,
+      },
+      data: submitForm,
+    });
+    console.log(response);
   }
+}
+
+async function runCode() {
+  const allCodes = props.info.fileContent;
+  let result;
+  try {
+    const compilerResult = await axios.post(
+      "https://domingoos.store/api/1.0/compiler",
+      {
+        userID: 1,
+        codes: allCodes,
+        fileName: props.fileName,
+      }
+    );
+    result = compilerResult.data.split("\n");
+  } catch (error) {
+    result = "QQ 好像有 bug";
+  }
+  emit("pushTerminal", {
+    fileNumber: props.fileNumber,
+    result: result,
+  });
 }
 
 function checkSame() {
   console.log(props.info.codeRecords);
   editor.getDoc().setValue(props.info.fileContent);
 }
-
-// function newLine() {
-//   console.log("clicked");
-//   content.value += "123\n";
-//   console.log(content.value);
-//   editor.getDoc().setValue(content.value);
-// }
 
 onMounted(() => {
   editor = CodeMirror.fromTextArea(document.getElementById("editor"), {

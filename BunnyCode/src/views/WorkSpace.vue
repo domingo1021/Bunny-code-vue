@@ -161,13 +161,6 @@ h1 {
   color: red;
 }
 
-/* footer{
-  position: absolute;
-  bottom: 200px;
-  width: 100%;
-  height: 50px;
-} */
-
 #code-area {
   border: 1px solid;
   background-color: rgb(36, 36, 36);

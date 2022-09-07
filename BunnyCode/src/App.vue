@@ -11,6 +11,7 @@
             Playback (tmp)
           </RouterLink>
           <RouterLink to="/code-mirror" class="nav-item">Code Mirror</RouterLink>
+          <RouterLink to="/code-mirror-playback" class="nav-item">Playback 2.0</RouterLink>
         </div>
         <div class="right-flex">
           <div class="nav-item">123</div>
