@@ -6,6 +6,8 @@ import { ref } from "vue";
 const atAlt = ref(false);
 const atCtl = ref(false);
 const jwt = localStorage.getItem("jwt");
+const ifSelf = ref(true);
+const editStatus = ref(true);
 
 const props = defineProps({
   socket: Object,
@@ -20,6 +22,7 @@ const folderInfo = ref([
     index: 0,
     line: 0,
     codeRecords: [],
+    timeBetween: [],
   },
 ]);
 
@@ -36,10 +39,6 @@ function checkEventUp(e) {
 //emit function
 function updateCurrCodes(emitObject) {
   folderInfo.value[emitObject.fileNumber].fileContent = emitObject.code;
-  console.log(
-    "current codes: ",
-    folderInfo.value[emitObject.fileNumber].fileContent
-  );
 }
 
 function updateCurrIndex(emitObject) {
@@ -59,6 +58,31 @@ function pushCodeRecords(emitObject) {
 
 function pushTerminal(emitObject) {
   terminalResult.value.push(...emitObject.result);
+}
+
+function updateAllRecords(emitObject) {
+  folderInfo.value[emitObject.fileNumber].codeRecords = emitObject.codeRecords;
+}
+
+function updateTimeBetween(emitObject) {
+  folderInfo.value[emitObject.fileNumber].timeBetween = emitObject.timeBetween;
+}
+
+function changeSelf() {
+  if (ifSelf.value) {
+    ifSelf.value = false;
+    editStatus.value = false;
+  } else {
+    ifSelf.value = true;
+  }
+}
+
+function changeEdit() {
+  if (ifSelf.value && editStatus.value) {
+    editStatus.value = false;
+  } else if (ifSelf.value && !editStatus.value) {
+    editStatus.value = true;
+  }
 }
 </script>
 <template>
@@ -81,27 +105,61 @@ function pushTerminal(emitObject) {
       </div>
     </div>
     <div id="main-content">
-      <div
-        v-for="(fileInfo, index) in folderInfo"
-        @input="updateContent"
-        @keyup="checkEventUp"
-        @keydown="checkEventDown"
-        :key="index"
-      >
-        <CodeMirrorComponent
-          :info="fileInfo"
-          :atAlt="atAlt"
-          :atCtl="atCtl"
-          :jwt="jwt"
-          :socket="props.socket"
-          @updateCurrCodes="updateCurrCodes"
-          @updateCurrIndex="updateCurrIndex"
-          @updateCurrLine="updateCurrLine"
-          @pushCodeRecords="pushCodeRecords"
-          @pushTerminal="pushTerminal"
-        />
+      <button type="button" @click="changeSelf">Change user auth</button>
+      <button type="button" @click="changeEdit">Change edit status</button>
+      <div>User auth: {{ ifSelf }}</div>
+      <div>Edit status: {{ editStatus }}</div>
+      <div v-if="ifSelf && editStatus">
+        <div>可編輯的 div</div>
+        <div
+          v-for="(fileInfo, index) in folderInfo"
+          @input="updateContent"
+          @keyup="checkEventUp"
+          @keydown="checkEventDown"
+          :key="index"
+        >
+          <CodeMirrorComponent
+            :info="fileInfo"
+            :atAlt="atAlt"
+            :atCtl="atCtl"
+            :jwt="jwt"
+            :socket="props.socket"
+            :readOnly="false"
+            @updateCurrCodes="updateCurrCodes"
+            @updateCurrIndex="updateCurrIndex"
+            @updateCurrLine="updateCurrLine"
+            @pushCodeRecords="pushCodeRecords"
+            @pushTerminal="pushTerminal"
+          />
+        </div>
       </div>
-      <TerminalComponent :terminalResult="terminalResult" />
+      <div v-else>
+        <div>不可編輯的 div</div>
+        <div
+          v-for="(fileInfo, index) in folderInfo"
+          @input="updateContent"
+          @keyup="checkEventUp"
+          @keydown="checkEventDown"
+          :key="index"
+        >
+          <CodeMirrorComponent
+            :info="fileInfo"
+            :atAlt="atAlt"
+            :atCtl="atCtl"
+            :jwt="jwt"
+            :socket="props.socket"
+            :readOnly="true"
+            @updateCurrCodes="updateCurrCodes"
+            @updateCurrIndex="updateCurrIndex"
+            @updateCurrLine="updateCurrLine"
+            @pushCodeRecords="pushCodeRecords"
+            @pushTerminal="pushTerminal"
+            @updateAllRecords="updateAllRecords"
+            @updateTimeBetween="updateTimeBetween"
+          />
+        </div>
+      </div>
+      <!-- <TerminalComponent :terminalResult="terminalResult" /> -->
     </div>
   </div>
 </template>

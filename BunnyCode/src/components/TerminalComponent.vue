@@ -19,6 +19,6 @@ const props = defineProps({
   position: absolute;
   bottom: 0px;
   width: 100%;
-  height: 250px;
+  height: 180px;
 }
 </style>

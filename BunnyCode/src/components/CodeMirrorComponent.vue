@@ -1,7 +1,22 @@
 <template>
   <div @input="updateContent" @keyup="checkEventUp">
-    <textarea id="editor" cols="30" rows="10"></textarea>
+    <textarea
+      v-if="props.readOnly"
+      :value="props.info.fileContent"
+      id="editor"
+      cols="30"
+      rows="10"
+      readonly
+    ></textarea>
+    <textarea
+      v-else
+      id="editor"
+      :value="props.info.fileContent"
+      cols="30"
+      rows="10"
+    ></textarea>
   </div>
+  <button @click="playback">Playback</button>
   <button @click="runCode">Run code</button>
   <button @click="checkSame">click</button>
 </template>
@@ -20,6 +35,7 @@ const props = defineProps({
   info: Object,
   atAlt: Boolean,
   atCtl: Boolean,
+  readOnly: Boolean,
 });
 
 const emit = defineEmits([
@@ -28,6 +44,8 @@ const emit = defineEmits([
   "updateCurrLine",
   "pushCodeRecords",
   "pushTerminal",
+  "updateAllRecords",
+  "updateTimeBetween",
 ]);
 
 let editor = null;
@@ -132,8 +150,7 @@ async function checkEventUp(e) {
       });
       emit("updateCurrIndex", {
         fileNumber: props.info.fileNumber,
-        index:
-          editor.getDoc().getValue().split("\n")[props.info.line].length - 1,
+        index: editor.getDoc().getValue().split("\n")[props.info.line].length,
       });
     } else {
       emit("updateCurrIndex", {
@@ -183,7 +200,7 @@ async function checkEventUp(e) {
   } else if (e.key === "ArrowRight") {
     console.log("right");
     // console.log("index: ",  props.info.index ,
-        // props.info.fileContent.split("\n")[props.info.line].length - 1)
+    // props.info.fileContent.split("\n")[props.info.line].length - 1)
     // console.log("line: ",  props.info.line, props.info.fileContent.split("\n").length - 1)
     if (
       props.info.index ===
@@ -194,7 +211,7 @@ async function checkEventUp(e) {
       return;
     } else if (
       props.info.index ===
-      props.info.fileContent.split("\n")[props.info.line].length &&
+        props.info.fileContent.split("\n")[props.info.line].length &&
       props.info.fileContent.split("\n").length > 0
     ) {
       emit("pushCodeRecords", {
@@ -240,14 +257,14 @@ async function checkEventUp(e) {
         userID: 1,
         projectID: 1,
         versionID: 2,
-        fileName: props.fileName,
+        fileName: props.info.fileName,
         checkpointNumber: 1,
         batchData: JSON.stringify(props.info.codeRecords),
       }
     );
     console.log("save response: ", saveResponse);
     //Save code file.
-    const allCodes = props.info.fileContent
+    const allCodes = props.info.fileContent;
     console.log("entire code:", allCodes);
     const submitForm = new FormData();
     const blob = new Blob([JSON.stringify(allCodes)], {
@@ -297,18 +314,171 @@ function checkSame() {
   editor.getDoc().setValue(props.info.fileContent);
 }
 
-onMounted(() => {
+async function playback() {
+  //TODO: set 所有父層資料為初始值
+  for (let i = 0; i < props.info.timeBetween.length; i++) {
+    await new Promise((resolve, reject) => {
+      setTimeout(() => {
+        const currObject = props.info.codeRecords[i];
+        triggerEvent(currObject);
+        resolve();
+      }, props.info.timeBetween[i]);
+    });
+  }
+}
+
+function triggerEvent(recordObject) {
+  const action = recordObject.action;
+  if (action === "create") {
+    const prevCodes = editor.getDoc().getValue();
+    const codes = prevCodes.split("\n");
+    codes[recordObject.line] =
+      codes[recordObject.line].substring(0, recordObject.index) +
+      recordObject.code +
+      codes[recordObject.line].substring(recordObject.index);
+    let newCodes = "";
+    codes.forEach((code, index) => {
+      if (index !== codes.length - 1) {
+        newCodes += code + "\n";
+      } else {
+        newCodes += code;
+      }
+    });
+    editor.getDoc().setValue(newCodes);
+    emit("updateCurrIndex", {
+      fileNumber: props.info.fileNumber,
+      index: props.info.index + recordObject.code.length,
+    });
+    emit("updateCurrCodes", {
+      fileNumber: props.info.fileNumber,
+      code: newCodes,
+    });
+  } else if (action === "delete") {
+    const prevCodes = editor.getDoc().getValue();
+    const codes = prevCodes.split("\n");
+    let newCodes = "";
+    let changeLineStatus = false;
+    console.log(recordObject.code);
+    if (recordObject.code === "\r\n") {
+      changeLineStatus = true;
+      codes[recordObject.line - 1] += codes[recordObject.line];
+      codes.splice(recordObject.line, 1);
+    } else {
+      let lineCode = codes[recordObject.line];
+      lineCode =
+        lineCode.substring(0, recordObject.index - 1) +
+        lineCode.substring(recordObject.index);
+      codes[recordObject.line] = lineCode;
+    }
+    codes.forEach((code, index) => {
+      if (index !== codes.length - 1) {
+        newCodes += code + "\n";
+      } else {
+        newCodes += code;
+      }
+    });
+    editor.getDoc().setValue(newCodes);
+    emit("updateCurrCodes", {
+      fileNumber: props.info.fileNumber,
+      code: newCodes,
+    });
+    if (changeLineStatus) {
+      emit("updateCurrLine", {
+        fileNumber: props.info.fileNumber,
+        line: props.info.line - 1,
+      });
+      emit("updateCurrIndex", {
+        fileNumber: props.info.fileNumber,
+        index: newCodes.split("\n")[props.info.line].length,
+      });
+      console.log("update index at: ", newCodes.split("\n")[props.info.line].length)
+    } else {
+      emit("updateCurrIndex", {
+        fileNumber: props.info.fileNumber,
+        index: props.info.index - 1,
+      });
+    }
+  } else if (action === "enter") {
+    console.log('enter');
+    const prevCodes = editor.getDoc().getValue();
+    const codes = prevCodes.split("\n");
+    let lineCode = codes[props.info.line];
+    console.log(recordObject.index, props.info.index);
+    codes.splice(props.info.line + 1, 0, lineCode.substring(recordObject.index));
+    codes[props.info.line] = lineCode.substring(0, recordObject.index);
+    const newCodes = codes.reduce((prev, curr, index) => {
+      if (index !== codes.length - 1) {
+        prev += curr + "\n";
+      } else {
+        prev += curr;
+      }
+      return prev;
+    }, "");
+    editor.getDoc().setValue(newCodes);
+    emit("updateCurrCodes", {
+      fileNumber: props.info.fileNumber,
+      code: newCodes,
+    });
+    emit("updateCurrLine", {
+      fileNumber: props.info.fileNumber,
+      line: props.info.line + 1,
+    });
+    emit("updateCurrIndex", {
+      fileNumber: props.info.fileNumber,
+      index: 0,
+    });
+  }
+}
+
+onMounted(async () => {
+  console.log("readOnly: ", props.readOnly);
+  let tmpReadOnly = props.readOnly;
+  if (tmpReadOnly) {
+    tmpReadOnly = "nocursor";
+  }
   editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
+    value: props.info.fileContent,
     lineNumbers: true,
     identUnit: 2,
     autofocus: true,
-    disabled: false,
+    readOnly: tmpReadOnly,
     indentWithTab: true,
     tabSize: 2,
     autocorrect: true,
     theme: "dracula",
     mode: "javascript",
   });
+  if (props.readOnly) {
+    let recordResponse = await axios.post(
+      "https://domingoos.store/api/1.0/history/1",
+      {
+        projectID: 1,
+        startTime: "2022-09-03T04:25:32.985Z",
+        stopTime: "2022-09-10T04:25:32.985Z",
+      }
+    );
+    recordResponse = recordResponse.data.data;
+    console.log(props.info.fileNumber, recordResponse);
+    emit("updateAllRecords", {
+      fileNumber: props.info.fileNumber,
+      codeRecords: recordResponse,
+    });
+    let tmpTimeBetween = [0];
+    for (let i = 0; i < recordResponse.length; i++) {
+      if (i == 0) {
+        continue;
+      }
+      tmpTimeBetween.push(
+        new Date(recordResponse[i].timestamp).getTime() -
+          new Date(recordResponse[i - 1].timestamp).getTime()
+      );
+    }
+    emit("updateTimeBetween", {
+      fileNumber: props.info.fileNumber,
+      timeBetween: tmpTimeBetween,
+    });
+    console.log("Time Between: ", props.info.timeBetween);
+  }
 });
 </script>
 
