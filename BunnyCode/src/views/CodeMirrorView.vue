@@ -55,13 +55,6 @@ function checkEventUp(e) {
 function updateCurrCodes(emitObject) {
   folderInfo.value[emitObject.fileNumber].fileContent = emitObject.code;
   console.log("current codes: ", folderInfo.value[emitObject.fileNumber].fileContent);
-  // let prevCodes =
-  //   folderInfo.value[emitObject.fileNumber].fileContent.split("\n");
-
-  // folderInfo.value[emitObject.fileNumber].fileContent =
-  //   prevCodes[emitObject.line].substring(0, emitObject.index) +
-  //   emitObject.code +
-  //   prevCodes[emitObject.line].substring(emitObject.index);
 }
 
 function updateCurrIndex(emitObject) {
