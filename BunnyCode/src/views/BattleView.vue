@@ -1,5 +1,6 @@
 <template>
-  Battle view
+  <h1>Battle view</h1>
+  <div>{{msg}}</div>
 </template>
 
 <script setup>
@@ -23,6 +24,7 @@ const battlers = ref([]);
 const userID = ref(-1);
 //default visitor.
 const authorization = ref(0);
+const msg = ref([]);
 
 const socket = io(localhostServer, {
   auth: (cb) => {
@@ -35,6 +37,10 @@ socket.on("returnBattler", (responseObject) => {
   battlers.value = responseObject.battlers; 
   userID.value = responseObject.userID,
   authorization.value = responseObject.category;
+})
+
+socket.on("in", (msg)=>{
+  msg.value.push(msg);
 })
 
 onMounted(async () => {
