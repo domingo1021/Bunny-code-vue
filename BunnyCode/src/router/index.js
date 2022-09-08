@@ -33,9 +33,10 @@ const router = createRouter({
       component: () => import("../views/CodeMirrorView.vue"),
     },
     {
-      path: "/code-mirror-playback",
-      name: "code-mirror-playback",
-      component: () => import("../views/PlaybackMirror.vue"),
+      path: "/battle/:battleID",
+      name: "battle",
+      component: () => import("../views/BattleView.vue"),
+      props: true
     }
   ],
 });

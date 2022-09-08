@@ -10,7 +10,7 @@ const ifSelf = ref(true);
 const editStatus = ref(true);
 
 const props = defineProps({
-  socket: Object,
+  // socket: Object,
 });
 
 const folderInfo = ref([
