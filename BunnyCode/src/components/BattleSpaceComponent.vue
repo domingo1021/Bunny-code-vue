@@ -45,25 +45,21 @@ const mirrorCreated = ref(false);
 function updateContent(e) {
   console.log("input: ", e.data);
   let addCode = e.data;
+  let allCode = editor.getDoc().getValue();
   if (e.data === "(") {
-    editor.getDoc().setValue(props.info.fileContent + "()");
+    editor.getDoc().setValue(editor.getDoc().getValue() + ")");
     addCode += ")";
-    console.log("Line:", props.info.line);
     editor
       .getDoc()
       .setCursor({ line: props.info.line, ch: props.info.index + 1 });
   }
-  console.log("mirror codes:", editor.getDoc().getValue());
-  console.log("index: ", props.info.index);
-  console.log("line: ", props.info.line);
-  console.log("current codes: ", props.info.fileContent);
   emit("pushCodeRecords", {
     battlerNumber: props.info.battlerNumber,
     newRecords: {
       action: "create",
       line: props.info.line,
       index: props.info.index,
-      //length: addCode.length 拉出來的時候再去取得就可以了
+      //length: addCode.length --> 拉出來的時候再去取得就可以了
       code: addCode,
       timestamp: Date.now().toString() + "000000",
     },
@@ -74,7 +70,7 @@ function updateContent(e) {
   });
   emit("updateCurrCodes", {
     battlerNumber: props.info.battlerNumber,
-    code: editor.getDoc().getValue(),
+    code: allCode,
   });
 }
 async function checkEventUp(e) {
