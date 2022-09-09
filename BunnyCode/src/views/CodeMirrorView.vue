@@ -9,10 +9,6 @@ const jwt = localStorage.getItem("jwt");
 const ifSelf = ref(true);
 const editStatus = ref(true);
 
-const props = defineProps({
-  // socket: Object,
-});
-
 const folderInfo = ref([
   {
     fileNumber: 0,
@@ -109,7 +105,6 @@ function changeEdit() {
             :atAlt="atAlt"
             :atCtl="atCtl"
             :jwt="jwt"
-            :socket="props.socket"
             :readOnly="false"
             @updateCurrCodes="updateCurrCodes"
             @updateCurrIndex="updateCurrIndex"
@@ -133,7 +128,6 @@ function changeEdit() {
             :atAlt="atAlt"
             :atCtl="atCtl"
             :jwt="jwt"
-            :socket="props.socket"
             :readOnly="true"
             @updateCurrCodes="updateCurrCodes"
             @updateCurrIndex="updateCurrIndex"

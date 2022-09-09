@@ -5,11 +5,6 @@
         <div class="flex-container-2">
           <div>Bunny code</div>
           <RouterLink to="/" class="nav-item">Home</RouterLink>
-          <RouterLink to="/about" class="nav-item">About</RouterLink>
-          <RouterLink to="/workspace" class="nav-item">Workspace</RouterLink>
-          <RouterLink to="/playback" class="nav-item">
-            Playback (tmp)
-          </RouterLink>
           <RouterLink to="/code-mirror" class="nav-item"
             >Code Mirror</RouterLink
           >
