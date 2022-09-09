@@ -58,7 +58,7 @@ const childEditor = ref([]);
 const localhostServer = "http://localhost:3000";
 const productionServer = "wss://domingoos.store";
 
-const socket = io(localhostServer, {
+const socket = io(productionServer, {
   auth: (cb) => {
     cb({ token: `Bearer ${localStorage.getItem("jwt")}` });
   },
