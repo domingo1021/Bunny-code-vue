@@ -9,10 +9,6 @@ const jwt = localStorage.getItem("jwt");
 const ifSelf = ref(true);
 const editStatus = ref(true);
 
-const props = defineProps({
-  socket: Object,
-});
-
 const folderInfo = ref([
   {
     fileNumber: 0,
@@ -27,14 +23,6 @@ const folderInfo = ref([
 ]);
 
 const terminalResult = ref([]);
-
-function checkEventDown(e) {
-  // console.log("event down: ", e.key);
-}
-
-function checkEventUp(e) {
-  // console.log("event up: ", e);
-}
 
 //emit function
 function updateCurrCodes(emitObject) {
@@ -111,19 +99,12 @@ function changeEdit() {
       <div>Edit status: {{ editStatus }}</div>
       <div v-if="ifSelf && editStatus">
         <div>可編輯的 div</div>
-        <div
-          v-for="(fileInfo, index) in folderInfo"
-          @input="updateContent"
-          @keyup="checkEventUp"
-          @keydown="checkEventDown"
-          :key="index"
-        >
+        <div v-for="(fileInfo, index) in folderInfo" :key="index">
           <CodeMirrorComponent
             :info="fileInfo"
             :atAlt="atAlt"
             :atCtl="atCtl"
             :jwt="jwt"
-            :socket="props.socket"
             :readOnly="false"
             @updateCurrCodes="updateCurrCodes"
             @updateCurrIndex="updateCurrIndex"
@@ -147,7 +128,6 @@ function changeEdit() {
             :atAlt="atAlt"
             :atCtl="atCtl"
             :jwt="jwt"
-            :socket="props.socket"
             :readOnly="true"
             @updateCurrCodes="updateCurrCodes"
             @updateCurrIndex="updateCurrIndex"

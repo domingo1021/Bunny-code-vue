@@ -5,13 +5,10 @@
         <div class="flex-container-2">
           <div>Bunny code</div>
           <RouterLink to="/" class="nav-item">Home</RouterLink>
-          <RouterLink to="/about" class="nav-item">About</RouterLink>
-          <RouterLink to="/workspace" class="nav-item">Workspace</RouterLink>
-          <RouterLink to="/playback" class="nav-item">
-            Playback (tmp)
-          </RouterLink>
-          <RouterLink to="/code-mirror" class="nav-item">Code Mirror</RouterLink>
-          <RouterLink to="/code-mirror-playback" class="nav-item">Playback 2.0</RouterLink>
+          <RouterLink to="/code-mirror" class="nav-item"
+            >Code Mirror</RouterLink
+          >
+          <RouterLink to="/battle/1" class="nav-item">Battle</RouterLink>
         </div>
         <div class="right-flex">
           <div class="nav-item">123</div>
@@ -24,17 +21,13 @@
   <body>
     <main>
       <!-- <textarea v-model="content" id="editor"></textarea> -->
-      <router-view :socket="socket"></router-view>
+      <RouterView />
     </main>
   </body>
 </template>
 
-
 <script setup>
-import {  RouterLink, RouterView } from "vue-router";
-import io from "socket.io-client";
-
-const socket = io("wss://domingoos.store", { path: "/api/socket/" });
+import { RouterLink, RouterView } from "vue-router";
 
 </script>
 
