@@ -28,14 +28,6 @@ const folderInfo = ref([
 
 const terminalResult = ref([]);
 
-function checkEventDown(e) {
-  // console.log("event down: ", e.key);
-}
-
-function checkEventUp(e) {
-  // console.log("event up: ", e);
-}
-
 //emit function
 function updateCurrCodes(emitObject) {
   folderInfo.value[emitObject.fileNumber].fileContent = emitObject.code;
@@ -111,13 +103,7 @@ function changeEdit() {
       <div>Edit status: {{ editStatus }}</div>
       <div v-if="ifSelf && editStatus">
         <div>可編輯的 div</div>
-        <div
-          v-for="(fileInfo, index) in folderInfo"
-          @input="updateContent"
-          @keyup="checkEventUp"
-          @keydown="checkEventDown"
-          :key="index"
-        >
+        <div v-for="(fileInfo, index) in folderInfo" :key="index">
           <CodeMirrorComponent
             :info="fileInfo"
             :atAlt="atAlt"
