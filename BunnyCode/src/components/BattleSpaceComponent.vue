@@ -38,29 +38,22 @@ const emit = defineEmits([
   "updateTimeBetween",
 ]);
 
-let editor = ref(null);
+let editor = null;
 
 const mirrorCreated = ref(false);
-
-// function updateCodes(codeObject){
-//   if(codeObject.userID !== props.info.userID){
-//     editor.value.getDoc().setValue(codeObject.codes);
-//   }
-// }
 
 function updateContent(e) {
   console.log("input: ", e.data);
   let addCode = e.data;
-  // let allCode = editor.value.getDoc().getValue();
-  // if (e.data === "(") {
-  //   editor.value.getDoc().setValue(props.info.fileContent + "(");
-    // addCode += ")";
-    // console.log("Line:", props.info.line);
-    // editor.value
-    //   .getDoc()
-    //   .setCursor({ line: props.info.line, ch: props.info.index + 1 });
-  // }
-  console.log("mirror codes:", editor.value.getDoc().getValue());
+  if (e.data === "(") {
+    editor.getDoc().setValue(props.info.fileContent + "()");
+    addCode += ")";
+    console.log("Line:", props.info.line);
+    editor
+      .getDoc()
+      .setCursor({ line: props.info.line, ch: props.info.index + 1 });
+  }
+  console.log("mirror codes:", editor.getDoc().getValue());
   console.log("index: ", props.info.index);
   console.log("line: ", props.info.line);
   console.log("current codes: ", props.info.fileContent);
@@ -81,7 +74,7 @@ function updateContent(e) {
   });
   emit("updateCurrCodes", {
     battlerNumber: props.info.battlerNumber,
-    code: editor.value.getDoc().getValue(),
+    code: editor.getDoc().getValue(),
   });
 }
 async function checkEventUp(e) {
@@ -92,7 +85,7 @@ async function checkEventUp(e) {
     //2. push records
     //3. change line
     //4. change index
-    let allCode = editor.value.getDoc().getValue();
+    let allCode = editor.getDoc().getValue();
     emit("updateCurrCodes", {
       battlerNumber: props.info.battlerNumber,
       code: allCode,
@@ -133,7 +126,7 @@ async function checkEventUp(e) {
     }
     emit("updateCurrCodes", {
       battlerNumber: props.info.battlerNumber,
-      code: editor.value.getDoc().getValue(),
+      code: editor.getDoc().getValue(),
     });
     emit("pushCodeRecords", {
       battlerNumber: props.info.battlerNumber,
@@ -152,7 +145,7 @@ async function checkEventUp(e) {
       });
       emit("updateCurrIndex", {
         battlerNumber: props.info.battlerNumber,
-        index: editor.value.getDoc().getValue().split("\n")[props.info.line]
+        index: editor.getDoc().getValue().split("\n")[props.info.line]
           .length,
       });
     } else {
@@ -313,7 +306,7 @@ async function runCode() {
 }
 
 function checkSame() {
-  editor.value.getDoc().setValue(props.info.fileContent);
+  editor.getDoc().setValue(props.info.fileContent);
 }
 
 async function playback() {
@@ -332,7 +325,7 @@ async function playback() {
 function triggerEvent(recordObject) {
   const action = recordObject.action;
   if (action === "create") {
-    const prevCodes = editor.value.getDoc().getValue();
+    const prevCodes = editor.getDoc().getValue();
     const codes = prevCodes.split("\n");
     codes[recordObject.line] =
       codes[recordObject.line].substring(0, recordObject.index) +
@@ -346,7 +339,7 @@ function triggerEvent(recordObject) {
         newCodes += code;
       }
     });
-    editor.value.getDoc().setValue(newCodes);
+    editor.getDoc().setValue(newCodes);
     emit("updateCurrIndex", {
       battlerNumber: props.info.battlerNumber,
       index: props.info.index + recordObject.code.length,
@@ -356,7 +349,7 @@ function triggerEvent(recordObject) {
       code: newCodes,
     });
   } else if (action === "delete") {
-    const prevCodes = editor.value.getDoc().getValue();
+    const prevCodes = editor.getDoc().getValue();
     const codes = prevCodes.split("\n");
     let newCodes = "";
     let changeLineStatus = false;
@@ -378,7 +371,7 @@ function triggerEvent(recordObject) {
         newCodes += code;
       }
     });
-    editor.value.getDoc().setValue(newCodes);
+    editor.getDoc().setValue(newCodes);
     emit("updateCurrCodes", {
       battlerNumber: props.info.battlerNumber,
       code: newCodes,
@@ -400,7 +393,7 @@ function triggerEvent(recordObject) {
     }
   } else if (action === "enter") {
     console.log("enter");
-    const prevCodes = editor.value.getDoc().getValue();
+    const prevCodes = editor.getDoc().getValue();
     const codes = prevCodes.split("\n");
     let lineCode = codes[props.info.line];
     codes.splice(
@@ -417,7 +410,7 @@ function triggerEvent(recordObject) {
       }
       return prev;
     }, "");
-    editor.value.getDoc().setValue(newCodes);
+    editor.getDoc().setValue(newCodes);
     emit("updateCurrCodes", {
       battlerNumber: props.info.battlerNumber,
       code: newCodes,
@@ -440,7 +433,7 @@ onUpdated(async () => {
     if (tmpReadOnly) {
       tmpReadOnly = "nocursor";
     }
-    editor.value = CodeMirror.fromTextArea(
+    editor = CodeMirror.fromTextArea(
       document.getElementById(`user-${props.info.userID}-editor`),
       {
         value: props.info.fileContent,
@@ -459,8 +452,8 @@ onUpdated(async () => {
   }
   if(props.readOnly){
     console.log("updated");
-    editor.value.getDoc().setValue(props.info.fileContent);
-    editor.value
+    editor.getDoc().setValue(props.info.fileContent);
+    editor
         .getDoc()
         .setCursor({ line: props.info.line, ch: props.info.index });
   }
