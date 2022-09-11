@@ -4,31 +4,79 @@
       <div class="flex-container">
         <div class="flex-container-2">
           <div>Bunny code</div>
-          <RouterLink to="/" class="nav-item">Home</RouterLink>
-          <RouterLink to="/code-mirror" class="nav-item"
-            >Code Mirror</RouterLink
+          <RouterLink to="/" class="nav-item" @click="updateView('home')"
+            >Home</RouterLink
           >
-          <RouterLink to="/battle/1" class="nav-item">Battle</RouterLink>
+          <div
+            to="/code-mirror/bunny_code"
+            class="nav-item"
+            @click="updateView('code')"
+          >
+            Code Mirror
+          </div>
+          <RouterLink
+            to="/battle/1"
+            class="nav-item"
+            @click="updateView('battle')"
+            >Battle</RouterLink
+          >
+          <div>Text: {{text}}</div>
         </div>
         <div class="right-flex">
-          <div class="nav-item">123</div>
-          <div class="nav-item">223</div>
-          <div class="nav-item">333</div>
+          <div class="nav-item">個人資訊</div>
+          <SearchComponent @updateProjects="updateProjects" />
         </div>
       </div>
     </nav>
   </header>
   <body>
-    <main>
-      <!-- <textarea v-model="content" id="editor"></textarea> -->
+    <main v-if="view === 'home'">
+      <RouterView :projectsDisplayed="projectsDisplayed" />
+    </main>
+    <main v-else-if="view === 'code'">
+      <RouterView />
+    </main>
+    <main v-else>
       <RouterView />
     </main>
   </body>
 </template>
 
 <script setup>
-import { RouterLink, RouterView } from "vue-router";
+import { RouterLink, RouterView, useRouter } from "vue-router";
+import SearchComponent from "./components/SearchComponent.vue";
+import { ref, onMounted } from "vue";
+import axios from "axios";
 
+const view = ref("home");
+const router = useRouter();
+const projectsDisplayed = ref([]);
+const localhostServer = "http://localhost:3000";
+const text = ref("");
+
+
+function updateProjects(emitObject) {
+  projectsDisplayed.value = emitObject;
+  console.log(projectsDisplayed.value);
+}
+
+async function updateView(viewPage) {
+  view.value = viewPage;
+  if (view.value === "code") {
+    await router.push({name:"home"});
+    await router.push({ name: "code-mirror", params: { projectName: "bunny_code" } });
+  }
+}
+
+onMounted(async () => {
+  let responseProjects = await axios.get(
+    localhostServer + `/api/1.0/project/all`
+  );
+  projectsDisplayed.value = responseProjects.data.data;
+  let codes = await axios.get("https://d1vj6hotf8ce5i.cloudfront.net/record/user_11/project_1/version_2/1662879826441-test.js");
+  text.value = codes.data;
+  console.log(codes.data);
+});
 </script>
 
 <style scoped>

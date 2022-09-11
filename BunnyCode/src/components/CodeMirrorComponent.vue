@@ -25,7 +25,7 @@
 import * as CodeMirror from "codemirror";
 import axios from "axios";
 import "codemirror/lib/codemirror.css";
-import "codemirror/theme/dracula.css";
+import "codemirror/theme/material-darker.css";
 import "codemirror/mode/javascript/javascript.js";
 import { onMounted } from "vue";
 
@@ -270,7 +270,7 @@ async function checkEventUp(e) {
     const blob = new Blob([JSON.stringify(allCodes)], {
       type: "application/javascript",
     });
-    submitForm.append("files", blob, props.fileName);
+    submitForm.append("files", blob, props.info.fileName);
     submitForm.append("projectID", 1);
     submitForm.append("versionID", 2);
     submitForm.append("reqCategory", "code_file");
@@ -391,7 +391,10 @@ function triggerEvent(recordObject) {
         fileNumber: props.info.fileNumber,
         index: newCodes.split("\n")[props.info.line].length,
       });
-      console.log("update index at: ", newCodes.split("\n")[props.info.line].length)
+      console.log(
+        "update index at: ",
+        newCodes.split("\n")[props.info.line].length
+      );
     } else {
       emit("updateCurrIndex", {
         fileNumber: props.info.fileNumber,
@@ -399,12 +402,16 @@ function triggerEvent(recordObject) {
       });
     }
   } else if (action === "enter") {
-    console.log('enter');
+    console.log("enter");
     const prevCodes = editor.getDoc().getValue();
     const codes = prevCodes.split("\n");
     let lineCode = codes[props.info.line];
     console.log(recordObject.index, props.info.index);
-    codes.splice(props.info.line + 1, 0, lineCode.substring(recordObject.index));
+    codes.splice(
+      props.info.line + 1,
+      0,
+      lineCode.substring(recordObject.index)
+    );
     codes[props.info.line] = lineCode.substring(0, recordObject.index);
     const newCodes = codes.reduce((prev, curr, index) => {
       if (index !== codes.length - 1) {
@@ -445,9 +452,10 @@ onMounted(async () => {
     indentWithTab: true,
     tabSize: 2,
     autocorrect: true,
-    theme: "dracula",
+    theme: "material-darker",
     mode: "javascript",
   });
+  editor.getDoc().setCursor({ line: props.info.line, ch: props.info.index });
   if (props.readOnly) {
     let recordResponse = await axios.post(
       "https://domingoos.store/api/1.0/history/1",
