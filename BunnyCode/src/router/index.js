@@ -9,34 +9,35 @@ const router = createRouter({
       name: "home",
       component: HomeView,
     },
+    // {
+    //   path: "/about",
+    //   name: "about",
+    //   // route level code-splitting
+    //   // this generates a separate chunk (About.[hash].js) for this route
+    //   // which is lazy-loaded when the route is visited.
+    //   component: () => import("../views/AboutView.vue"),
+    // },
+    // {
+    //   path: "/workspace",
+    //   name: "workspace",
+    //   component: () => import("../views/WorkSpace.vue"),
+    // },
+    // {
+    //   path: "/playback",
+    //   name: "playback",
+    //   component: () => import("../views/PlayBackView.vue"),
+    // },
     {
-      path: "/about",
-      name: "about",
-      // route level code-splitting
-      // this generates a separate chunk (About.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
-      component: () => import("../views/AboutView.vue"),
-    },
-    {
-      path: "/workspace",
-      name: "workspace",
-      component: () => import("../views/WorkSpace.vue"),
-    },
-    {
-      path: "/playback",
-      name: "playback",
-      component: () => import("../views/PlayBackView.vue"),
-    },
-    {
-      path: "/code-mirror",
+      path: "/code-mirror/:projectID",
       name: "code-mirror",
-      component: () => import("../views/CodeMirrorView.vue"),
+      component: () => import("../views/WorkSpace.vue"),
+      props: true,
     },
     {
       path: "/battle/:battleID",
       name: "battle",
       component: () => import("../views/BattleView.vue"),
-      props: true
+      props: true,
     }
   ],
 });

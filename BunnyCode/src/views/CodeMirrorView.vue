@@ -1,10 +1,18 @@
 <script setup>
 import CodeMirrorComponent from "../components/CodeMirrorComponent.vue";
 import TerminalComponent from "../components/TerminalComponent.vue";
-import { ref } from "vue";
+import { ref, onMounted, onUpdated } from "vue";
+import axios from "axios";
 
 // TODO: 如果是本人進入頁面（認為想要 edit）, 則建立 Socket, 並更動 edit 狀態，
 
+const props = defineProps({
+  projectID: String,
+});
+
+defineEmits(["updateFolderInfo"]);
+
+const localhostServer = "http://localhost:3000";
 const atAlt = ref(false);
 const atCtl = ref(false);
 const jwt = localStorage.getItem("jwt");
@@ -74,76 +82,58 @@ function changeEdit() {
     editStatus.value = true;
   }
 }
+onUpdated(() => {
+  emit("updateFolderInfo", folderInfo.value);
+});
 </script>
 <template>
-  <div style="display: flex; height: 100vh">
-    <div id="left-bar">
-      <div>File</div>
-      <div>Code</div>
-      <div>Fork</div>
-      <div>Message</div>
-    </div>
-    <div id="info-bar">
-      <div
-        v-for="(info, index) in folderInfo"
-        :key="index"
-        style="display: flex"
-        @click="changeCurrFile(info.fileName, index)"
-      >
-        <div style="color: yellow; margin-right: 10px">{{ info.language }}</div>
-        <div>{{ info.fileName }}</div>
-      </div>
-    </div>
-    <div id="main-content">
-      <button type="button" @click="changeSelf">Change user auth</button>
-      <button type="button" @click="changeEdit">Change edit status</button>
-      <div>User auth: {{ ifSelf }}</div>
-      <div>Edit status: {{ editStatus }}</div>
-      <div v-if="ifSelf && editStatus">
-        <div>可編輯的 div</div>
-        <div v-for="(fileInfo, index) in folderInfo" :key="index">
-          <CodeMirrorComponent
-            :info="fileInfo"
-            :atAlt="atAlt"
-            :atCtl="atCtl"
-            :jwt="jwt"
-            :readOnly="false"
-            @updateCurrCodes="updateCurrCodes"
-            @updateCurrIndex="updateCurrIndex"
-            @updateCurrLine="updateCurrLine"
-            @pushCodeRecords="pushCodeRecords"
-            @pushTerminal="pushTerminal"
-          />
-        </div>
-      </div>
-      <div v-else>
-        <div>不可編輯的 div</div>
-        <div
-          v-for="(fileInfo, index) in folderInfo"
-          @input="updateContent"
-          @keyup="checkEventUp"
-          @keydown="checkEventDown"
-          :key="index"
-        >
-          <CodeMirrorComponent
-            :info="fileInfo"
-            :atAlt="atAlt"
-            :atCtl="atCtl"
-            :jwt="jwt"
-            :readOnly="true"
-            @updateCurrCodes="updateCurrCodes"
-            @updateCurrIndex="updateCurrIndex"
-            @updateCurrLine="updateCurrLine"
-            @pushCodeRecords="pushCodeRecords"
-            @pushTerminal="pushTerminal"
-            @updateAllRecords="updateAllRecords"
-            @updateTimeBetween="updateTimeBetween"
-          />
-        </div>
-      </div>
-      <!-- <TerminalComponent :terminalResult="terminalResult" /> -->
+  <button type="button" @click="changeSelf">Change user auth</button>
+  <button type="button" @click="changeEdit">Change edit status</button>
+  <div>User auth: {{ ifSelf }}</div>
+  <div>Edit status: {{ editStatus }}</div>
+  <div v-if="ifSelf && editStatus">
+    <div>可編輯的 div</div>
+    <div v-for="(fileInfo, index) in folderInfo" :key="index">
+      <CodeMirrorComponent
+        :info="fileInfo"
+        :atAlt="atAlt"
+        :atCtl="atCtl"
+        :jwt="jwt"
+        :readOnly="false"
+        @updateCurrCodes="updateCurrCodes"
+        @updateCurrIndex="updateCurrIndex"
+        @updateCurrLine="updateCurrLine"
+        @pushCodeRecords="pushCodeRecords"
+        @pushTerminal="pushTerminal"
+      />
     </div>
   </div>
+  <div v-else>
+    <div>不可編輯的 div</div>
+    <div
+      v-for="(fileInfo, index) in folderInfo"
+      @input="updateContent"
+      @keyup="checkEventUp"
+      @keydown="checkEventDown"
+      :key="index"
+    >
+      <CodeMirrorComponent
+        :info="fileInfo"
+        :atAlt="atAlt"
+        :atCtl="atCtl"
+        :jwt="jwt"
+        :readOnly="true"
+        @updateCurrCodes="updateCurrCodes"
+        @updateCurrIndex="updateCurrIndex"
+        @updateCurrLine="updateCurrLine"
+        @pushCodeRecords="pushCodeRecords"
+        @pushTerminal="pushTerminal"
+        @updateAllRecords="updateAllRecords"
+        @updateTimeBetween="updateTimeBetween"
+      />
+    </div>
+  </div>
+  <!-- <TerminalComponent :terminalResult="terminalResult" /> -->
 </template>
 
 <style>
