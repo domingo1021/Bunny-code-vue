@@ -1,26 +1,3 @@
-<template>
-  <div @input="updateContent" @keyup="checkEventUp">
-    <textarea
-      v-if="props.readOnly"
-      :value="props.info.fileContent"
-      id="editor"
-      cols="30"
-      rows="10"
-      readonly
-    ></textarea>
-    <textarea
-      v-else
-      id="editor"
-      :value="props.info.fileContent"
-      cols="30"
-      rows="10"
-    ></textarea>
-  </div>
-  <button @click="playback">Playback</button>
-  <button @click="runCode">Run code</button>
-  <button @click="checkSame">click</button>
-</template>
-
 <script setup>
 import * as CodeMirror from "codemirror";
 import axios from "axios";
@@ -251,12 +228,12 @@ async function checkEventUp(e) {
   } else if (e.ctrlKey && e.keyCode === 83) {
     console.log("Control + Save");
     const saveResponse = await axios.post(
-      "https://domingoos.store/api/1.0/record",
       // "https://domingoos.store/api/1.0/record",
+      "http://localhost:3000/api/1.0/record",
       {
         userID: 1,
         projectID: 1,
-        versionID: 2,
+        versionID: 17,
         fileName: props.info.fileName,
         checkpointNumber: 1,
         batchData: JSON.stringify(props.info.codeRecords),
@@ -266,24 +243,24 @@ async function checkEventUp(e) {
     //Save code file.
     const allCodes = props.info.fileContent;
     console.log("entire code:", allCodes);
-    const submitForm = new FormData();
-    const blob = new Blob([JSON.stringify(allCodes)], {
-      type: "application/javascript",
-    });
-    submitForm.append("files", blob, props.info.fileName);
-    submitForm.append("projectID", 1);
-    submitForm.append("versionID", 2);
-    submitForm.append("reqCategory", "code_file");
-    console.log("prepare to submit !");
-    const response = await axios({
-      method: "post",
-      url: "https://domingoos.store/api/1.0/record/file",
-      headers: {
-        Authorization: `Bearer ${props.jwt}`,
-      },
-      data: submitForm,
-    });
-    console.log(response);
+    // const submitForm = new FormData();
+    // const blob = new Blob([JSON.stringify(allCodes)], {
+    //   type: "application/javascript",
+    // });
+    // submitForm.append("files", blob, props.info.fileName);
+    // submitForm.append("projectID", 1);
+    // submitForm.append("versionID", 2);
+    // submitForm.append("reqCategory", "code_file");
+    // console.log("prepare to submit !");
+    // const response = await axios({
+    //   method: "post",
+    //   url: "https://domingoos.store/api/1.0/record/file",
+    //   headers: {
+    //     Authorization: `Bearer ${props.jwt}`,
+    //   },
+    //   data: submitForm,
+    // });
+    // console.log(response);
   }
 }
 
@@ -462,7 +439,7 @@ onMounted(async () => {
       {
         projectID: 1,
         startTime: "2022-09-03T04:25:32.985Z",
-        stopTime: "2022-09-10T04:25:32.985Z",
+        stopTime: "2022-09-15T04:25:32.985Z",
       }
     );
     recordResponse = recordResponse.data.data;
@@ -489,6 +466,29 @@ onMounted(async () => {
   }
 });
 </script>
+
+<template>
+  <div @input="updateContent" @keyup="checkEventUp">
+    <textarea
+      v-if="props.readOnly"
+      :value="props.info.fileContent"
+      id="editor"
+      cols="30"
+      rows="10"
+      readonly
+    ></textarea>
+    <textarea
+      v-else
+      id="editor"
+      :value="props.info.fileContent"
+      cols="30"
+      rows="10"
+    ></textarea>
+  </div>
+  <button @click="playback">Playback</button>
+  <button @click="runCode">Run code</button>
+  <button @click="checkSame">click</button>
+</template>
 
 <style scoped>
 h3 {

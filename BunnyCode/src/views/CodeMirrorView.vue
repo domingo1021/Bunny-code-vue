@@ -3,22 +3,25 @@ import CodeMirrorComponent from "../components/CodeMirrorComponent.vue";
 import TerminalComponent from "../components/TerminalComponent.vue";
 import { ref, onMounted, onUpdated } from "vue";
 import axios from "axios";
+import io from "socket.io-client";
 
 // TODO: 如果是本人進入頁面（認為想要 edit）, 則建立 Socket, 並更動 edit 狀態，
 
 const props = defineProps({
   projectID: String,
   folderInfo: Object,
+  version: Object,
 });
 
 const emit = defineEmits(["updateFolderInfo"]);
 
-const localhostServer = "http://localhost:3000";
 const atAlt = ref(false);
 const atCtl = ref(false);
 const jwt = localStorage.getItem("jwt");
-const ifSelf = ref(true);
-const editStatus = ref(true);
+const readOnly = ref();
+const authorization = ref();
+// const ifSelf = ref(true);
+// const editStatus = ref(true);
 
 const folderInfo = ref(props.folderInfo);
 
@@ -57,39 +60,55 @@ function updateTimeBetween(emitObject) {
   folderInfo.value[emitObject.fileNumber].timeBetween = emitObject.timeBetween;
 }
 
-function changeSelf() {
-  if (ifSelf.value) {
-    ifSelf.value = false;
-    editStatus.value = false;
-  } else {
-    ifSelf.value = true;
-  }
+function changeEdit(){
+  socket.emit('changeEdit', {
+    projectID: props.projectID,
+    versionID: props.version.versionID,
+  });
 }
 
-function changeEdit() {
-  if (ifSelf.value && editStatus.value) {
-    editStatus.value = false;
-  } else if (ifSelf.value && !editStatus.value) {
-    editStatus.value = true;
-  }
-}
+const localhostServer = "http://localhost:3000";
+const productionServer = "wss://domingoos.store";
 
-onMounted(()=>{
-  console.log(props.folderInfo);
+const socket = io(localhostServer, {
+  auth: (cb) => {
+    cb({ token: `Bearer ${localStorage.getItem("jwt")}` });
+  },
+  path: "/api/socket/",
+});
+
+socket.on('statusChecked', (responseObject) => {
+  readOnly.value = responseObject.readOnly;
+  authorization.value = responseObject.authorization;
+  console.log(responseObject);
 })
+
+
+onMounted(() => {
+  // check whether version is editing with version.versionID
+  console.log("VersionID: ", props.version.versionID);
+  socket.emit("checkProjectStatus", {
+    projectID: props.projectID,
+    versionID: props.version.versionID,
+  });
+});
 
 onUpdated(() => {
   emit("updateFolderInfo", folderInfo.value);
 });
 </script>
+
 <template>
-  <button type="button" @click="changeSelf">Change user auth</button>
-  <button type="button" @click="changeEdit">Change edit status</button>
-  <div>User auth: {{ ifSelf }}</div>
-  <div>Edit status: {{ editStatus }}</div>
+  <!-- <button type="button" @click="changeSelf">Change user auth</button> -->
+  <!-- <button type="button" @click="changeEdit">Change edit status</button> -->
+  <!-- <div>User auth: {{ ifSelf }}</div> -->
+  <!-- <div>Edit status: {{ editStatus }}</div> -->
+  <div v-if="authorization">
+    <button @click="changeEdit">Edit</button>
+  </div>
   <div v-if="folderInfo.length !== 0">
-    <div v-if="ifSelf && editStatus">
-      <div>可編輯的 div</div>
+    <div v-if="!readOnly">
+      <div style="color:azure">可編輯的 div</div>
       <div v-for="(fileInfo, index) in folderInfo" :key="index">
         <CodeMirrorComponent
           :info="fileInfo"
@@ -106,7 +125,7 @@ onUpdated(() => {
       </div>
     </div>
     <div v-else>
-      <div>不可編輯的 div</div>
+      <div style="color:azure">不可編輯的 div</div>
       <div
         v-for="(fileInfo, index) in folderInfo"
         @input="updateContent"
@@ -128,7 +147,7 @@ onUpdated(() => {
           @updateAllRecords="updateAllRecords"
           @updateTimeBetween="updateTimeBetween"
         />
-        <TerminalComponent :terminalResult="terminalResult" />
+        <!-- <TerminalComponent :terminalResult="terminalResult" /> -->
       </div>
     </div>
   </div>

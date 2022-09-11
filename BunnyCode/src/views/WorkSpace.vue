@@ -44,6 +44,8 @@
           <button @click="changePath">Change Path</button>
           <CodeMirrorView
             v-if="Object.keys(projectDetail).length !== 0"
+            :projectID="projectDetail.projectID"
+            :version="projectDetail?.version[targetVersionIndex]"
             :folderInfo="projectDetail?.version[targetVersionIndex]?.files"
             @updateFolderInfo="updateFolderInfo"
           />
@@ -71,7 +73,7 @@ import axios from "axios";
 import CodeMirrorView from "./CodeMirrorView.vue";
 import FolderController from "./FolderController.vue";
 
-const localhostServer = "http://localhost:3000";
+const localhostServer = 'http://localhost:3000'
 const projectDetail = ref({});
 const targetFunction = ref("Folder");
 // default target version 為第一個 version, (之後根據使用者點選version 做修改)
@@ -98,17 +100,10 @@ function updateTarget(target) {
   targetFunction.value = target;
 }
 
-function updateFolderInfo(emitObject) {
-  console.log("trigger update event");
-  // projectDetail.value.version[targetVersionIndex].files
-  //TODO: check target version number
-  //TODO: 變更選取的 project, version, 相對應的 folder 資料;
-}
-
 onMounted(async () => {
   // await nextTick();
   // console.log(route.params);
-  // console.log("projectName: ", props.projectName);
+  console.log("projectName: ", props.projectName);
   let projectResponse;
   try {
     projectResponse = await axios.get(
@@ -127,7 +122,7 @@ onMounted(async () => {
         file.fileNumber = index;
         let tmpArray = file.fileName.split(".");
         if (tmpArray.length > 0) {
-          file.language = tmpArray.pop();
+          file.language = tmpArray.pop().toUpperCase();
         } else {
           file.language = "";
         }
@@ -141,10 +136,6 @@ onMounted(async () => {
   });
   console.log("detail:", projectDetail.value);
   // .targetVersion?.files
-  console.log(
-    "files: ",
-    projectDetail.value?.version[targetVersionIndex.value]?.files
-  );
   // await nextTick();
   // console.log("vueRouter: ", route.params);
   // console.log("props router: ", props.projectName);
