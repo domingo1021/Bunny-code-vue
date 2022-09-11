@@ -25,7 +25,7 @@
 import * as CodeMirror from "codemirror";
 import axios from "axios";
 import "codemirror/lib/codemirror.css";
-import "codemirror/theme/dracula.css";
+import "codemirror/theme/material-darker.css";
 import "codemirror/mode/javascript/javascript.js";
 import { onMounted } from "vue";
 
@@ -270,7 +270,7 @@ async function checkEventUp(e) {
     const blob = new Blob([JSON.stringify(allCodes)], {
       type: "application/javascript",
     });
-    submitForm.append("files", blob, props.fileName);
+    submitForm.append("files", blob, props.info.fileName);
     submitForm.append("projectID", 1);
     submitForm.append("versionID", 2);
     submitForm.append("reqCategory", "code_file");
@@ -452,7 +452,7 @@ onMounted(async () => {
     indentWithTab: true,
     tabSize: 2,
     autocorrect: true,
-    theme: "dracula",
+    theme: "material-darker",
     mode: "javascript",
   });
   editor.getDoc().setCursor({ line: props.info.line, ch: props.info.index });

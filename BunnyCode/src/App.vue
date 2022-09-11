@@ -20,6 +20,7 @@
             @click="updateView('battle')"
             >Battle</RouterLink
           >
+          <div>Text: {{text}}</div>
         </div>
         <div class="right-flex">
           <div class="nav-item">個人資訊</div>
@@ -51,6 +52,8 @@ const view = ref("home");
 const router = useRouter();
 const projectsDisplayed = ref([]);
 const localhostServer = "http://localhost:3000";
+const text = ref("");
+
 
 function updateProjects(emitObject) {
   projectsDisplayed.value = emitObject;
@@ -70,6 +73,9 @@ onMounted(async () => {
     localhostServer + `/api/1.0/project/all`
   );
   projectsDisplayed.value = responseProjects.data.data;
+  let codes = await axios.get("https://d1vj6hotf8ce5i.cloudfront.net/record/user_11/project_1/version_2/1662879826441-test.js");
+  text.value = codes.data;
+  console.log(codes.data);
 });
 </script>
 

@@ -5,7 +5,11 @@
       <div @click="updateTarget('Version')">Version</div>
     </div>
     <div id="info-bar">
-      <div v-if="projectDetail.length !== 0">
+      <div
+        v-if="
+          Object.keys(projectDetail).length !== 0 && targetFunction === 'Folder'
+        "
+      >
         <div
           v-for="(info, index) in projectDetail?.version[targetVersionIndex]
             ?.files"
@@ -19,13 +23,27 @@
           <div>{{ info.fileName }}</div>
         </div>
       </div>
+      <div
+        v-else-if="
+          Object.keys(projectDetail).length !== 0 &&
+          targetFunction === 'Version'
+        "
+      >
+        <div
+          class="version-list"
+          v-for="(version, index) in projectDetail?.version"
+          :key="index"
+        >
+          第 {{ version.versionNumber }} 版 &nbsp; {{ version.versionName }}
+        </div>
+      </div>
     </div>
     <div id="main-content" v-if="targetFunction === 'Folder'">
-      <div v-if="projectDetail.length !== 0">
+      <div v-if="Object.keys(projectDetail).length !== 0">
         <div v-if="projectDetail.version.length !== 0">
           <button @click="changePath">Change Path</button>
           <CodeMirrorView
-            v-if="projectDetail.length !== 0"
+            v-if="Object.keys(projectDetail).length !== 0"
             :folderInfo="projectDetail?.version[targetVersionIndex]?.files"
             @updateFolderInfo="updateFolderInfo"
           />
@@ -36,7 +54,12 @@
       <div v-else></div>
     </div>
     <div id="main-content-2" v-else-if="targetFunction === 'Version'">
-      <FolderController />
+      <div v-if="Object.keys(projectDetail).length !== 0">
+        <FolderController
+          :targetVersionIndex="targetVersionIndex"
+          :version="projectDetail.version[targetVersionIndex]"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -49,7 +72,7 @@ import CodeMirrorView from "./CodeMirrorView.vue";
 import FolderController from "./FolderController.vue";
 
 const localhostServer = "http://localhost:3000";
-const projectDetail = ref([]);
+const projectDetail = ref({});
 const targetFunction = ref("Folder");
 // default target version 為第一個 version, (之後根據使用者點選version 做修改)
 const targetVersionIndex = ref(0);
@@ -63,9 +86,12 @@ const props = defineProps({
 
 console.log("full path: ", route.fullPath);
 
-async function changePath(){
-  await router.push( {name: "home"});
-  await router.push( {name: "code-mirror", params: { projectName: "bunny_code" }} )
+async function changePath() {
+  await router.push({ name: "home" });
+  await router.push({
+    name: "code-mirror",
+    params: { projectName: "bunny_code" },
+  });
 }
 
 function updateTarget(target) {
@@ -127,11 +153,14 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+.version-list {
+  font-size: 0.75rem;
+}
 #info-bar {
   border-left: 1px solid rgb(255, 255, 255);
   padding-left: 30px;
   padding-right: 20px;
-  width: 200px;
+  width: 250px;
   background-color: rgb(36, 36, 36);
   color: rgb(255, 255, 255);
 }
