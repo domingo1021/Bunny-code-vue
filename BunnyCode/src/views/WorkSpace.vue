@@ -5,18 +5,35 @@
       <div @click="updateTarget('Version')">Version</div>
     </div>
     <div id="info-bar">
-      <div
-        v-for="(info, index) in folderInfo"
-        :key="index"
-        style="display: flex"
-        @click="changeCurrFile(info.fileName, index)"
-      >
-        <div style="color: yellow; margin-right: 10px">{{ info.language }}</div>
-        <div>{{ info.fileName }}</div>
+      <div v-if="projectDetail.length !== 0">
+        <div
+          v-for="(info, index) in projectDetail?.version[targetVersionIndex]
+            ?.files"
+          :key="index"
+          style="display: flex"
+          @click="changeCurrFile(info.fileName, index)"
+        >
+          <div style="color: yellow; margin-right: 10px">
+            {{ info.language }}
+          </div>
+          <div>{{ info.fileName }}</div>
+        </div>
       </div>
     </div>
     <div id="main-content" v-if="targetFunction === 'Folder'">
-      <CodeMirrorView @updateFolderInfo="updateFolderInfo" />
+      <div v-if="projectDetail.length !== 0">
+        <div v-if="projectDetail.version.length !== 0">
+          <button @click="changePath">Change Path</button>
+          <CodeMirrorView
+            v-if="projectDetail.length !== 0"
+            :folderInfo="projectDetail?.version[targetVersionIndex]?.files"
+            @updateFolderInfo="updateFolderInfo"
+          />
+          <div v-else></div>
+        </div>
+        <div v-else></div>
+      </div>
+      <div v-else></div>
     </div>
     <div id="main-content-2" v-else-if="targetFunction === 'Version'">
       <FolderController />
@@ -25,34 +42,59 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue";
+import { useRouter, useRoute } from "vue-router";
+import { nextTick, onBeforeMount, onMounted, ref } from "vue";
 import axios from "axios";
 import CodeMirrorView from "./CodeMirrorView.vue";
 import FolderController from "./FolderController.vue";
 
 const localhostServer = "http://localhost:3000";
-const projectDetail = ref();
+const projectDetail = ref([]);
 const targetFunction = ref("Folder");
-// const targetVersion
-
+// default target version 為第一個 version, (之後根據使用者點選version 做修改)
+const targetVersionIndex = ref(0);
+//TODO: debug: change route when user click header instead
+const router = useRouter();
+const route = useRoute();
 const props = defineProps({
-  projectID: String,
+  projectName: String,
+  versionName: String,
 });
 
-function updateTarget(target){
+console.log("full path: ", route.fullPath);
+
+async function changePath(){
+  await router.push( {name: "home"});
+  await router.push( {name: "code-mirror", params: { projectName: "bunny_code" }} )
+}
+
+function updateTarget(target) {
   targetFunction.value = target;
 }
 
 function updateFolderInfo(emitObject) {
+  console.log("trigger update event");
+  // projectDetail.value.version[targetVersionIndex].files
+  //TODO: check target version number
   //TODO: 變更選取的 project, version, 相對應的 folder 資料;
 }
 
 onMounted(async () => {
-  let projectResponse = await axios.get(
-    localhostServer + `/api/1.0/project/detail?id=${props.projectID}`
-  );
+  // await nextTick();
+  // console.log(route.params);
+  // console.log("projectName: ", props.projectName);
+  let projectResponse;
+  try {
+    projectResponse = await axios.get(
+      localhostServer +
+        `/api/1.0/project/detail?projectName=${props.projectName}`
+    );
+  } catch (error) {
+    console.log(error);
+    alert(error.response.data.msg);
+    return;
+  }
   projectDetail.value = projectResponse.data.data;
-  console.log("detail:", projectDetail.value);
   projectDetail.value.version.forEach((version) => {
     if (version.files.length !== 0) {
       version.files.forEach((file, index) => {
@@ -71,7 +113,16 @@ onMounted(async () => {
       });
     }
   });
-  console.log(projectDetail.value);
+  console.log("detail:", projectDetail.value);
+  // .targetVersion?.files
+  console.log(
+    "files: ",
+    projectDetail.value?.version[targetVersionIndex.value]?.files
+  );
+  // await nextTick();
+  // console.log("vueRouter: ", route.params);
+  // console.log("props router: ", props.projectName);
+  // console.log(projectDetail.value);
 });
 </script>
 

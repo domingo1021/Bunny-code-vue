@@ -7,12 +7,13 @@
           <RouterLink to="/" class="nav-item" @click="updateView('home')"
             >Home</RouterLink
           >
-          <RouterLink
-            to="/code-mirror/1"
+          <div
+            to="/code-mirror/bunny_code"
             class="nav-item"
             @click="updateView('code')"
-            >Code Mirror</RouterLink
           >
+            Code Mirror
+          </div>
           <RouterLink
             to="/battle/1"
             class="nav-item"
@@ -41,12 +42,13 @@
 </template>
 
 <script setup>
-import { RouterLink, RouterView } from "vue-router";
+import { RouterLink, RouterView, useRouter } from "vue-router";
 import SearchComponent from "./components/SearchComponent.vue";
 import { ref, onMounted } from "vue";
 import axios from "axios";
 
 const view = ref("home");
+const router = useRouter();
 const projectsDisplayed = ref([]);
 const localhostServer = "http://localhost:3000";
 
@@ -55,10 +57,12 @@ function updateProjects(emitObject) {
   console.log(projectsDisplayed.value);
 }
 
-function updateView(viewPage) {
-  console.log(viewPage);
+async function updateView(viewPage) {
   view.value = viewPage;
-  console.log(view.value);
+  if (view.value === "code") {
+    await router.push({name:"home"});
+    await router.push({ name: "code-mirror", params: { projectName: "bunny_code" } });
+  }
 }
 
 onMounted(async () => {

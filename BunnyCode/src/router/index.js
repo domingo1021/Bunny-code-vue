@@ -28,8 +28,14 @@ const router = createRouter({
     //   component: () => import("../views/PlayBackView.vue"),
     // },
     {
-      path: "/code-mirror/:projectID",
+      path: "/code-mirror/:projectName",
       name: "code-mirror",
+      component: () => import("../views/WorkSpace.vue"),
+      props: true,
+    },
+    {
+      path: "/code-mirror/:projectName/version/:versionName",
+      name: "code-mirror-version",
       component: () => import("../views/WorkSpace.vue"),
       props: true,
     },
