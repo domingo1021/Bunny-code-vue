@@ -12,6 +12,7 @@ const props = defineProps({
 function renderPath(index){
   router.push(`/code-mirror/${props.projectsDisplayed[index].projectName}`);
 }
+
 </script>
 
 <template>

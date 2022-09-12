@@ -1,33 +1,10 @@
-<template>
-  <div @input="updateContent" @keyup="checkEventUp">
-    <textarea
-      v-if="props.readOnly"
-      :value="props.info.fileContent"
-      id="editor"
-      cols="30"
-      rows="10"
-      readonly
-    ></textarea>
-    <textarea
-      v-else
-      id="editor"
-      :value="props.info.fileContent"
-      cols="30"
-      rows="10"
-    ></textarea>
-  </div>
-  <button @click="playback">Playback</button>
-  <button @click="runCode">Run code</button>
-  <button @click="checkSame">click</button>
-</template>
-
 <script setup>
 import * as CodeMirror from "codemirror";
 import axios from "axios";
 import "codemirror/lib/codemirror.css";
 import "codemirror/theme/material-darker.css";
 import "codemirror/mode/javascript/javascript.js";
-import { onMounted } from "vue";
+import { nextTick, onBeforeMount, onMounted, ref, watch } from "vue";
 
 const props = defineProps({
   socket: Object,
@@ -49,6 +26,8 @@ const emit = defineEmits([
 ]);
 
 let editor = null;
+
+const fileContent = ref(props.info.fileContent);
 
 function updateContent(e) {
   console.log("input: ", e.data);
@@ -80,6 +59,9 @@ function updateContent(e) {
     fileNumber: props.info.fileNumber,
     code: allCode,
   });
+  console.log("file content: ", props.info.fileContent);
+  console.log("file line: ", props.info.line);
+  console.log("file index: ", props.info.index);
 }
 
 async function checkEventUp(e) {
@@ -125,6 +107,7 @@ async function checkEventUp(e) {
       deletedCode = "\n";
       changeLineStatus = 1;
     } else {
+      console.log("content", props.info.fileContent);
       deletedCode = props.info.fileContent
         .split("\n")
         [props.info.line].substring(props.info.index - 1, props.info.index);
@@ -249,20 +232,20 @@ async function checkEventUp(e) {
       });
     }
   } else if (e.ctrlKey && e.keyCode === 83) {
-    console.log("Control + Save");
-    const saveResponse = await axios.post(
-      "https://domingoos.store/api/1.0/record",
-      // "https://domingoos.store/api/1.0/record",
-      {
-        userID: 1,
-        projectID: 1,
-        versionID: 2,
-        fileName: props.info.fileName,
-        checkpointNumber: 1,
-        batchData: JSON.stringify(props.info.codeRecords),
-      }
-    );
-    console.log("save response: ", saveResponse);
+    // console.log("Control + Save");
+    // const saveResponse = await axios.post(
+    //   // "https://domingoos.store/api/1.0/record",
+    //   "http://localhost:3000/api/1.0/record",
+    //   {
+    //     userID: 1,
+    //     projectID: 1,
+    //     versionID: 17,
+    //     fileName: props.info.fileName,
+    //     checkpointNumber: 1,
+    //     batchData: JSON.stringify(props.info.codeRecords),
+    //   }
+    // );
+    // console.log("save response: ", saveResponse);
     //Save code file.
     const allCodes = props.info.fileContent;
     console.log("entire code:", allCodes);
@@ -271,8 +254,8 @@ async function checkEventUp(e) {
       type: "application/javascript",
     });
     submitForm.append("files", blob, props.info.fileName);
-    submitForm.append("projectID", 1);
-    submitForm.append("versionID", 2);
+    submitForm.append("projectID", 0);
+    submitForm.append("versionID", 0);
     submitForm.append("reqCategory", "code_file");
     console.log("prepare to submit !");
     const response = await axios({
@@ -284,6 +267,8 @@ async function checkEventUp(e) {
       data: submitForm,
     });
     console.log(response);
+  } else if (e.ctrlKey && e.keyCode === 86){
+    document.execCommand("copy",false,null);
   }
 }
 
@@ -309,13 +294,9 @@ async function runCode() {
   });
 }
 
-function checkSame() {
-  console.log(props.info.codeRecords);
-  editor.getDoc().setValue(props.info.fileContent);
-}
-
 async function playback() {
   //TODO: set 所有父層資料為初始值
+  editor.getDoc().setValue("");
   for (let i = 0; i < props.info.timeBetween.length; i++) {
     await new Promise((resolve, reject) => {
       setTimeout(() => {
@@ -436,19 +417,50 @@ function triggerEvent(recordObject) {
     });
   }
 }
+onBeforeMount(async () => {
+  const fileUrlContent = await axios.get(
+    "https://d1vj6hotf8ce5i.cloudfront.net/record/user_11/project_1/version_2/1662879826441-test.js"
+  );
+  console.log("cloudfront result: ", fileUrlContent.data);
+  emit("update");
+  fileContent.value = fileUrlContent.data;
+  console.log(fileUrlContent.data.split("\n").length);
+  emit("updateCurrLine", {
+    fileNumber: props.info.fileNumber,
+    line: fileUrlContent.data.split("\n").length - 1,
+  });
+  emit("updateCurrIndex", {
+    fileNumber: props.info.fileNumber,
+    index: fileUrlContent.data.length,
+  });
+});
 
-onMounted(async () => {
-  console.log("readOnly: ", props.readOnly);
+async function initCodeMirror() {
+  const fileUrlContent = await axios.get(
+    "https://d1vj6hotf8ce5i.cloudfront.net/record/user_11/project_1/version_2/1662879826441-test.js"
+  );
+  emit("updateCurrCodes", {
+    fileNumber: props.info.fileNumber,
+    code: fileUrlContent.data,
+  });
   let tmpReadOnly = props.readOnly;
+  let cursorHeight = 0.85;
+  if (tmpReadOnly === undefined) {
+    console.log("props.readOnly: ", props.readOnly);
+    return;
+  }
   if (tmpReadOnly) {
     tmpReadOnly = "nocursor";
+    cursorHeight = 0;
   }
+  console.log("read only: ", props.readOnly);
   editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
-    value: props.info.fileContent,
+    value: fileContent.value,
     lineNumbers: true,
     identUnit: 2,
     autofocus: true,
     readOnly: tmpReadOnly,
+    cursorHeight: cursorHeight,
     indentWithTab: true,
     tabSize: 2,
     autocorrect: true,
@@ -462,7 +474,7 @@ onMounted(async () => {
       {
         projectID: 1,
         startTime: "2022-09-03T04:25:32.985Z",
-        stopTime: "2022-09-10T04:25:32.985Z",
+        stopTime: "2022-09-15T04:25:32.985Z",
       }
     );
     recordResponse = recordResponse.data.data;
@@ -485,10 +497,51 @@ onMounted(async () => {
       fileNumber: props.info.fileNumber,
       timeBetween: tmpTimeBetween,
     });
-    console.log("Time Between: ", props.info.timeBetween);
   }
-});
+}
+
+watch(
+  () => props.readOnly,
+  async (newReadOnly, prevReadOnly) => {
+    const editors = document.getElementsByClassName("CodeMirror");
+    if (editors.length !== 0) {
+      console.log("in");
+      Array.from(editors).forEach((element) => {
+        element.remove();
+      });
+    }
+    await initCodeMirror();
+  }
+);
+
+// onMounted(async () => {
+// await initCodeMirror();
+// });
+function userClick() {
+  alert("僅提供鍵盤輸入功能");
+  editor.getDoc().setCursor({ line: props.info.line, ch: props.info.index });
+}
 </script>
+
+<template>
+  <div @input="updateContent" @keyup="checkEventUp">
+    <div v-if="props.readOnly">
+      <textarea :value="fileContent" id="editor" cols="30" rows="10"></textarea>
+    </div>
+    <!-- @click="userClick" -->
+    <div v-else>
+      <textarea
+        id="editor"
+        :value="fileContent"
+        cols="30"
+        rows="10"
+        style="pointer-events: none"
+      ></textarea>
+    </div>
+  </div>
+  <button @click="playback">Playback</button>
+  <button @click="runCode">Run code</button>
+</template>
 
 <style scoped>
 h3 {

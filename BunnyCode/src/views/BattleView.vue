@@ -1,7 +1,9 @@
 <script setup>
 import { nextTick, onBeforeMount, onMounted, ref } from "vue";
+import axios from "axios";
 import io from "socket.io-client";
 import BattleSpaceComponent from "../components/BattleSpaceComponent.vue";
+import TerminalComponent from "../components/TerminalComponent.vue";
 
 //TODO: Sending codeing info (recordsing it in local as well) to Server with socket.
 //TODO: Keyboard event (需要用到哪些)
@@ -38,6 +40,7 @@ const battleInfo = ref([
     index: 0,
     codeRecords: [],
     timeBetween: [],
+    terminalResult: [],
   },
   {
     battlerNumber: 1,
@@ -48,12 +51,12 @@ const battleInfo = ref([
     index: 0,
     codeRecords: [],
     timeBetween: [],
+    terminalResult: [],
   },
 ]);
 
 const atAlt = ref(false);
 const atCtl = ref(false);
-const terminalResult = ref([]);
 const childEditor = ref([]);
 const localhostServer = "http://localhost:3000";
 const productionServer = "wss://domingoos.store";
@@ -66,6 +69,7 @@ const socket = io(productionServer, {
 });
 
 socket.on("returnBattler", (responseObject) => {
+  console.log("return Battler: ", responseObject);
   battleInfo.value[0].userID = responseObject.battleResponse.firstUserID;
   battleInfo.value[0].userName = responseObject.battleResponse.firstUserName;
   battleInfo.value[1].userID = responseObject.battleResponse.secondUserID;
@@ -88,7 +92,7 @@ socket.on("in", (msg) => {
 });
 
 socket.on("newCodes", (recordObject) => {
-  battleInfo.value.forEach((info)=>{
+  battleInfo.value.forEach((info) => {
     if (
       info.userID == recordObject.userID &&
       userID.value !== recordObject.userID
@@ -125,8 +129,8 @@ function pushCodeRecords(emitObject) {
   // console.log(battleInfo.value[emitObject.battlerNumber].codeRecords);
 }
 
-function pushTerminal(emitObject) {
-  terminalResult.value.push(...emitObject.result);
+function pushTerminal(battlerNumber, result) {
+  battleInfo.value[battlerNumber].terminalResult.push(result);
 }
 
 function updateAllRecords(emitObject) {
@@ -137,6 +141,21 @@ function updateAllRecords(emitObject) {
 function updateTimeBetween(emitObject) {
   battleInfo.value[emitObject.battlerNumber].timeBetween =
     emitObject.timeBetween;
+}
+
+socket.on("compileDone", (responseObject) => {
+  console.log("responseObject: ", responseObject);
+  pushTerminal(responseObject.battlerNumber, responseObject.compilerResult);
+});
+
+async function runCode(battlerNumber) {
+  console.log(battlerNumber);
+  const allCodes = battleInfo.value[battlerNumber].fileContent;
+  socket.emit("compile", {
+    battlerNumber: battlerNumber,
+    battleID: props.battleID,
+    codes: allCodes,
+  });
 }
 
 onBeforeMount(() => {
@@ -166,6 +185,8 @@ onBeforeMount(() => {
         @updateAllRecords="updateAllRecords"
         @updateTimeBetween="updateTimeBetween"
       />
+      <button @click="runCode(index)">Run code</button>
+      <TerminalComponent id="terminal" :terminalResult="info.terminalResult" />
     </div>
   </div>
 </template>
@@ -183,5 +204,8 @@ onBeforeMount(() => {
   width: 40%;
   height: 200px;
   align-self: center;
+}
+#terminal {
+  top: 350px;
 }
 </style>
