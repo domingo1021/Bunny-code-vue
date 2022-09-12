@@ -1,17 +1,32 @@
 <script setup>
+import { onBeforeMount, ref } from "vue";
 import { useRouter } from "vue-router";
 import ProjectCardComponent from "../components/ProjectCardComponent.vue";
-// import { ref } from 'vue';
+import axios from "axios";
 
 const router = useRouter();
-
-const props = defineProps({
-  projectsDisplayed: Object,
-});
+const projectsDisplayed = ref([]);
+const localhostServer = "http://localhost:3000";
 
 function renderPath(index){
-  router.push(`/code-mirror/${props.projectsDisplayed[index].projectName}`);
+  router.push(`/code-mirror/${projectsDisplayed.projects[index].projectName}`);
 }
+
+function updateProjects(emitObject) {
+  projectsDisplayed.value = emitObject;
+  console.log(projectsDisplayed.value);
+}
+
+onBeforeMount(async () => {
+  let responseProjects = await axios.get(
+    localhostServer + `/api/1.0/project/all`
+  );
+  projectsDisplayed.value = responseProjects.data.data;
+});
+
+defineExpose({
+  updateProjects,
+})
 
 </script>
 
@@ -19,10 +34,12 @@ function renderPath(index){
   <main>
     <div id="project-content">
       <div id="flex-box">
-        <div clsss="flex-item" v-for="(project, index) in projectsDisplayed" :key="index" @click="renderPath(index)">
-          <ProjectCardComponent :projectObject="project"/>
+        <div clsss="flex-item" v-for="(project, index) in projectsDisplayed.projects" :key="index">
+          <ProjectCardComponent :projectObject="project" @click="renderPath(index)"/>
         </div>
       </div>
+      <div>Current page: {{projectsDisplayed.page}}</div>
+        <div>All page: {{projectsDisplayed.allPage}}</div>
     </div>
   </main>
 </template>

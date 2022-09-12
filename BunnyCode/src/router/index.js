@@ -26,7 +26,13 @@ const router = createRouter({
       name: "battle",
       component: () => import("../views/BattleView.vue"),
       props: true,
-    }
+    },
+    {
+      path: "/user/:userID",
+      name: "user",
+      component: () => import("../views/UserView.vue"),
+      props: true,
+    },
   ],
 });
 
