@@ -81,36 +81,29 @@ const socket = io(localhostServer, {
   path: "/api/socket/",
 });
 
-// socket.on("statusChecked", (responseObject) => {
-//   console.log("Response Object: ", responseObject);
-//   emit("changeUserStatus", responseObject);
-// });
-
-onBeforeMount(() => {
-  console.log("Mounted View")
-  console.log("Mounted View")
-  console.log("Mounted View")
-  if (props.readOnly !== false) {
-    socket.emit("checkProjectStatus", {
-      projectID: props.projectID,
-      versionID: props.version.versionID,
-    });
-    socket.on("statusChecked", (responseObject) => {
-    console.log("Response Object: ", responseObject);
-    emit("changeUserStatus", responseObject);
+socket.on("statusChecked", (responseObject) => {
+  console.log("Response Object: ", responseObject);
+  emit("changeUserStatus", responseObject);
 });
-  }
-})
 
-// onMounted(() => {
-//   // check whether version is editing with version.versionID
+// onBeforeMount(() => {
 //   if (props.readOnly !== false) {
 //     socket.emit("checkProjectStatus", {
 //       projectID: props.projectID,
 //       versionID: props.version.versionID,
 //     });
 //   }
-// });
+// })
+
+onMounted(() => {
+  // check whether version is editing with version.versionID
+  if (props.readOnly !== false) {
+    socket.emit("checkProjectStatus", {
+      projectID: props.projectID,
+      versionID: props.version.versionID,
+    });
+  }
+});
 
 // onUpdated(() => {
 //   emit("updateFolderInfo", folderInfo.value);
@@ -126,25 +119,8 @@ onBeforeMount(() => {
     <button @click="changeEdit">Edit</button>
   </div>
   <div v-if="folderInfo.length !== 0">
-    <div v-if="!props.readOnly">
-      <div style="color: azure">可編輯的 div</div>
-      <div v-for="(fileInfo, index) in folderInfo" :key="index">
-        <CodeMirrorComponent
-          :info="fileInfo"
-          :atAlt="atAlt"
-          :atCtl="atCtl"
-          :jwt="jwt"
-          :readOnly="props.readOnly"
-          @updateCurrCodes="updateCurrCodes"
-          @updateCurrIndex="updateCurrIndex"
-          @updateCurrLine="updateCurrLine"
-          @pushCodeRecords="pushCodeRecords"
-          @pushTerminal="pushTerminal"
-        />
-      </div>
-    </div>
-    <div v-else>
-      <div style="color: azure">不可編輯的 div</div>
+    <div>
+      <div style="color: azure">ReadyOnly: {{props.readOnly}}</div>
       <div
         v-for="(fileInfo, index) in folderInfo"
         @input="updateContent"

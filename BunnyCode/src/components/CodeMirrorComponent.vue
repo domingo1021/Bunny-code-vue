@@ -4,7 +4,7 @@ import axios from "axios";
 import "codemirror/lib/codemirror.css";
 import "codemirror/theme/material-darker.css";
 import "codemirror/mode/javascript/javascript.js";
-import { nextTick, onBeforeMount, onMounted, ref } from "vue";
+import { nextTick, onBeforeMount, onMounted, ref, watch } from "vue";
 
 const props = defineProps({
   socket: Object,
@@ -59,6 +59,9 @@ function updateContent(e) {
     fileNumber: props.info.fileNumber,
     code: allCode,
   });
+  console.log("file content: ", props.info.fileContent);
+  console.log("file line: ", props.info.line);
+  console.log("file index: ", props.info.index);
 }
 
 async function checkEventUp(e) {
@@ -104,6 +107,7 @@ async function checkEventUp(e) {
       deletedCode = "\n";
       changeLineStatus = 1;
     } else {
+      console.log("content", props.info.fileContent);
       deletedCode = props.info.fileContent
         .split("\n")
         [props.info.line].substring(props.info.index - 1, props.info.index);
@@ -288,11 +292,6 @@ async function runCode() {
   });
 }
 
-function checkSame() {
-  console.log(props.info.codeRecords);
-  editor.getDoc().setValue(props.info.fileContent);
-}
-
 async function playback() {
   //TODO: set 所有父層資料為初始值
   editor.getDoc().setValue("");
@@ -421,41 +420,36 @@ onBeforeMount(async () => {
     "https://d1vj6hotf8ce5i.cloudfront.net/record/user_11/project_1/version_2/1662879826441-test.js"
   );
   console.log("cloudfront result: ", fileUrlContent.data);
+  emit("update");
   fileContent.value = fileUrlContent.data;
   console.log(fileUrlContent.data.split("\n").length);
   emit("updateCurrLine", {
     fileNumber: props.info.fileNumber,
-    line: fileUrlContent.data.split("\n").length,
+    line: fileUrlContent.data.split("\n").length - 1,
   });
   emit("updateCurrIndex", {
     fileNumber: props.info.fileNumber,
-    index: fileUrlContent.data.length - 1,
+    index: fileUrlContent.data.length,
   });
 });
 
-onMounted(async () => {
-  console.log("Mounted");
-  console.log("Mounted");
-  console.log("Mounted");
+async function initCodeMirror() {
   const fileUrlContent = await axios.get(
     "https://d1vj6hotf8ce5i.cloudfront.net/record/user_11/project_1/version_2/1662879826441-test.js"
   );
-  fileContent.value = fileUrlContent.data;
+  emit("updateCurrCodes", {
+    fileNumber: props.info.fileNumber,
+    code: fileUrlContent.data,
+  });
   let tmpReadOnly = props.readOnly;
-  if (tmpReadOnly === undefined){
+  if (tmpReadOnly === undefined) {
+    console.log("props.readOnly: ", props.readOnly);
     return;
   }
   if (tmpReadOnly) {
     tmpReadOnly = "nocursor";
   }
-  // await nextTick();
-  // console.log(props.info.fileContent);
-  // let preEditor = document.getElementsByClassName("CodeMirror").length
-  // if (preEditor.length !== 0) {
-  //   preEditor.forEach((prev)=>{
-  //     prev.remove();
-  //   })
-  // }
+  console.log("read only: ", props.readOnly);
   editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
     value: fileContent.value,
     lineNumbers: true,
@@ -498,13 +492,34 @@ onMounted(async () => {
       fileNumber: props.info.fileNumber,
       timeBetween: tmpTimeBetween,
     });
-    console.log("Time Between: ", props.info.timeBetween);
   }
-});
+}
+
+watch(
+  () => props.readOnly,
+  async (newReadOnly, prevReadOnly) => {
+    const editors = document.getElementsByClassName("CodeMirror");
+    if (editors.length !== 0 ) {
+      console.log("in");
+      Array.from(editors).forEach((element) => {
+        element.remove();
+      });
+    }
+    await initCodeMirror();
+  }
+);
+
+// onMounted(async () => {
+// await initCodeMirror();
+// });
+function userClick() {
+  alert("僅提供鍵盤輸入功能");
+  editor.getDoc().setCursor({ line: props.info.line, ch: props.info.index });
+}
 </script>
 
 <template>
-  <div @input="updateContent" @keyup="checkEventUp">
+  <div @input="updateContent" @keyup="checkEventUp" @click="userClick">
     <textarea
       v-if="props.readOnly"
       :value="fileContent"
@@ -519,11 +534,11 @@ onMounted(async () => {
       :value="fileContent"
       cols="30"
       rows="10"
+      style="pointer-events: none"
     ></textarea>
   </div>
   <button @click="playback">Playback</button>
   <button @click="runCode">Run code</button>
-  <button @click="checkSame">click</button>
 </template>
 
 <style scoped>

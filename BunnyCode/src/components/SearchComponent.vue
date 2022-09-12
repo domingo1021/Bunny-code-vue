@@ -14,9 +14,7 @@ let keywords = ref("");
 const emit = defineEmits(["updateProjects"]);
 const localhostServer = "http://localhost:3000";
 
-async function searchProjec12t() {
-  // console.log(keywords.value, e.key)
-  // if(e.key === 'Enter'){
+async function searchProject() {
   console.log(keywords.value);
   let responseProjects = await axios.get(
     localhostServer + `/api/1.0/project/search?keywords=${keywords.value}`

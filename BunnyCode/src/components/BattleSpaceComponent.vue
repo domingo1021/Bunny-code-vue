@@ -191,9 +191,6 @@ async function checkEventUp(e) {
     }
   } else if (e.key === "ArrowRight") {
     console.log("right");
-    // console.log("index: ",  props.info.index ,
-    // props.info.fileContent.split("\n")[props.info.line].length - 1)
-    // console.log("line: ",  props.info.line, props.info.fileContent.split("\n").length - 1)
     if (
       props.info.index ===
         props.info.fileContent.split("\n")[props.info.line].length &&

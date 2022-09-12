@@ -70,12 +70,12 @@
 
 <script setup>
 import { useRouter, useRoute } from "vue-router";
-import { nextTick, onBeforeMount, onMounted, ref } from "vue";
+import { onBeforeMount, onMounted, onUpdated, ref, watch } from "vue";
 import axios from "axios";
 import CodeMirrorView from "./CodeMirrorView.vue";
 import FolderController from "./FolderController.vue";
 
-const localhostServer = 'http://localhost:3000'
+const localhostServer = "http://localhost:3000";
 const projectDetail = ref({});
 const targetFunction = ref("Folder");
 // default target version 為第一個 version, (之後根據使用者點選version 做修改)
@@ -85,16 +85,16 @@ const readOnly = ref();
 
 //TODO: debug: change route when user click header instead
 const router = useRouter();
-const route = useRoute();
+// const route = useRoute();
+
 const props = defineProps({
   projectName: String,
   versionName: String,
 });
 
-console.log("full path: ", route.fullPath);
+// console.log("full path: ", route.fullPath);
 
 async function changePath() {
-  await router.push({ name: "home" });
   await router.push({
     name: "code-mirror",
     params: { projectName: "bunny_code" },
@@ -105,13 +105,13 @@ function updateTarget(target) {
   targetFunction.value = target;
 }
 
-function changeUserStatus(emitObject){
+function changeUserStatus(emitObject) {
   readOnly.value = emitObject.readOnly;
   authorization.value = emitObject.authorization;
 }
 
-onBeforeMount(async () =>{
-  console.log("projectName: ", props.projectName);
+async function updateProjectDetail() {
+  // console.log("projectName: ", props.projectName);
   let projectResponse;
   try {
     projectResponse = await axios.get(
@@ -142,55 +142,51 @@ onBeforeMount(async () =>{
       });
     }
   });
-  console.log("detail:", projectDetail.value);
-  // .targetVersion?.files
-  // await nextTick();
-  // console.log("vueRouter: ", route.params);
-  // console.log("props router: ", props.projectName);
-  // console.log(projectDetail.value);
-})
+  // console.log("detail:", projectDetail.value);
+}
 
-// onMounted(async () => {
-//   // await nextTick();
-//   // console.log(route.params);
-//   console.log("projectName: ", props.projectName);
-//   let projectResponse;
-//   try {
-//     projectResponse = await axios.get(
-//       localhostServer +
-//         `/api/1.0/project/detail?projectName=${props.projectName}`
-//     );
-//   } catch (error) {
-//     console.log(error);
-//     alert(error.response.data.msg);
-//     return;
-//   }
-//   projectDetail.value = projectResponse.data.data;
-//   projectDetail.value.version.forEach((version) => {
-//     if (version.files.length !== 0) {
-//       version.files.forEach((file, index) => {
-//         file.fileNumber = index;
-//         let tmpArray = file.fileName.split(".");
-//         if (tmpArray.length > 0) {
-//           file.language = tmpArray.pop().toUpperCase();
-//         } else {
-//           file.language = "";
-//         }
-//         file.fileContent = "";
-//         file.index = 0;
-//         file.line = 0;
-//         file.codeRecords = [];
-//         file.timeBetween = [];
-//       });
-//     }
-//   });
-//   console.log("detail:", projectDetail.value);
-//   // .targetVersion?.files
-//   // await nextTick();
-//   // console.log("vueRouter: ", route.params);
-//   // console.log("props router: ", props.projectName);
-//   // console.log(projectDetail.value);
-// });
+watch(
+  () => props.projectName,
+  async (newProjectName, prevProjectName) => {
+    await updateProjectDetail();
+  }
+);
+
+onBeforeMount(async () => {
+  await updateProjectDetail()
+  // console.log("projectName: ", props.projectName);
+  // let projectResponse;
+  // try {
+  //   projectResponse = await axios.get(
+  //     localhostServer +
+  //       `/api/1.0/project/detail?projectName=${props.projectName}`
+  //   );
+  // } catch (error) {
+  //   console.log(error);
+  //   alert(error.response.data.msg);
+  //   return;
+  // }
+  // projectDetail.value = projectResponse.data.data;
+  // projectDetail.value.version.forEach((version) => {
+  //   if (version.files.length !== 0) {
+  //     version.files.forEach((file, index) => {
+  //       file.fileNumber = index;
+  //       let tmpArray = file.fileName.split(".");
+  //       if (tmpArray.length > 0) {
+  //         file.language = tmpArray.pop().toUpperCase();
+  //       } else {
+  //         file.language = "";
+  //       }
+  //       file.fileContent = "";
+  //       file.index = 0;
+  //       file.line = 0;
+  //       file.codeRecords = [];
+  //       file.timeBetween = [];
+  //     });
+  //   }
+  // });
+  // console.log("detail:", projectDetail.value);
+});
 </script>
 
 <style scoped>
