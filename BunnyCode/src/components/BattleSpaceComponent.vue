@@ -8,7 +8,7 @@
       rows="10"
     ></textarea>
   </div>
-  <div v-for="(msg, index) in message" :key="index">{{ msg }}</div>
+  <!-- <div v-for="(msg, index) in message" :key="index">{{ msg }}</div> -->
 </template>
 
 <script setup>

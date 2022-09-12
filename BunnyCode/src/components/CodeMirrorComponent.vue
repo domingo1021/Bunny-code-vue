@@ -267,6 +267,8 @@ async function checkEventUp(e) {
       data: submitForm,
     });
     console.log(response);
+  } else if (e.ctrlKey && e.keyCode === 86){
+    document.execCommand("copy",false,null);
   }
 }
 
@@ -442,12 +444,14 @@ async function initCodeMirror() {
     code: fileUrlContent.data,
   });
   let tmpReadOnly = props.readOnly;
+  let cursorHeight = 0.85;
   if (tmpReadOnly === undefined) {
     console.log("props.readOnly: ", props.readOnly);
     return;
   }
   if (tmpReadOnly) {
     tmpReadOnly = "nocursor";
+    cursorHeight = 0;
   }
   console.log("read only: ", props.readOnly);
   editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
@@ -456,6 +460,7 @@ async function initCodeMirror() {
     identUnit: 2,
     autofocus: true,
     readOnly: tmpReadOnly,
+    cursorHeight: cursorHeight,
     indentWithTab: true,
     tabSize: 2,
     autocorrect: true,
@@ -499,7 +504,7 @@ watch(
   () => props.readOnly,
   async (newReadOnly, prevReadOnly) => {
     const editors = document.getElementsByClassName("CodeMirror");
-    if (editors.length !== 0 ) {
+    if (editors.length !== 0) {
       console.log("in");
       Array.from(editors).forEach((element) => {
         element.remove();
@@ -519,23 +524,20 @@ function userClick() {
 </script>
 
 <template>
-  <div @input="updateContent" @keyup="checkEventUp" @click="userClick">
-    <textarea
-      v-if="props.readOnly"
-      :value="fileContent"
-      id="editor"
-      cols="30"
-      rows="10"
-      readonly
-    ></textarea>
-    <textarea
-      v-else
-      id="editor"
-      :value="fileContent"
-      cols="30"
-      rows="10"
-      style="pointer-events: none"
-    ></textarea>
+  <div @input="updateContent" @keyup="checkEventUp">
+    <div v-if="props.readOnly">
+      <textarea :value="fileContent" id="editor" cols="30" rows="10"></textarea>
+    </div>
+    <!-- @click="userClick" -->
+    <div v-else>
+      <textarea
+        id="editor"
+        :value="fileContent"
+        cols="30"
+        rows="10"
+        style="pointer-events: none"
+      ></textarea>
+    </div>
   </div>
   <button @click="playback">Playback</button>
   <button @click="runCode">Run code</button>

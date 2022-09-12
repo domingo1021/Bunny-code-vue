@@ -86,15 +86,6 @@ socket.on("statusChecked", (responseObject) => {
   emit("changeUserStatus", responseObject);
 });
 
-// onBeforeMount(() => {
-//   if (props.readOnly !== false) {
-//     socket.emit("checkProjectStatus", {
-//       projectID: props.projectID,
-//       versionID: props.version.versionID,
-//     });
-//   }
-// })
-
 onMounted(() => {
   // check whether version is editing with version.versionID
   if (props.readOnly !== false) {
@@ -105,16 +96,9 @@ onMounted(() => {
   }
 });
 
-// onUpdated(() => {
-//   emit("updateFolderInfo", folderInfo.value);
-// });
 </script>
 
 <template>
-  <!-- <button type="button" @click="changeSelf">Change user auth</button> -->
-  <!-- <button type="button" @click="changeEdit">Change edit status</button> -->
-  <!-- <div>User auth: {{ ifSelf }}</div> -->
-  <!-- <div>Edit status: {{ editStatus }}</div> -->
   <div v-if="authorization">
     <button @click="changeEdit">Edit</button>
   </div>

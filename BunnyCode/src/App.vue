@@ -66,6 +66,13 @@ async function updateView(viewPage) {
     await router.push({ name: "code-mirror", params: { projectName: "bunny_code" } });
   }
 }
+
+onMounted(async () => {
+  let responseProjects = await axios.get(
+    localhostServer + `/api/1.0/project/all`
+  );
+  projectsDisplayed.value = responseProjects.data.data;
+});
 </script>
 
 <style scoped>
