@@ -58,7 +58,7 @@ const childEditor = ref([]);
 const localhostServer = "http://localhost:3000";
 const productionServer = "wss://domingoos.store";
 
-const socket = io(productionServer, {
+const socket = io(localhostServer, {
   auth: (cb) => {
     cb({ token: `Bearer ${localStorage.getItem("jwt")}` });
   },
@@ -66,6 +66,7 @@ const socket = io(productionServer, {
 });
 
 socket.on("returnBattler", (responseObject) => {
+  console.log("return Battler: ", responseObject);
   battleInfo.value[0].userID = responseObject.battleResponse.firstUserID;
   battleInfo.value[0].userName = responseObject.battleResponse.firstUserName;
   battleInfo.value[1].userID = responseObject.battleResponse.secondUserID;

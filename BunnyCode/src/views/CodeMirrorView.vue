@@ -1,25 +1,29 @@
 <script setup>
 import CodeMirrorComponent from "../components/CodeMirrorComponent.vue";
 import TerminalComponent from "../components/TerminalComponent.vue";
-import { ref, onMounted, onUpdated } from "vue";
+import { ref, onMounted, onUpdated, onBeforeMount } from "vue";
 import axios from "axios";
 import io from "socket.io-client";
 
 // TODO: 如果是本人進入頁面（認為想要 edit）, 則建立 Socket, 並更動 edit 狀態，
 
 const props = defineProps({
-  projectID: String,
+  projectID: Number,
   folderInfo: Object,
   version: Object,
+  readOnly: Boolean,
+  authorization: Boolean,
 });
 
-const emit = defineEmits(["updateFolderInfo"]);
+const emit = defineEmits(["changeUserStatus"]);
+
+// const emit = defineEmits(["updateFolderInfo"]);
 
 const atAlt = ref(false);
 const atCtl = ref(false);
 const jwt = localStorage.getItem("jwt");
-const readOnly = ref();
-const authorization = ref();
+// const readOnly = ref(props.readOnly);
+// const authorization = ref(props.authorization);
 // const ifSelf = ref(true);
 // const editStatus = ref(true);
 
@@ -60,8 +64,8 @@ function updateTimeBetween(emitObject) {
   folderInfo.value[emitObject.fileNumber].timeBetween = emitObject.timeBetween;
 }
 
-function changeEdit(){
-  socket.emit('changeEdit', {
+function changeEdit() {
+  socket.emit("changeEdit", {
     projectID: props.projectID,
     versionID: props.version.versionID,
   });
@@ -77,25 +81,40 @@ const socket = io(localhostServer, {
   path: "/api/socket/",
 });
 
-socket.on('statusChecked', (responseObject) => {
-  readOnly.value = responseObject.readOnly;
-  authorization.value = responseObject.authorization;
-  console.log(responseObject);
+// socket.on("statusChecked", (responseObject) => {
+//   console.log("Response Object: ", responseObject);
+//   emit("changeUserStatus", responseObject);
+// });
+
+onBeforeMount(() => {
+  console.log("Mounted View")
+  console.log("Mounted View")
+  console.log("Mounted View")
+  if (props.readOnly !== false) {
+    socket.emit("checkProjectStatus", {
+      projectID: props.projectID,
+      versionID: props.version.versionID,
+    });
+    socket.on("statusChecked", (responseObject) => {
+    console.log("Response Object: ", responseObject);
+    emit("changeUserStatus", responseObject);
+});
+  }
 })
 
+// onMounted(() => {
+//   // check whether version is editing with version.versionID
+//   if (props.readOnly !== false) {
+//     socket.emit("checkProjectStatus", {
+//       projectID: props.projectID,
+//       versionID: props.version.versionID,
+//     });
+//   }
+// });
 
-onMounted(() => {
-  // check whether version is editing with version.versionID
-  console.log("VersionID: ", props.version.versionID);
-  socket.emit("checkProjectStatus", {
-    projectID: props.projectID,
-    versionID: props.version.versionID,
-  });
-});
-
-onUpdated(() => {
-  emit("updateFolderInfo", folderInfo.value);
-});
+// onUpdated(() => {
+//   emit("updateFolderInfo", folderInfo.value);
+// });
 </script>
 
 <template>
@@ -107,15 +126,15 @@ onUpdated(() => {
     <button @click="changeEdit">Edit</button>
   </div>
   <div v-if="folderInfo.length !== 0">
-    <div v-if="!readOnly">
-      <div style="color:azure">可編輯的 div</div>
+    <div v-if="!props.readOnly">
+      <div style="color: azure">可編輯的 div</div>
       <div v-for="(fileInfo, index) in folderInfo" :key="index">
         <CodeMirrorComponent
           :info="fileInfo"
           :atAlt="atAlt"
           :atCtl="atCtl"
           :jwt="jwt"
-          :readOnly="false"
+          :readOnly="props.readOnly"
           @updateCurrCodes="updateCurrCodes"
           @updateCurrIndex="updateCurrIndex"
           @updateCurrLine="updateCurrLine"
@@ -125,7 +144,7 @@ onUpdated(() => {
       </div>
     </div>
     <div v-else>
-      <div style="color:azure">不可編輯的 div</div>
+      <div style="color: azure">不可編輯的 div</div>
       <div
         v-for="(fileInfo, index) in folderInfo"
         @input="updateContent"
@@ -138,7 +157,7 @@ onUpdated(() => {
           :atAlt="atAlt"
           :atCtl="atCtl"
           :jwt="jwt"
-          :readOnly="true"
+          :readOnly="props.readOnly"
           @updateCurrCodes="updateCurrCodes"
           @updateCurrIndex="updateCurrIndex"
           @updateCurrLine="updateCurrLine"

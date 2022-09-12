@@ -44,10 +44,12 @@
           <button @click="changePath">Change Path</button>
           <CodeMirrorView
             v-if="Object.keys(projectDetail).length !== 0"
+            :readOnly="readOnly"
+            :authorization="authorization"
             :projectID="projectDetail.projectID"
             :version="projectDetail?.version[targetVersionIndex]"
             :folderInfo="projectDetail?.version[targetVersionIndex]?.files"
-            @updateFolderInfo="updateFolderInfo"
+            @changeUserStatus="changeUserStatus"
           />
           <div v-else></div>
         </div>
@@ -78,6 +80,9 @@ const projectDetail = ref({});
 const targetFunction = ref("Folder");
 // default target version 為第一個 version, (之後根據使用者點選version 做修改)
 const targetVersionIndex = ref(0);
+const authorization = ref(false);
+const readOnly = ref();
+
 //TODO: debug: change route when user click header instead
 const router = useRouter();
 const route = useRoute();
@@ -100,9 +105,12 @@ function updateTarget(target) {
   targetFunction.value = target;
 }
 
-onMounted(async () => {
-  // await nextTick();
-  // console.log(route.params);
+function changeUserStatus(emitObject){
+  readOnly.value = emitObject.readOnly;
+  authorization.value = emitObject.authorization;
+}
+
+onBeforeMount(async () =>{
   console.log("projectName: ", props.projectName);
   let projectResponse;
   try {
@@ -140,7 +148,49 @@ onMounted(async () => {
   // console.log("vueRouter: ", route.params);
   // console.log("props router: ", props.projectName);
   // console.log(projectDetail.value);
-});
+})
+
+// onMounted(async () => {
+//   // await nextTick();
+//   // console.log(route.params);
+//   console.log("projectName: ", props.projectName);
+//   let projectResponse;
+//   try {
+//     projectResponse = await axios.get(
+//       localhostServer +
+//         `/api/1.0/project/detail?projectName=${props.projectName}`
+//     );
+//   } catch (error) {
+//     console.log(error);
+//     alert(error.response.data.msg);
+//     return;
+//   }
+//   projectDetail.value = projectResponse.data.data;
+//   projectDetail.value.version.forEach((version) => {
+//     if (version.files.length !== 0) {
+//       version.files.forEach((file, index) => {
+//         file.fileNumber = index;
+//         let tmpArray = file.fileName.split(".");
+//         if (tmpArray.length > 0) {
+//           file.language = tmpArray.pop().toUpperCase();
+//         } else {
+//           file.language = "";
+//         }
+//         file.fileContent = "";
+//         file.index = 0;
+//         file.line = 0;
+//         file.codeRecords = [];
+//         file.timeBetween = [];
+//       });
+//     }
+//   });
+//   console.log("detail:", projectDetail.value);
+//   // .targetVersion?.files
+//   // await nextTick();
+//   // console.log("vueRouter: ", route.params);
+//   // console.log("props router: ", props.projectName);
+//   // console.log(projectDetail.value);
+// });
 </script>
 
 <style scoped>

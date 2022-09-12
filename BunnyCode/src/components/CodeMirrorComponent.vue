@@ -4,7 +4,7 @@ import axios from "axios";
 import "codemirror/lib/codemirror.css";
 import "codemirror/theme/material-darker.css";
 import "codemirror/mode/javascript/javascript.js";
-import { onMounted } from "vue";
+import { nextTick, onBeforeMount, onMounted, ref } from "vue";
 
 const props = defineProps({
   socket: Object,
@@ -26,6 +26,8 @@ const emit = defineEmits([
 ]);
 
 let editor = null;
+
+const fileContent = ref(props.info.fileContent);
 
 function updateContent(e) {
   console.log("input: ", e.data);
@@ -226,41 +228,41 @@ async function checkEventUp(e) {
       });
     }
   } else if (e.ctrlKey && e.keyCode === 83) {
-    console.log("Control + Save");
-    const saveResponse = await axios.post(
-      // "https://domingoos.store/api/1.0/record",
-      "http://localhost:3000/api/1.0/record",
-      {
-        userID: 1,
-        projectID: 1,
-        versionID: 17,
-        fileName: props.info.fileName,
-        checkpointNumber: 1,
-        batchData: JSON.stringify(props.info.codeRecords),
-      }
-    );
-    console.log("save response: ", saveResponse);
+    // console.log("Control + Save");
+    // const saveResponse = await axios.post(
+    //   // "https://domingoos.store/api/1.0/record",
+    //   "http://localhost:3000/api/1.0/record",
+    //   {
+    //     userID: 1,
+    //     projectID: 1,
+    //     versionID: 17,
+    //     fileName: props.info.fileName,
+    //     checkpointNumber: 1,
+    //     batchData: JSON.stringify(props.info.codeRecords),
+    //   }
+    // );
+    // console.log("save response: ", saveResponse);
     //Save code file.
     const allCodes = props.info.fileContent;
     console.log("entire code:", allCodes);
-    // const submitForm = new FormData();
-    // const blob = new Blob([JSON.stringify(allCodes)], {
-    //   type: "application/javascript",
-    // });
-    // submitForm.append("files", blob, props.info.fileName);
-    // submitForm.append("projectID", 1);
-    // submitForm.append("versionID", 2);
-    // submitForm.append("reqCategory", "code_file");
-    // console.log("prepare to submit !");
-    // const response = await axios({
-    //   method: "post",
-    //   url: "https://domingoos.store/api/1.0/record/file",
-    //   headers: {
-    //     Authorization: `Bearer ${props.jwt}`,
-    //   },
-    //   data: submitForm,
-    // });
-    // console.log(response);
+    const submitForm = new FormData();
+    const blob = new Blob([JSON.stringify(allCodes)], {
+      type: "application/javascript",
+    });
+    submitForm.append("files", blob, props.info.fileName);
+    submitForm.append("projectID", 0);
+    submitForm.append("versionID", 0);
+    submitForm.append("reqCategory", "code_file");
+    console.log("prepare to submit !");
+    const response = await axios({
+      method: "post",
+      url: "https://domingoos.store/api/1.0/record/file",
+      headers: {
+        Authorization: `Bearer ${props.jwt}`,
+      },
+      data: submitForm,
+    });
+    console.log(response);
   }
 }
 
@@ -293,6 +295,7 @@ function checkSame() {
 
 async function playback() {
   //TODO: set 所有父層資料為初始值
+  editor.getDoc().setValue("");
   for (let i = 0; i < props.info.timeBetween.length; i++) {
     await new Promise((resolve, reject) => {
       setTimeout(() => {
@@ -413,15 +416,48 @@ function triggerEvent(recordObject) {
     });
   }
 }
+onBeforeMount(async () => {
+  const fileUrlContent = await axios.get(
+    "https://d1vj6hotf8ce5i.cloudfront.net/record/user_11/project_1/version_2/1662879826441-test.js"
+  );
+  console.log("cloudfront result: ", fileUrlContent.data);
+  fileContent.value = fileUrlContent.data;
+  console.log(fileUrlContent.data.split("\n").length);
+  emit("updateCurrLine", {
+    fileNumber: props.info.fileNumber,
+    line: fileUrlContent.data.split("\n").length,
+  });
+  emit("updateCurrIndex", {
+    fileNumber: props.info.fileNumber,
+    index: fileUrlContent.data.length - 1,
+  });
+});
 
 onMounted(async () => {
-  console.log("readOnly: ", props.readOnly);
+  console.log("Mounted");
+  console.log("Mounted");
+  console.log("Mounted");
+  const fileUrlContent = await axios.get(
+    "https://d1vj6hotf8ce5i.cloudfront.net/record/user_11/project_1/version_2/1662879826441-test.js"
+  );
+  fileContent.value = fileUrlContent.data;
   let tmpReadOnly = props.readOnly;
+  if (tmpReadOnly === undefined){
+    return;
+  }
   if (tmpReadOnly) {
     tmpReadOnly = "nocursor";
   }
+  // await nextTick();
+  // console.log(props.info.fileContent);
+  // let preEditor = document.getElementsByClassName("CodeMirror").length
+  // if (preEditor.length !== 0) {
+  //   preEditor.forEach((prev)=>{
+  //     prev.remove();
+  //   })
+  // }
   editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
-    value: props.info.fileContent,
+    value: fileContent.value,
     lineNumbers: true,
     identUnit: 2,
     autofocus: true,
@@ -471,7 +507,7 @@ onMounted(async () => {
   <div @input="updateContent" @keyup="checkEventUp">
     <textarea
       v-if="props.readOnly"
-      :value="props.info.fileContent"
+      :value="fileContent"
       id="editor"
       cols="30"
       rows="10"
@@ -480,7 +516,7 @@ onMounted(async () => {
     <textarea
       v-else
       id="editor"
-      :value="props.info.fileContent"
+      :value="fileContent"
       cols="30"
       rows="10"
     ></textarea>
