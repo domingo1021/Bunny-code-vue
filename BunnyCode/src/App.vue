@@ -32,8 +32,8 @@
     </nav>
   </header>
   <body>
-    <!-- <RouterView ref="child" :key="view" /> -->
-    <main v-if="view === 'home'">
+    <RouterView ref="child" :key="view" />
+    <!-- <main v-if="view === 'home'">
       <HomeView ref="child" />
     </main>
     <main v-else-if="view === 'code'">
@@ -44,7 +44,7 @@
     </main>
     <main v-else>
       <RouterView />
-    </main>
+    </main> -->
   </body>
 </template>
 
