@@ -13,6 +13,7 @@ const router = useRouter();
 const jwt = localStorage.getItem("jwt");
 const projectsDisplayed = ref([]);
 const userAuth = ref(0);
+
 const CLIENT_CATEGORY = {
   visitor: 0,
   otherMember: 1,
@@ -36,15 +37,66 @@ onBeforeMount(async () => {
         Authorization: `Bearer ${jwt}`,
       },
     });
-    userAuth.value = authResponse.data.data; 
+    userAuth.value = authResponse.data.data.clientCategory;
   } catch (error) {
     userAuth.value = 0;
   }
+  console.log("User auth value: ", userAuth.value);
 });
+
+onMounted(() => {
+  // deleteModal = new bootstrap.Modal(deleteModalRef.value, {});
+});
+
 </script>
 
 <template>
   <main>
+    <button
+      type="button"
+      class="btn btn-primary"
+      data-bs-toggle="modal"
+      data-bs-target="#exampleModal"
+      @click="handleOpenModal"
+    >
+      按下去顯示Modal
+    </button>
+
+    <!-- Modal -->
+    <div
+      class="modal fade"
+      id="exampleModal"
+      tabindex="-1"
+      aria-labelledby="exampleModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">UserID: {{userID}}</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">User auth: {{userAuth}}</div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              關閉
+            </button>
+            <button type="button" class="btn btn-primary">確定</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+  <!-- <main> -->
     <div id="project-content">
       <div id="flex-box">
         <div
@@ -57,7 +109,7 @@ onBeforeMount(async () => {
         </div>
       </div>
     </div>
-  </main>
+  <!-- </main> -->
 </template>
 
 <style scoped>
