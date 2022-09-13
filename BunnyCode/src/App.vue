@@ -7,13 +7,13 @@
           <RouterLink to="/" class="nav-item" @click="updateView('home')"
             >Home</RouterLink
           >
-          <div
+          <RouterLink
             to="/code-mirror/bunny_code"
             class="nav-item"
             @click="updateView('code')"
           >
             Code Mirror
-          </div>
+          </RouterLink>
           <RouterLink
             to="/battle/1"
             class="nav-item"
@@ -22,57 +22,49 @@
           >
         </div>
         <div class="right-flex">
-          <div class="nav-item">個人資訊</div>
+          <RouterLink class="nav-item" to="/login" @click="updateView('user')"
+            >個人資訊</RouterLink
+          >
+          <!-- <div class="nav-item">個人資訊</div> -->
           <SearchComponent @updateProjects="updateProjects" />
         </div>
       </div>
     </nav>
   </header>
   <body>
-    <main v-if="view === 'home'">
-      <RouterView :projectsDisplayed="projectsDisplayed" />
-    </main>
-    <main v-else-if="view === 'code'">
-      <RouterView />
-    </main>
-    <main v-else>
-      <RouterView />
-    </main>
+    <RouterView :key="view" />
   </body>
 </template>
 
 <script setup>
 import { RouterLink, RouterView, useRouter } from "vue-router";
 import SearchComponent from "./components/SearchComponent.vue";
-import { ref, onMounted } from "vue";
-import axios from "axios";
+import { onBeforeMount, ref } from "vue";
 
 const view = ref("home");
 const router = useRouter();
-const projectsDisplayed = ref([]);
-const localhostServer = "http://localhost:3000";
-const text = ref("");
+const child = ref(null);
+const jwt = localStorage.getItem('jwt');
 
-
-function updateProjects(emitObject) {
-  projectsDisplayed.value = emitObject;
-  console.log(projectsDisplayed.value);
+function updateProjects(emitObject){
+  child.value.updateProjects(emitObject);
 }
 
 async function updateView(viewPage) {
   view.value = viewPage;
   if (view.value === "code") {
-    await router.push({name:"home"});
-    await router.push({ name: "code-mirror", params: { projectName: "bunny_code" } });
+    await router.push({ name: "home" });
+    await router.push({
+      name: "code-mirror",
+      params: { projectName: "bunny_code" },
+    });
   }
 }
 
-onMounted(async () => {
-  let responseProjects = await axios.get(
-    localhostServer + `/api/1.0/project/all`
-  );
-  projectsDisplayed.value = responseProjects.data.data;
-});
+onBeforeMount( () => {
+  
+})
+
 </script>
 
 <style scoped>

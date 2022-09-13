@@ -267,8 +267,8 @@ async function checkEventUp(e) {
       data: submitForm,
     });
     console.log(response);
-  } else if (e.ctrlKey && e.keyCode === 86){
-    document.execCommand("copy",false,null);
+  } else if (e.ctrlKey && e.keyCode === 86) {
+    document.execCommand("copy", false, null);
   }
 }
 
@@ -295,6 +295,7 @@ async function runCode() {
 }
 
 async function playback() {
+  console.log(props.info.codeRecords);
   //TODO: set 所有父層資料為初始值
   editor.getDoc().setValue("");
   for (let i = 0; i < props.info.timeBetween.length; i++) {
@@ -419,12 +420,14 @@ function triggerEvent(recordObject) {
 }
 onBeforeMount(async () => {
   const fileUrlContent = await axios.get(
-    "https://d1vj6hotf8ce5i.cloudfront.net/record/user_11/project_1/version_2/1662879826441-test.js"
+    "https://d1tmv9ck9k4reg.cloudfront.net/record/user_11/project_1/version_2/1662879826441-test.js"
   );
   console.log("cloudfront result: ", fileUrlContent.data);
-  emit("update");
   fileContent.value = fileUrlContent.data;
-  console.log(fileUrlContent.data.split("\n").length);
+  emit("updateCurrCodes", {
+    fileNumber: props.info.fileNumber,
+    code: fileContent.value,
+  });
   emit("updateCurrLine", {
     fileNumber: props.info.fileNumber,
     line: fileUrlContent.data.split("\n").length - 1,
@@ -436,8 +439,9 @@ onBeforeMount(async () => {
 });
 
 async function initCodeMirror() {
+  console.log("prepare to initial");
   const fileUrlContent = await axios.get(
-    "https://d1vj6hotf8ce5i.cloudfront.net/record/user_11/project_1/version_2/1662879826441-test.js"
+    "https://d1tmv9ck9k4reg.cloudfront.net/record/user_11/project_1/version_2/1662879826441-test.js"
   );
   emit("updateCurrCodes", {
     fileNumber: props.info.fileNumber,
@@ -450,10 +454,18 @@ async function initCodeMirror() {
     return;
   }
   if (tmpReadOnly) {
-    tmpReadOnly = "nocursor";
+    // tmpReadOnly = "nocursor";
     cursorHeight = 0;
   }
   console.log("read only: ", props.readOnly);
+  const editors = document.getElementsByClassName("CodeMirror");
+  console.log("Editor length: ", Array.from(editors).length);
+  if (editors.length !== 0) {
+    console.log("in");
+    Array.from(editors).forEach((element) => {
+      element.remove();
+    });
+  }
   editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
     value: fileContent.value,
     lineNumbers: true,
@@ -469,16 +481,21 @@ async function initCodeMirror() {
   });
   editor.getDoc().setCursor({ line: props.info.line, ch: props.info.index });
   if (props.readOnly) {
-    let recordResponse = await axios.post(
-      "https://domingoos.store/api/1.0/history/1",
-      {
-        projectID: 1,
-        startTime: "2022-09-03T04:25:32.985Z",
-        stopTime: "2022-09-15T04:25:32.985Z",
-      }
-    );
+    let recordResponse;
+    try {
+      recordResponse = await axios.post(
+        "https://domingoos.store/api/1.0/history/1",
+        {
+          projectID: 1,
+          startTime: "2022-09-03T04:25:32.985Z",
+          stopTime: "2022-09-15T04:25:32.985Z",
+        }
+      );
+    } catch (error) {
+      console.log(error);
+    }
     recordResponse = recordResponse.data.data;
-    console.log(props.info.fileNumber, recordResponse);
+    console.log("records", props.info.fileNumber, recordResponse);
     emit("updateAllRecords", {
       fileNumber: props.info.fileNumber,
       codeRecords: recordResponse,
@@ -503,20 +520,15 @@ async function initCodeMirror() {
 watch(
   () => props.readOnly,
   async (newReadOnly, prevReadOnly) => {
-    const editors = document.getElementsByClassName("CodeMirror");
-    if (editors.length !== 0) {
-      console.log("in");
-      Array.from(editors).forEach((element) => {
-        element.remove();
-      });
-    }
+    console.log("readOnly change: ", newReadOnly);
+    await nextTick();
     await initCodeMirror();
   }
 );
 
-// onMounted(async () => {
-// await initCodeMirror();
-// });
+onBeforeMount(async () => {
+  await initCodeMirror();
+});
 function userClick() {
   alert("僅提供鍵盤輸入功能");
   editor.getDoc().setCursor({ line: props.info.line, ch: props.info.index });
@@ -529,7 +541,7 @@ function userClick() {
       <textarea :value="fileContent" id="editor" cols="30" rows="10"></textarea>
     </div>
     <!-- @click="userClick" -->
-    <div v-else>
+    <div v-else @click="userClick">
       <textarea
         id="editor"
         :value="fileContent"

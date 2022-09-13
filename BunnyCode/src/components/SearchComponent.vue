@@ -8,21 +8,22 @@
 <script setup>
 import { ref } from "vue";
 import axios from "axios";
+import {useRouter} from "vue-router";
 
 let keywords = ref("");
-
+const router = useRouter();
 const emit = defineEmits(["updateProjects"]);
 const localhostServer = "http://localhost:3000";
 
 async function searchProject() {
-  console.log(keywords.value);
-  let responseProjects = await axios.get(
-    localhostServer + `/api/1.0/project/search?keywords=${keywords.value}`
-  );
-  emit("updateProjects", {
-    ...responseProjects.data.data,
-  });
-  console.log(responseProjects.data.data);
+  router.push({path: '/', query: {keywords: `${keywords.value}`}})
+  // let responseProjects = await axios.get(
+  //   localhostServer + `/api/1.0/project/search?keywords=${keywords.value}`
+  // );
+  // emit("updateProjects", {
+  //   ...responseProjects.data.data,
+  // });
+  // console.log(responseProjects.data.data);
   // }
 }
 

@@ -126,7 +126,7 @@ onMounted(() => {
           @updateAllRecords="updateAllRecords"
           @updateTimeBetween="updateTimeBetween"
         />
-        <!-- <TerminalComponent :terminalResult="terminalResult" /> -->
+        <TerminalComponent :terminalResult="terminalResult" style="top:350px" />
       </div>
     </div>
   </div>
