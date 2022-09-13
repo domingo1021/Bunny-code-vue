@@ -267,8 +267,8 @@ async function checkEventUp(e) {
       data: submitForm,
     });
     console.log(response);
-  } else if (e.ctrlKey && e.keyCode === 86){
-    document.execCommand("copy",false,null);
+  } else if (e.ctrlKey && e.keyCode === 86) {
+    document.execCommand("copy", false, null);
   }
 }
 
@@ -419,12 +419,14 @@ function triggerEvent(recordObject) {
 }
 onBeforeMount(async () => {
   const fileUrlContent = await axios.get(
-    "https://d1vj6hotf8ce5i.cloudfront.net/record/user_11/project_1/version_2/1662879826441-test.js"
+    "https://d1tmv9ck9k4reg.cloudfront.net/record/user_11/project_1/version_2/1662879826441-test.js"
   );
   console.log("cloudfront result: ", fileUrlContent.data);
-  emit("update");
   fileContent.value = fileUrlContent.data;
-  console.log(fileUrlContent.data.split("\n").length);
+  emit("updateCurrCodes", {
+    fileNumber: props.info.fileNumber,
+    code: fileContent.value,
+  });
   emit("updateCurrLine", {
     fileNumber: props.info.fileNumber,
     line: fileUrlContent.data.split("\n").length - 1,
@@ -436,8 +438,9 @@ onBeforeMount(async () => {
 });
 
 async function initCodeMirror() {
+  console.log("prepare to initial");
   const fileUrlContent = await axios.get(
-    "https://d1vj6hotf8ce5i.cloudfront.net/record/user_11/project_1/version_2/1662879826441-test.js"
+    "https://d1tmv9ck9k4reg.cloudfront.net/record/user_11/project_1/version_2/1662879826441-test.js"
   );
   emit("updateCurrCodes", {
     fileNumber: props.info.fileNumber,
@@ -450,10 +453,18 @@ async function initCodeMirror() {
     return;
   }
   if (tmpReadOnly) {
-    tmpReadOnly = "nocursor";
+    // tmpReadOnly = "nocursor";
     cursorHeight = 0;
   }
   console.log("read only: ", props.readOnly);
+  const editors = document.getElementsByClassName("CodeMirror");
+  console.log("Editor length: ", Array.from(editors).length);
+  if (editors.length !== 0) {
+    console.log("in");
+    Array.from(editors).forEach((element) => {
+      element.remove();
+    });
+  }
   editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
     value: fileContent.value,
     lineNumbers: true,
@@ -503,20 +514,14 @@ async function initCodeMirror() {
 watch(
   () => props.readOnly,
   async (newReadOnly, prevReadOnly) => {
-    const editors = document.getElementsByClassName("CodeMirror");
-    if (editors.length !== 0) {
-      console.log("in");
-      Array.from(editors).forEach((element) => {
-        element.remove();
-      });
-    }
+    await nextTick();
     await initCodeMirror();
   }
 );
 
-// onMounted(async () => {
-// await initCodeMirror();
-// });
+onBeforeMount(async () => {
+  await initCodeMirror();
+});
 function userClick() {
   alert("僅提供鍵盤輸入功能");
   editor.getDoc().setCursor({ line: props.info.line, ch: props.info.index });
