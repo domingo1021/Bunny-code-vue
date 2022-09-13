@@ -51,6 +51,7 @@ const router = createRouter({
 const localhostServer = "http://localhost:3000";
 
 router.beforeEach(async (to, from, next) => {
+  console.log("fullpath: ", to.fullPath);
   if (to.matched.some((record) => record.meta.requireAuth)) {
     let isLogin = false;
     try {
@@ -68,13 +69,14 @@ router.beforeEach(async (to, from, next) => {
       alert("Please log in !");
       isLogin = false;
     }
-    if (!isLogin && from.path !== "/login") {
+    if (!isLogin) {
       next({
         path: "/login",
         query: { redirect: to.fullPath },
       });
     }
   }
+
   if (to.fullPath === "/login") {
     let isLogin = false;
     let userID;

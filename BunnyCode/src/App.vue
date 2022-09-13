@@ -71,7 +71,6 @@ axios({
   })
   .catch((error) => {
     console.log("error message: ", error.response.data.msg);
-    alert("Please log in !");
     isLogin.value = false;
   });
 
