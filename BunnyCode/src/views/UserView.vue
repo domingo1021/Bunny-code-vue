@@ -1,24 +1,87 @@
 <script setup>
 import axios from "axios";
-import { onBeforeMount, onMounted, ref } from "vue";
-import { useRouter } from "vue-router";
+import { version } from "codemirror";
+import { onBeforeMount, onMounted, onUpdated, ref } from "vue";
+import { useRouter, useRoute } from "vue-router";
 import ProjectCardComponent from "../components/ProjectCardComponent.vue";
-
-const localhostServer = "http://localhost:3000";
 
 const props = defineProps({
   userID: String,
 });
+const localhostServer = "http://localhost:3000";
 const router = useRouter();
+const route = useRoute();
 const jwt = localStorage.getItem("jwt");
 const projectsDisplayed = ref([]);
 const userAuth = ref(0);
+const projectName = ref("");
+const projectDescription = ref("");
+const versionName = ref("");
+const fileName = ref("");
+const picked = ref(1);
+const buttonClickable = ref(true);
 
 const CLIENT_CATEGORY = {
   visitor: 0,
   otherMember: 1,
   self: 2,
 };
+
+async function createProject() {
+  console.log("Is public: ", +picked.value);
+  let responseProjects;
+  try {
+    responseProjects = await axios({
+      method: "post",
+      url: localhostServer + `/api/1.0/user/${props.userID}/project`,
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+      data: {
+        projectName: projectName.value,
+        projectDescription: projectDescription.value,
+        isPublic: +picked.value,
+        userID: +props.userID,
+        versionName: versionName.value,
+        fileName: fileName.value,
+      },
+    });
+  } catch (error) {
+    console.log(error);
+    alert(error.response.data.msg);
+  }
+  console.log(responseProjects);
+  if (responseProjects) {
+    alert(JSON.stringify(responseProjects.data.data));
+    projectsDisplayed.value.unshift({
+      projectID: responseProjects.data.data.projectID,
+      projectName: projectName.value,
+      isPublic: picked.value,
+      projectDescription: projectDescription.value,
+      versionName: versionName.value,
+      starCount: 0,
+      watchCount: 0,
+    });
+  }
+  projectName.value = "";
+  projectDescription.value = "";
+  picked.value = 1;
+  versionName.value = "";
+  fileName.value = "";
+}
+
+onUpdated(() => {
+  if (
+    projectName.value.length > 29 ||
+    projectDescription.value.length > 49 ||
+    versionName.value.length > 29 ||
+    fileName.value.length > 29
+  ) {
+    buttonClickable.value = false;
+  } else {
+    buttonClickable.value = true;
+  }
+});
 
 onBeforeMount(async () => {
   let responseProjects = await axios({
@@ -41,62 +104,163 @@ onBeforeMount(async () => {
   } catch (error) {
     userAuth.value = 0;
   }
+  console.log(projectsDisplayed.value);
   console.log("User auth value: ", userAuth.value);
 });
-
-onMounted(() => {
-  // deleteModal = new bootstrap.Modal(deleteModalRef.value, {});
-});
-
 </script>
 
 <template>
-  <main>
+  <div id="create-project" v-if="userAuth === CLIENT_CATEGORY.self">
     <button
       type="button"
       class="btn btn-primary"
       data-bs-toggle="modal"
       data-bs-target="#exampleModal"
-      @click="handleOpenModal"
     >
       按下去顯示Modal
     </button>
-
-    <!-- Modal -->
     <div
       class="modal fade"
       id="exampleModal"
       tabindex="-1"
-      aria-labelledby="exampleModalLabel"
+      role="dialog"
+      aria-labelledby="myModalLabel"
       aria-hidden="true"
     >
-      <div class="modal-dialog">
+      <div class="modal-dialog" role="document">
         <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="exampleModalLabel">UserID: {{userID}}</h5>
+          <div class="modal-header text-center">
+            <h4 class="modal-title w-100 font-weight-bold">Create Project</h4>
             <button
               type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
+              class="close"
+              data-dismiss="modal"
               aria-label="Close"
-            ></button>
-          </div>
-          <div class="modal-body">User auth: {{userAuth}}</div>
-          <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              data-bs-dismiss="modal"
             >
-              關閉
+              <span aria-hidden="true">&times;</span>
             </button>
-            <button type="button" class="btn btn-primary">確定</button>
+          </div>
+          <div class="modal-body mx-3">
+            <div class="md-form mb-4" style="display: flex">
+              <!-- <i class="fas fa-user prefix grey-text"></i> -->
+              <label
+                class="label-header"
+                data-error="wrong"
+                data-success="right"
+                for="form3"
+                >Project name</label
+              >
+              <input
+                type="text"
+                id="form3"
+                class="form-control validate"
+                v-model="projectName"
+              />
+            </div>
+            <div class="warning" v-if="projectName.length > 29">
+              Project name length too long.
+            </div>
+            <!-- projectName, projectDescription, isPublic, userID, versionName, fileName -->
+            <div class="md-form mb-4" style="display: flex">
+              <i class="fas fa-envelope prefix grey-text"></i>
+              <label
+                class="label-header"
+                data-error="wrong"
+                data-success="right"
+                for="form2"
+                >Project description</label
+              >
+              <input
+                type="email"
+                id="form2"
+                class="form-control validate"
+                v-model="projectDescription"
+              />
+            </div>
+            <div class="warning" v-if="projectDescription.length > 49">
+              Project description length too long.
+            </div>
+            <div class="md-form mb-4" style="display: flex">
+              <i class="fas fa-envelope prefix grey-text"></i>
+              <div style="margin-right: 15px">
+                <input
+                  type="radio"
+                  id="Public"
+                  name="drone"
+                  value="1"
+                  v-model="picked"
+                />
+                <label for="huey">Public</label>
+              </div>
+              <div>
+                <input
+                  type="radio"
+                  id="Private"
+                  name="drone"
+                  value="0"
+                  v-model="picked"
+                />
+                <label for="Private">Private</label>
+              </div>
+            </div>
+            <div class="md-form mb-4" style="display: flex">
+              <i class="fas fa-envelope prefix grey-text"></i>
+              <label
+                class="label-header"
+                data-error="wrong"
+                data-success="right"
+                for="form2"
+                >Version name</label
+              >
+              <input
+                type="email"
+                id="form2"
+                class="form-control validate"
+                v-model="versionName"
+              />
+            </div>
+            <div class="warning" v-if="versionName.length > 29">
+              Version name length too long.
+            </div>
+            <div class="md-form mb-4" style="display: flex">
+              <i class="fas fa-envelope prefix grey-text"></i>
+              <label
+                class="label-header"
+                data-error="wrong"
+                data-success="right"
+                for="form2"
+                >File name</label
+              >
+              <input
+                type="email"
+                id="form2"
+                class="form-control validate"
+                v-model="fileName"
+              />
+            </div>
+            <div class="warning" v-if="fileName.length > 29">
+              File name length too long.
+            </div>
+          </div>
+          <div class="modal-footer d-flex justify-content-center">
+            <button
+              id="valid-btn"
+              class="btn btn-indigo"
+              data-bs-dismiss="modal"
+              @click="createProject"
+              v-if="buttonClickable"
+            >
+              Submit <i class="fas fa-paper-plane-o ml-1"></i>
+            </button>
+            <button id="invalid-btn" class="btn btn-indigo" v-else>
+              Submit
+            </button>
           </div>
         </div>
       </div>
     </div>
-  </main>
-  <!-- <main> -->
+  </div>
+  <main>
     <div id="project-content">
       <div id="flex-box">
         <div
@@ -109,7 +273,7 @@ onMounted(() => {
         </div>
       </div>
     </div>
-  <!-- </main> -->
+  </main>
 </template>
 
 <style scoped>
@@ -127,11 +291,31 @@ onMounted(() => {
   flex-direction: row;
   max-width: 1200px;
 }
+
+#valid-btn {
+  background-color: rgb(225, 244, 204);
+  color: rgb(36, 34, 34);
+}
+
+#invalid-btn {
+  background-color: rgb(255, 100, 100);
+  color: azure;
+}
+
 .flex-item {
   background-color: rgb(161, 180, 201);
   flex-grow: 1;
   flex-basis: 40%;
   height: 30%;
   padding-top: 10px;
+}
+.label-header {
+  width: 200px;
+  top: 5px;
+}
+
+.warning {
+  top: -20px;
+  color: rgb(255, 100, 100);
 }
 </style>
