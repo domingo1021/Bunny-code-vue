@@ -31,6 +31,9 @@ async function createProject() {
   console.log("Is public: ", +picked.value);
   let responseProjects;
   try {
+    if( !fileName.value.includes(".js") ){
+      fileName.value += ".js";
+    }
     responseProjects = await axios({
       method: "post",
       url: localhostServer + `/api/1.0/user/${props.userID}/project`,
@@ -117,7 +120,7 @@ onBeforeMount(async () => {
       data-bs-toggle="modal"
       data-bs-target="#exampleModal"
     >
-      按下去顯示Modal
+      Create Project
     </button>
     <div
       class="modal fade"
