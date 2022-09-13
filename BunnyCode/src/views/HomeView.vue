@@ -23,7 +23,6 @@ function updateProjects(emitObject) {
 async function queryProjects () {
   const {keywords} = route.query;
   const paging = route.query.paging || 0;
-  console.log(keywords, paging);
   if(keywords){
     let responseProjects = await axios.get(
       localhostServer + `/api/1.0/project/search?keywords=${keywords}&paging=${paging}`

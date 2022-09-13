@@ -295,6 +295,7 @@ async function runCode() {
 }
 
 async function playback() {
+  console.log(props.info.codeRecords);
   //TODO: set 所有父層資料為初始值
   editor.getDoc().setValue("");
   for (let i = 0; i < props.info.timeBetween.length; i++) {
@@ -480,16 +481,21 @@ async function initCodeMirror() {
   });
   editor.getDoc().setCursor({ line: props.info.line, ch: props.info.index });
   if (props.readOnly) {
-    let recordResponse = await axios.post(
-      "https://domingoos.store/api/1.0/history/1",
-      {
-        projectID: 1,
-        startTime: "2022-09-03T04:25:32.985Z",
-        stopTime: "2022-09-15T04:25:32.985Z",
-      }
-    );
+    let recordResponse;
+    try {
+      recordResponse = await axios.post(
+        "https://domingoos.store/api/1.0/history/1",
+        {
+          projectID: 1,
+          startTime: "2022-09-03T04:25:32.985Z",
+          stopTime: "2022-09-15T04:25:32.985Z",
+        }
+      );
+    } catch (error) {
+      console.log(error);
+    }
     recordResponse = recordResponse.data.data;
-    console.log(props.info.fileNumber, recordResponse);
+    console.log("records", props.info.fileNumber, recordResponse);
     emit("updateAllRecords", {
       fileNumber: props.info.fileNumber,
       codeRecords: recordResponse,
@@ -514,6 +520,7 @@ async function initCodeMirror() {
 watch(
   () => props.readOnly,
   async (newReadOnly, prevReadOnly) => {
+    console.log("readOnly change: ", newReadOnly);
     await nextTick();
     await initCodeMirror();
   }
@@ -534,7 +541,7 @@ function userClick() {
       <textarea :value="fileContent" id="editor" cols="30" rows="10"></textarea>
     </div>
     <!-- @click="userClick" -->
-    <div v-else>
+    <div v-else @click="userClick">
       <textarea
         id="editor"
         :value="fileContent"
