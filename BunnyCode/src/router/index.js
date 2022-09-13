@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
 import HomeView from "../views/HomeView.vue";
+import axios from "axios";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -32,8 +33,76 @@ const router = createRouter({
       name: "user",
       component: () => import("../views/UserView.vue"),
       props: true,
+      meta: { requireAuth: true },
+    },
+    {
+      path: "/login",
+      name: "login",
+      component: () => import("../views/LoginView.vue"),
+    },
+    {
+      path: "/*",
+      redirect: "/login",
     },
   ],
+});
+
+const localhostServer = "http://localhost:3000";
+
+router.beforeEach(async (to, from, next) => {
+  if (to.matched.some((record) => record.meta.requireAuth)) {
+    let isLogin = false;
+    try {
+      let jwt = localStorage.getItem("jwt");
+      console.log(localhostServer + "/api/1.0/user/auth");
+      await axios({
+        method: "get",
+        url: localhostServer + "/api/1.0/user/auth",
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+        },
+      });
+      isLogin = true;
+    } catch (error) {
+      alert("Please log in !");
+      isLogin = false;
+    }
+    if (!isLogin && from.path !== "/login") {
+      next({
+        path: "/login",
+        query: { redirect: to.fullPath },
+      });
+    }
+  }
+  if (to.fullPath === "/login") {
+    let isLogin = false;
+    let userID;
+    try {
+      let jwt = localStorage.getItem("jwt");
+      console.log(localhostServer + "/api/1.0/user/auth");
+      const authResponse = await axios({
+        method: "get",
+        url: localhostServer + "/api/1.0/user/auth",
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+        },
+      });
+      userID = authResponse.data.data;
+      isLogin = true;
+    } catch (error) {
+      isLogin = false;
+    }
+    if (isLogin) {
+      next({
+        name: "user",
+        params: { userID: userID },
+      });
+    } else {
+      next();
+    }
+  } else {
+    next();
+  }
 });
 
 export default router;

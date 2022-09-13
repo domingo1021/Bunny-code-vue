@@ -22,7 +22,7 @@
           >
         </div>
         <div class="right-flex">
-          <RouterLink class="nav-item" to="/user/1" @click="updateView('user')"
+          <RouterLink class="nav-item" to="login" @click="updateView('user')"
             >個人資訊</RouterLink
           >
           <!-- <div class="nav-item">個人資訊</div> -->
@@ -32,34 +32,21 @@
     </nav>
   </header>
   <body>
-    <RouterView ref="child" :key="view" />
-    <!-- <main v-if="view === 'home'">
-      <HomeView ref="child" />
-    </main>
-    <main v-else-if="view === 'code'">
-      <RouterView />
-    </main>
-    <main v-else-if="view === 'user'">
-      <RouterView />
-    </main>
-    <main v-else>
-      <RouterView />
-    </main> -->
+    <RouterView :key="view" />
   </body>
 </template>
 
 <script setup>
 import { RouterLink, RouterView, useRouter } from "vue-router";
 import SearchComponent from "./components/SearchComponent.vue";
-import { ref, watch } from "vue";
-import HomeView from "./views/HomeView.vue";
+import { onBeforeMount, ref } from "vue";
 
 const view = ref("home");
 const router = useRouter();
 const child = ref(null);
+const jwt = localStorage.getItem('jwt');
 
 function updateProjects(emitObject){
-  console.log(child.value);
   child.value.updateProjects(emitObject);
 }
 
@@ -74,9 +61,9 @@ async function updateView(viewPage) {
   }
 }
 
-// watch(child, ()=>{
-//   console.log(child.value);
-// })
+onBeforeMount( () => {
+  
+})
 
 </script>
 
