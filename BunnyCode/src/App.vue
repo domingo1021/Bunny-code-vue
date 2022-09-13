@@ -40,7 +40,7 @@
 <script setup>
 import { RouterLink, RouterView, useRouter } from "vue-router";
 import SearchComponent from "./components/SearchComponent.vue";
-import { onBeforeMount, ref } from "vue";
+import { ref } from "vue";
 import axios from "axios";
 import io from "socket.io-client";
 import NotificationView from "./views/NotificationView.vue";
@@ -88,32 +88,6 @@ async function updateView(viewPage) {
     });
   }
 }
-
-onBeforeMount(async () => {
-  try {
-    console.log(localhostServer + "/api/1.0/user/auth");
-    await axios({
-      method: "get",
-      url: localhostServer + "/api/1.0/user/auth",
-      headers: {
-        Authorization: `Bearer ${jwt}`,
-      },
-    });
-    isLogin.value = true;
-  } catch (error) {
-    alert("Please log in !");
-    isLogin.value = false;
-  }
-  console.log("login:", isLogin.value);
-  if (isLogin.value) {
-    socket = io(localhostServer, {
-      auth: (cb) => {
-        cb({ token: `Bearer ${jwt}` });
-      },
-      path: "/api/socket/",
-    });
-  }
-});
 </script>
 
 <style scoped>

@@ -1,13 +1,14 @@
 <script setup>
 import CodeMirrorComponent from "../components/CodeMirrorComponent.vue";
 import TerminalComponent from "../components/TerminalComponent.vue";
-import { ref, onMounted, onUpdated, onBeforeMount } from "vue";
+import { ref, onMounted, onUpdated, onBeforeMount, watch } from "vue";
 import axios from "axios";
 import io from "socket.io-client";
 
 // TODO: 如果是本人進入頁面（認為想要 edit）, 則建立 Socket, 並更動 edit 狀態，
 
 const props = defineProps({
+  socket: Object,
   projectID: Number,
   folderInfo: Object,
   version: Object,
@@ -57,46 +58,50 @@ function updateTimeBetween(emitObject) {
 }
 
 function changeEdit() {
-  socket.emit("changeEdit", {
+  props.socket.emit("changeEdit", {
     projectID: props.projectID,
     versionID: props.version.versionID,
   });
 }
 
-const localhostServer = "http://localhost:3000";
-const productionServer = "wss://domingoos.store";
-
-const socket = io(localhostServer, {
-  auth: (cb) => {
-    cb({ token: `Bearer ${localStorage.getItem("jwt")}` });
-  },
-  path: "/api/socket/",
-});
-
-socket.on("statusChecked", (responseObject) => {
-  console.log("Response Object: ", responseObject);
-  emit("changeUserStatus", responseObject);
-});
-
-onMounted(() => {
-  // check whether version is editing with version.versionID
+function socketInit() {
+  props.socket.on("statusChecked", (responseObject) => {
+    console.log("Response Object: ", responseObject);
+    emit("changeUserStatus", responseObject);
+  });
   if (props.readOnly !== false) {
-    socket.emit("checkProjectStatus", {
+    props.socket.emit("checkProjectStatus", {
       projectID: props.projectID,
       versionID: props.version.versionID,
     });
   }
-});
+}
 
+watch(
+  () => props.socket,
+  (now, prev) => {
+    if(props.socket){
+      console.log("Code mirror view: ", props.socket);
+      socketInit();
+    }
+  }
+);
+
+onMounted(() => {
+  // check whether version is editing with version.versionID
+  if(props.socket){
+    socketInit();
+  }
+});
 </script>
 
 <template>
-  <div v-if="authorization">
+  <div v-if="authorization && props.socket !== undefined">
     <button @click="changeEdit">Edit</button>
   </div>
   <div v-if="folderInfo.length !== 0">
     <div>
-      <div style="color: azure">ReadyOnly: {{props.readOnly}}</div>
+      <div style="color: azure">ReadyOnly: {{ props.readOnly }}</div>
       <div
         v-for="(fileInfo, index) in folderInfo"
         @input="updateContent"
@@ -118,7 +123,10 @@ onMounted(() => {
           @updateAllRecords="updateAllRecords"
           @updateTimeBetween="updateTimeBetween"
         />
-        <TerminalComponent :terminalResult="terminalResult" style="top:350px" />
+        <TerminalComponent
+          :terminalResult="terminalResult"
+          style="top: 350px"
+        />
       </div>
     </div>
   </div>

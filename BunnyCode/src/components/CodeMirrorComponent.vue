@@ -4,10 +4,9 @@ import axios from "axios";
 import "codemirror/lib/codemirror.css";
 import "codemirror/theme/material-darker.css";
 import "codemirror/mode/javascript/javascript.js";
-import { nextTick, onBeforeMount, onMounted, ref, watch } from "vue";
+import { nextTick, onBeforeMount, ref, watch } from "vue";
 
 const props = defineProps({
-  socket: Object,
   jwt: String,
   info: Object,
   atAlt: Boolean,

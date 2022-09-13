@@ -9,7 +9,7 @@ const props = defineProps({
 socket: Object,
 });
 
-const notificationCount = ref("");
+const notificationCount = ref(0);
 
 watch(
   () => props.socket,
@@ -18,7 +18,7 @@ watch(
     if (props.socket) {
       props.socket.emit("getInvitations");
       props.socket.on("returnInvitations", (responseObject) => {
-        notificationCount.value = `${responseObject.length}`;
+        notificationCount.value = responseObject.length;
         console.log("socket response: ", responseObject);
       });
     }

@@ -1,6 +1,5 @@
 <script setup>
 import axios from "axios";
-import { version } from "codemirror";
 import { onBeforeMount, onMounted, onUpdated, ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import ProjectCardComponent from "../components/ProjectCardComponent.vue";

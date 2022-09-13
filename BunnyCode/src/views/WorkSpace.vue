@@ -44,6 +44,7 @@
           <button @click="changePath">Change Path</button>
           <CodeMirrorView
             v-if="Object.keys(projectDetail).length !== 0"
+            :socket="props.socket"
             :readOnly="readOnly"
             :authorization="authorization"
             :projectID="projectDetail.projectID"
@@ -69,8 +70,8 @@
 </template>
 
 <script setup>
-import { useRouter, useRoute } from "vue-router";
-import { onBeforeMount, onMounted, onUpdated, ref, watch } from "vue";
+import { useRouter } from "vue-router";
+import { onBeforeMount, ref, watch } from "vue";
 import axios from "axios";
 import CodeMirrorView from "./CodeMirrorView.vue";
 import FolderController from "./FolderController.vue";
@@ -81,13 +82,14 @@ const targetFunction = ref("Folder");
 // default target version 為第一個 version, (之後根據使用者點選version 做修改)
 const targetVersionIndex = ref(0);
 const authorization = ref(false);
-const readOnly = ref();
+const readOnly = ref(true);
 
 //TODO: debug: change route when user click header instead
 const router = useRouter();
 // const route = useRoute();
 
 const props = defineProps({
+  socket: Object,
   projectName: String,
   versionName: String,
 });
@@ -153,39 +155,7 @@ watch(
 );
 
 onBeforeMount(async () => {
-  await updateProjectDetail()
-  // console.log("projectName: ", props.projectName);
-  // let projectResponse;
-  // try {
-  //   projectResponse = await axios.get(
-  //     localhostServer +
-  //       `/api/1.0/project/detail?projectName=${props.projectName}`
-  //   );
-  // } catch (error) {
-  //   console.log(error);
-  //   alert(error.response.data.msg);
-  //   return;
-  // }
-  // projectDetail.value = projectResponse.data.data;
-  // projectDetail.value.version.forEach((version) => {
-  //   if (version.files.length !== 0) {
-  //     version.files.forEach((file, index) => {
-  //       file.fileNumber = index;
-  //       let tmpArray = file.fileName.split(".");
-  //       if (tmpArray.length > 0) {
-  //         file.language = tmpArray.pop().toUpperCase();
-  //       } else {
-  //         file.language = "";
-  //       }
-  //       file.fileContent = "";
-  //       file.index = 0;
-  //       file.line = 0;
-  //       file.codeRecords = [];
-  //       file.timeBetween = [];
-  //     });
-  //   }
-  // });
-  // console.log("detail:", projectDetail.value);
+  await updateProjectDetail();
 });
 </script>
 
