@@ -6,6 +6,7 @@ import { useRouter, useRoute } from "vue-router";
 import ProjectCardComponent from "../components/ProjectCardComponent.vue";
 
 const props = defineProps({
+  socket: Object,
   userID: String,
 });
 const localhostServer = "http://localhost:3000";

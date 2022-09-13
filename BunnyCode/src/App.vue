@@ -25,14 +25,15 @@
           <RouterLink class="nav-item" to="/login" @click="updateView('user')"
             >個人資訊</RouterLink
           >
+          <NotificationView :socket="socket" />
           <!-- <div class="nav-item">個人資訊</div> -->
-          <SearchComponent @updateProjects="updateProjects" />
+          <SearchComponent :socket="socket" />
         </div>
       </div>
     </nav>
   </header>
   <body>
-    <RouterView :key="view" />
+    <RouterView :socket="socket" :key="view" />
   </body>
 </template>
 
@@ -40,15 +41,42 @@
 import { RouterLink, RouterView, useRouter } from "vue-router";
 import SearchComponent from "./components/SearchComponent.vue";
 import { onBeforeMount, ref } from "vue";
+import axios from "axios";
+import io from "socket.io-client";
+import NotificationView from "./views/NotificationView.vue";
+
+const localhostServer = "http://localhost:3000";
+const productionServer = "wss://domingoos.store";
+const jwt = localStorage.getItem("jwt");
+const isLogin = ref(false);
+const userID = ref(-1);
+
+let socket = ref();
+axios({
+  method: "get",
+  url: localhostServer + "/api/1.0/user/auth",
+  headers: {
+    Authorization: `Bearer ${jwt}`,
+  },
+})
+  .then((response) => {
+    isLogin.value = true;
+    userID.value = response.data.data;
+    socket.value = io(localhostServer, {
+      auth: (cb) => {
+        cb({ token: `Bearer ${jwt}` });
+      },
+      path: "/api/socket/",
+    });
+  })
+  .catch((error) => {
+    console.log("error message: ", error.response.data.msg);
+    alert("Please log in !");
+    isLogin.value = false;
+  });
 
 const view = ref("home");
 const router = useRouter();
-const child = ref(null);
-const jwt = localStorage.getItem('jwt');
-
-function updateProjects(emitObject){
-  child.value.updateProjects(emitObject);
-}
 
 async function updateView(viewPage) {
   view.value = viewPage;
@@ -61,10 +89,31 @@ async function updateView(viewPage) {
   }
 }
 
-onBeforeMount( () => {
-  
-})
-
+onBeforeMount(async () => {
+  try {
+    console.log(localhostServer + "/api/1.0/user/auth");
+    await axios({
+      method: "get",
+      url: localhostServer + "/api/1.0/user/auth",
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
+    isLogin.value = true;
+  } catch (error) {
+    alert("Please log in !");
+    isLogin.value = false;
+  }
+  console.log("login:", isLogin.value);
+  if (isLogin.value) {
+    socket = io(localhostServer, {
+      auth: (cb) => {
+        cb({ token: `Bearer ${jwt}` });
+      },
+      path: "/api/socket/",
+    });
+  }
+});
 </script>
 
 <style scoped>

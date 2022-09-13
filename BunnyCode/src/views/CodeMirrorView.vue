@@ -17,24 +17,16 @@ const props = defineProps({
 
 const emit = defineEmits(["changeUserStatus"]);
 
-// const emit = defineEmits(["updateFolderInfo"]);
-
 const atAlt = ref(false);
 const atCtl = ref(false);
 const jwt = localStorage.getItem("jwt");
-// const readOnly = ref(props.readOnly);
-// const authorization = ref(props.authorization);
-// const ifSelf = ref(true);
-// const editStatus = ref(true);
 
 const folderInfo = ref(props.folderInfo);
 
 const terminalResult = ref([]);
 
-//emit function
 function updateCurrCodes(emitObject) {
   folderInfo.value[emitObject.fileNumber].fileContent = emitObject.code;
-  // 比較：props.folderInfo[emitObject.fileNumber].fileContent = emitObject.code;
 }
 
 function updateCurrIndex(emitObject) {
