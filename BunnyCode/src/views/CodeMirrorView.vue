@@ -1,4 +1,5 @@
 <script setup>
+import Socket from "../socket";
 import CodeMirrorComponent from "../components/CodeMirrorComponent.vue";
 import TerminalComponent from "../components/TerminalComponent.vue";
 import { ref, onMounted, onUpdated, onBeforeMount, watch } from "vue";
@@ -8,7 +9,7 @@ import io from "socket.io-client";
 // TODO: 如果是本人進入頁面（認為想要 edit）, 則建立 Socket, 並更動 edit 狀態，
 
 const props = defineProps({
-  socket: Object,
+  socket: Socket,
   projectID: Number,
   folderInfo: Object,
   version: Object,
@@ -58,19 +59,19 @@ function updateTimeBetween(emitObject) {
 }
 
 function changeEdit() {
-  props.socket.emit("changeEdit", {
+  props.socket.socketEmit("changeEdit", {
     projectID: props.projectID,
     versionID: props.version.versionID,
   });
 }
 
 function socketInit() {
-  props.socket.on("statusChecked", (responseObject) => {
+  props.socket.socketOn("statusChecked", (responseObject) => {
     console.log("Response Object: ", responseObject);
     emit("changeUserStatus", responseObject);
-  });
+  })
   if (props.readOnly !== false) {
-    props.socket.emit("checkProjectStatus", {
+    props.socket.socketEmit("checkProjectStatus", {
       projectID: props.projectID,
       versionID: props.version.versionID,
     });

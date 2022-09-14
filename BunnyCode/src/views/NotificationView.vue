@@ -1,36 +1,44 @@
 <template>
   <div id="notify-icon">+</div>
-  <div id="notify-count">{{notificationCount}}</div>
+  <div id="notify-count">{{ notificationCount }}</div>
 </template>
 
 <script setup>
-import {ref, watch} from "vue"
+import Socket from "../socket";
+import { onBeforeMount, onMounted, ref, watch } from "vue";
 const props = defineProps({
-socket: Object,
+  socket: Socket,
 });
 
 const notificationCount = ref(0);
+
+function initSocket() {
+  if (props.socket) {
+    console.log("socket init");
+    props.socket.socketOn("returnInvitations", (responseObject) => {
+      console.log("socket response: ", responseObject);
+      notificationCount.value = responseObject.length;
+    });
+  }
+}
 
 watch(
   () => props.socket,
   (now, prev) => {
     console.log("socket change");
     if (props.socket) {
-      props.socket.emit("getInvitations");
-      props.socket.on("returnInvitations", (responseObject) => {
-        notificationCount.value = responseObject.length;
-        console.log("socket response: ", responseObject);
-      });
+      initSocket();
+      props.socket.socketEmit("getInvitations");
     }
   }
 );
 </script>
 
 <style scoped>
-#notify-icon{
+#notify-icon {
   left: 10px;
 }
-#notify-count{
+#notify-count {
   left: 10px;
   height: 25px;
   width: 25px;

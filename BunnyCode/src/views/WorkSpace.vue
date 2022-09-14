@@ -70,6 +70,7 @@
 </template>
 
 <script setup>
+import Socket from "../socket";
 import { useRouter } from "vue-router";
 import { onBeforeMount, ref, watch } from "vue";
 import axios from "axios";
@@ -89,7 +90,7 @@ const router = useRouter();
 // const route = useRoute();
 
 const props = defineProps({
-  socket: Object,
+  socket: Socket,
   projectName: String,
   versionName: String,
 });

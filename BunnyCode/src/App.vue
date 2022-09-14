@@ -38,6 +38,7 @@
 </template>
 
 <script setup>
+import Socket from "./socket";
 import { RouterLink, RouterView, useRouter } from "vue-router";
 import SearchComponent from "./components/SearchComponent.vue";
 import { ref } from "vue";
@@ -52,6 +53,7 @@ const isLogin = ref(false);
 const userID = ref(-1);
 
 let socket = ref();
+
 axios({
   method: "get",
   url: localhostServer + "/api/1.0/user/auth",
@@ -62,12 +64,14 @@ axios({
   .then((response) => {
     isLogin.value = true;
     userID.value = response.data.data;
-    socket.value = io(localhostServer, {
-      auth: (cb) => {
-        cb({ token: `Bearer ${jwt}` });
-      },
-      path: "/api/socket/",
-    });
+    socket.value = new Socket(
+      io(localhostServer, {
+        auth: (cb) => {
+          cb({ token: `Bearer ${jwt}` });
+        },
+        path: "/api/socket/",
+      })
+    );
   })
   .catch((error) => {
     console.log("error message: ", error.response.data.msg);
