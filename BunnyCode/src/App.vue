@@ -51,8 +51,9 @@ const productionServer = "wss://domingoos.store";
 const jwt = localStorage.getItem("jwt");
 const isLogin = ref(false);
 const userID = ref(-1);
-
 let socket = ref();
+const view = ref("home");
+const router = useRouter();
 
 axios({
   method: "get",
@@ -72,14 +73,15 @@ axios({
         path: "/api/socket/",
       })
     );
+    socket.value.socketOn("disconnect", (reason)=>{
+      console.log(`Disconnecting with reason: ${reason}`);
+      router.push("/login");
+    })
   })
   .catch((error) => {
     console.log("error message: ", error.response.data.msg);
     isLogin.value = false;
   });
-
-const view = ref("home");
-const router = useRouter();
 
 async function updateView(viewPage) {
   view.value = viewPage;
