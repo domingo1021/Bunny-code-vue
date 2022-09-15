@@ -2,9 +2,7 @@
 import Socket from "../socket";
 import CodeMirrorComponent from "../components/CodeMirrorComponent.vue";
 import TerminalComponent from "../components/TerminalComponent.vue";
-import { ref, onMounted, onUpdated, onBeforeMount, watch } from "vue";
-import axios from "axios";
-import io from "socket.io-client";
+import { ref, onMounted, watch, onBeforeUnmount } from "vue";
 
 // TODO: 如果是本人進入頁面（認為想要 edit）, 則建立 Socket, 並更動 edit 狀態，
 
@@ -12,12 +10,14 @@ const props = defineProps({
   socket: Socket,
   projectID: Number,
   folderInfo: Object,
+  recordInfo: Object,
   version: Object,
   readOnly: Boolean,
   authorization: Boolean,
+  targetVersionIndex: Number,
 });
 
-const emit = defineEmits(["changeUserStatus"]);
+const emit = defineEmits(["changeUserStatus", "pushSaveRecordsRoot"]);
 
 const atAlt = ref(false);
 const atCtl = ref(false);
@@ -58,6 +58,13 @@ function updateTimeBetween(emitObject) {
   folderInfo.value[emitObject.fileNumber].timeBetween = emitObject.timeBetween;
 }
 
+function pushSaveRecords(emitObject) {
+  emit("pushSaveRecordsRoot", {
+    targetVersionIndex: props.targetVersionIndex,
+    newSaveRecords: emitObject,
+  });
+}
+
 function changeEdit() {
   props.socket.socketEmit("changeEdit", {
     projectID: props.projectID,
@@ -67,37 +74,51 @@ function changeEdit() {
 
 function socketInit() {
   props.socket.socketOn("statusChecked", (responseObject) => {
-    console.log("Response Object: ", responseObject);
+    if (props.recordInfo.length !== 0) {
+      responseObject.readOnly = true;
+    }
     emit("changeUserStatus", responseObject);
-  })
-  if (props.readOnly !== false) {
-    props.socket.socketEmit("checkProjectStatus", {
-      projectID: props.projectID,
-      versionID: props.version.versionID,
-    });
-  }
+  });
+  props.socket.socketEmit("checkProjectStatus", {
+    projectID: props.projectID,
+    versionID: props.version.versionID,
+  });
 }
 
 watch(
   () => props.socket,
   (now, prev) => {
-    if(props.socket){
-      console.log("Code mirror view: ", props.socket);
+    if (props.socket) {
       socketInit();
     }
   }
 );
 
 onMounted(() => {
+  console.log("mounted !!!");
   // check whether version is editing with version.versionID
-  if(props.socket){
+  if (props.socket) {
     socketInit();
+  }
+});
+
+onBeforeUnmount(() => {
+  if (props.socket) {
+    props.socket.socketEmit("changeEdit", {
+      projectID: props.projectID,
+      versionID: props.version.versionID,
+    });
+    props.socket.socketOff("statusChecked");
   }
 });
 </script>
 
 <template>
-  <div v-if="authorization && props.socket !== undefined">
+  <div
+    v-if="
+      authorization && props.socket !== undefined && recordInfo.length === 0
+    "
+  >
     <button @click="changeEdit">Edit</button>
   </div>
   <div v-if="folderInfo.length !== 0">
@@ -112,10 +133,12 @@ onMounted(() => {
       >
         <CodeMirrorComponent
           :info="fileInfo"
+          :records="props.recordInfo"
           :atAlt="atAlt"
           :atCtl="atCtl"
           :jwt="jwt"
           :readOnly="props.readOnly"
+          :projectID="props.projectID"
           @updateCurrCodes="updateCurrCodes"
           @updateCurrIndex="updateCurrIndex"
           @updateCurrLine="updateCurrLine"
@@ -123,6 +146,7 @@ onMounted(() => {
           @pushTerminal="pushTerminal"
           @updateAllRecords="updateAllRecords"
           @updateTimeBetween="updateTimeBetween"
+          @pushSaveRecords="pushSaveRecords"
         />
         <TerminalComponent
           :terminalResult="terminalResult"

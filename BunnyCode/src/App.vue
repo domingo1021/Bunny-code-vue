@@ -8,11 +8,11 @@
             >Home</RouterLink
           >
           <RouterLink
-            to="/code-mirror/bunny_code"
+            to="/workspace"
             class="nav-item"
             @click="updateView('code')"
           >
-            Code Mirror
+            Workspace
           </RouterLink>
           <RouterLink
             to="/battle/1"
@@ -84,11 +84,11 @@ const router = useRouter();
 async function updateView(viewPage) {
   view.value = viewPage;
   if (view.value === "code") {
-    await router.push({ name: "home" });
-    await router.push({
-      name: "code-mirror",
-      params: { projectName: "bunny_code" },
-    });
+    // await router.push({ name: "home" });
+    // await router.push({
+    //   name: "code-mirror",
+    //   params: { projectName: "bunny_code" },
+    // });
   }
 }
 </script>

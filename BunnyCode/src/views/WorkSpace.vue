@@ -29,9 +29,17 @@
           targetFunction === 'Version'
         "
       >
+        <CreateVersionComponent
+          :projectID="projectDetail.projectID"
+          :currentVersionLength="projectDetail.version.length"
+          @updateTargetVersion="updateTargetVersion"
+          @updateTarget="updateTarget"
+          @pushVersionObject="pushVersionObject"
+        />
         <div
           class="version-list"
           v-for="(version, index) in projectDetail?.version"
+          @click="updateTargetVersion(index)"
           :key="index"
         >
           第 {{ version.versionNumber }} 版 &nbsp; {{ version.versionName }}
@@ -48,9 +56,12 @@
             :readOnly="readOnly"
             :authorization="authorization"
             :projectID="projectDetail.projectID"
+            :targetVersionIndex="targetVersionIndex"
             :version="projectDetail?.version[targetVersionIndex]"
+            :recordInfo="projectDetail?.version[targetVersionIndex]?.records"
             :folderInfo="projectDetail?.version[targetVersionIndex]?.files"
             @changeUserStatus="changeUserStatus"
+            @pushSaveRecordsRoot="pushSaveRecordsRoot"
           />
           <div v-else></div>
         </div>
@@ -63,6 +74,7 @@
         <FolderController
           :targetVersionIndex="targetVersionIndex"
           :version="projectDetail.version[targetVersionIndex]"
+          @updateTarget="updateTarget"
         />
       </div>
     </div>
@@ -72,10 +84,11 @@
 <script setup>
 import Socket from "../socket";
 import { useRouter } from "vue-router";
-import { onBeforeMount, ref, watch } from "vue";
+import { onBeforeMount, onMounted, ref, watch } from "vue";
 import axios from "axios";
 import CodeMirrorView from "./CodeMirrorView.vue";
 import FolderController from "./FolderController.vue";
+import CreateVersionComponent from "../components/CreateVersionComponent.vue";
 
 const localhostServer = "http://localhost:3000";
 const projectDetail = ref({});
@@ -95,8 +108,6 @@ const props = defineProps({
   versionName: String,
 });
 
-// console.log("full path: ", route.fullPath);
-
 async function changePath() {
   await router.push({
     name: "code-mirror",
@@ -105,12 +116,31 @@ async function changePath() {
 }
 
 function updateTarget(target) {
+  // 跳到 File or 跳到 version.
   targetFunction.value = target;
+}
+
+function updateTargetVersion(versionIndex) {
+  targetVersionIndex.value = versionIndex;
+}
+
+function pushVersionObject(versionObject) {
+  projectDetail.value.version.push(versionObject);
+  targetFunction.value = "Folder";
+  targetVersionIndex.value = projectDetail.value.version.length - 1;
+  console.log(projectDetail.value.version[targetVersionIndex.value].files);
 }
 
 function changeUserStatus(emitObject) {
   readOnly.value = emitObject.readOnly;
   authorization.value = emitObject.authorization;
+}
+
+function pushSaveRecordsRoot(emitObject) {
+  projectDetail.value.version[emitObject.targetVersionIndex].records.push(
+    emitObject.newSaveRecords
+  );
+  readOnly.value = true;
 }
 
 async function updateProjectDetail() {
@@ -145,7 +175,7 @@ async function updateProjectDetail() {
       });
     }
   });
-  // console.log("detail:", projectDetail.value);
+  console.log("Project content: ", projectDetail.value);
 }
 
 watch(
@@ -157,6 +187,17 @@ watch(
 
 onBeforeMount(async () => {
   await updateProjectDetail();
+});
+
+onMounted(() => {
+  setTimeout(async () => {
+    console.log("in set time out: ", authorization.value);
+    if (!authorization.value) {
+      await axios.put(
+        `http://localhost:3000/api/1.0/project/watch?projectID=${projectDetail.value.projectID}`
+      );
+    }
+  }, 5000);
 });
 </script>
 

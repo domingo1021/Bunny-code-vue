@@ -4,11 +4,15 @@ import axios from "axios";
 import "codemirror/lib/codemirror.css";
 import "codemirror/theme/material-darker.css";
 import "codemirror/mode/javascript/javascript.js";
-import { nextTick, onBeforeMount, ref, watch } from "vue";
+import { nextTick, onBeforeMount, onMounted, ref, watch } from "vue";
+import SaveAlterComponent from "./SaveAlterComponent.vue";
+import { Modal } from "bootstrap";
 
 const props = defineProps({
+  projectID: Number,
   jwt: String,
   info: Object,
+  records: Object,
   atAlt: Boolean,
   atCtl: Boolean,
   readOnly: Boolean,
@@ -22,6 +26,7 @@ const emit = defineEmits([
   "pushTerminal",
   "updateAllRecords",
   "updateTimeBetween",
+  "pushSaveRecords",
 ]);
 
 let editor = null;
@@ -231,44 +236,58 @@ async function checkEventUp(e) {
       });
     }
   } else if (e.ctrlKey && e.keyCode === 83) {
-    // console.log("Control + Save");
-    // const saveResponse = await axios.post(
-    //   // "https://domingoos.store/api/1.0/record",
-    //   "http://localhost:3000/api/1.0/record",
-    //   {
-    //     userID: 1,
-    //     projectID: 1,
-    //     versionID: 17,
-    //     fileName: props.info.fileName,
-    //     checkpointNumber: 1,
-    //     batchData: JSON.stringify(props.info.codeRecords),
-    //   }
-    // );
-    // console.log("save response: ", saveResponse);
-    //Save code file.
-    const allCodes = props.info.fileContent;
-    console.log("entire code:", allCodes);
-    const submitForm = new FormData();
-    const blob = new Blob([JSON.stringify(allCodes)], {
-      type: "application/javascript",
-    });
-    submitForm.append("files", blob, props.info.fileName);
-    submitForm.append("projectID", 0);
-    submitForm.append("versionID", 0);
-    submitForm.append("reqCategory", "code_file");
-    console.log("prepare to submit !");
-    const response = await axios({
-      method: "post",
-      url: "https://domingoos.store/api/1.0/record/file",
-      headers: {
-        Authorization: `Bearer ${props.jwt}`,
-      },
-      data: submitForm,
-    });
-    console.log(response);
-  } else if (e.ctrlKey && e.keyCode === 86) {
-    document.execCommand("copy", false, null);
+    console.log("Control + Save");
+    if (props.records.length !== 0) {
+      return;
+    }
+    saveAlert();
   }
+}
+
+async function saveFileRecord() {
+  let saveResponse;
+  try {
+    saveResponse = await axios.post(
+      // "https://domingoos.store/api/1.0/record",
+      "http://localhost:3000/api/1.0/record",
+      {
+        projectID: props.projectID,
+        versionID: props.info.versionID,
+        fileID: props.info.fileID,
+        baseURL: props.info.fileURL,
+        batchData: JSON.stringify(props.info.codeRecords),
+      }
+    );
+  } catch (error) {
+    alert(error.response.data.msg);
+    return;
+  }
+  console.log(saveResponse.data);
+  emit("pushSaveRecords", saveResponse.data);
+  // SaveResponse.data.data
+  // Save code file.
+  const allCodes = props.info.fileContent;
+  console.log("entire code:", allCodes);
+  const submitForm = new FormData();
+  const blob = new Blob([JSON.stringify(allCodes)], {
+    type: "application/javascript",
+  });
+  submitForm.append("files", blob, props.info.fileName);
+  submitForm.append("projectID", props.projectID);
+  submitForm.append("versionID", props.info.versionID);
+  submitForm.append("reqCategory", "code_file");
+  console.log("prepare to submit !");
+  const response = await axios({
+    method: "post",
+    url: "https://domingoos.store/api/1.0/record/file",
+    headers: {
+      Authorization: `Bearer ${props.jwt}`,
+    },
+    data: submitForm,
+  });
+  //TODO: get new Detail
+  console.log(response);
+  myModal.hide();
 }
 
 async function runCode() {
@@ -280,7 +299,7 @@ async function runCode() {
       {
         userID: 1,
         codes: allCodes,
-        fileName: props.fileName,
+        fileName: props.info.fileName,
       }
     );
     result = compilerResult.data.split("\n");
@@ -294,9 +313,10 @@ async function runCode() {
 }
 
 async function playback() {
-  console.log(props.info.codeRecords);
-  //TODO: set 所有父層資料為初始值
-  editor.getDoc().setValue("");
+  //TODO: setValue 所有上一個版本的 Code 作為初始值
+  const baseContent = await axios.get(props.records[0].baseURL);
+  console.log("base content: ", baseContent.data);
+  editor.getDoc().setValue(baseContent.data);
   for (let i = 0; i < props.info.timeBetween.length; i++) {
     await new Promise((resolve, reject) => {
       setTimeout(() => {
@@ -417,34 +437,78 @@ function triggerEvent(recordObject) {
     });
   }
 }
-onBeforeMount(async () => {
-  const fileUrlContent = await axios.get(
-    "https://d1tmv9ck9k4reg.cloudfront.net/record/user_11/project_1/version_2/1662879826441-test.js"
-  );
-  console.log("cloudfront result: ", fileUrlContent.data);
-  fileContent.value = fileUrlContent.data;
-  emit("updateCurrCodes", {
+// onBeforeMount(async () => {
+//   console.log("Finding records: ", props.info);
+//   const fileUrlContent = await axios.get(props.info.fileURL);
+//   fileContent.value = fileUrlContent.data;
+//   emit("updateCurrCodes", {
+//     fileNumber: props.info.fileNumber,
+//     code: fileContent.value,
+//   });
+// });
+
+async function initSaveRecords() {
+  let recordResponse;
+  if (props.records.length === 0) {
+    return;
+  }
+  console.log("bug");
+  try {
+    console.log("start time: ", props.records[0].startTime);
+    console.log(`stopTime: ${props.records[0].endTime}`);
+    recordResponse = await axios.post(
+      `http://localhost:3000/api/1.0/history/${props.projectID}`,
+      // `https://domingoos.store/api/1.0/history/${projectID}`,
+      {
+        versionID: props.info.versionID,
+        startTime: props.records[0].startTime,
+        stopTime: props.records[0].endTime,
+      }
+    );
+  } catch (error) {
+    console.log(error);
+  }
+  recordResponse = recordResponse.data.data;
+  console.log("records", props.info.fileNumber, recordResponse);
+  emit("updateAllRecords", {
     fileNumber: props.info.fileNumber,
-    code: fileContent.value,
+    codeRecords: recordResponse,
   });
+  let tmpTimeBetween = [0];
+  for (let i = 0; i < recordResponse.length; i++) {
+    if (i == 0) {
+      continue;
+    }
+    tmpTimeBetween.push(
+      new Date(recordResponse[i].timestamp).getTime() -
+        new Date(recordResponse[i - 1].timestamp).getTime()
+    );
+  }
+  emit("updateTimeBetween", {
+    fileNumber: props.info.fileNumber,
+    timeBetween: tmpTimeBetween,
+  });
+}
+
+async function initCodeMirror() {
+  console.log("init index: ", props.info.index);
+  console.log("init line: ", props.info.line);
+  console.log("prepare to initial");
+  console.log("code mirror file URL: ", props.info.fileURL);
+  const fileUrlContent = await axios.get(props.info.fileURL);
+  if (props.info.fileContent === "") {
+    emit("updateCurrCodes", {
+      fileNumber: props.info.fileNumber,
+      code: fileUrlContent.data,
+    });
+  }
   emit("updateCurrLine", {
     fileNumber: props.info.fileNumber,
-    line: fileUrlContent.data.split("\n").length - 1,
+    line: props.info.fileContent.split("\n").length - 1,
   });
   emit("updateCurrIndex", {
     fileNumber: props.info.fileNumber,
-    index: fileUrlContent.data.length,
-  });
-});
-
-async function initCodeMirror() {
-  console.log("prepare to initial");
-  const fileUrlContent = await axios.get(
-    "https://d1tmv9ck9k4reg.cloudfront.net/record/user_11/project_1/version_2/1662879826441-test.js"
-  );
-  emit("updateCurrCodes", {
-    fileNumber: props.info.fileNumber,
-    code: fileUrlContent.data,
+    index: props.info.fileContent.length,
   });
   let tmpReadOnly = props.readOnly;
   let cursorHeight = 0.85;
@@ -466,7 +530,7 @@ async function initCodeMirror() {
     });
   }
   editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
-    value: fileContent.value,
+    value: props.info.fileContent,
     lineNumbers: true,
     identUnit: 2,
     autofocus: true,
@@ -480,39 +544,7 @@ async function initCodeMirror() {
   });
   editor.getDoc().setCursor({ line: props.info.line, ch: props.info.index });
   if (props.readOnly) {
-    let recordResponse;
-    try {
-      recordResponse = await axios.post(
-        "https://domingoos.store/api/1.0/history/1",
-        {
-          projectID: 1,
-          startTime: "2022-09-03T04:25:32.985Z",
-          stopTime: "2022-09-15T04:25:32.985Z",
-        }
-      );
-    } catch (error) {
-      console.log(error);
-    }
-    recordResponse = recordResponse.data.data;
-    console.log("records", props.info.fileNumber, recordResponse);
-    emit("updateAllRecords", {
-      fileNumber: props.info.fileNumber,
-      codeRecords: recordResponse,
-    });
-    let tmpTimeBetween = [0];
-    for (let i = 0; i < recordResponse.length; i++) {
-      if (i == 0) {
-        continue;
-      }
-      tmpTimeBetween.push(
-        new Date(recordResponse[i].timestamp).getTime() -
-          new Date(recordResponse[i - 1].timestamp).getTime()
-      );
-    }
-    emit("updateTimeBetween", {
-      fileNumber: props.info.fileNumber,
-      timeBetween: tmpTimeBetween,
-    });
+    await initSaveRecords();
   }
 }
 
@@ -525,13 +557,35 @@ watch(
   }
 );
 
+watch(
+  () => props.records,
+  async (newRecords, prevRecords) => {
+    console.log("records updated");
+    await initSaveRecords();
+  }
+);
+
 onBeforeMount(async () => {
   await initCodeMirror();
 });
+
 function userClick() {
   alert("僅提供鍵盤輸入功能");
   editor.getDoc().setCursor({ line: props.info.line, ch: props.info.index });
 }
+let myModal;
+onMounted(() => {
+  myModal = new Modal(modalObject.value, {});
+});
+
+const modalObject = ref(null);
+function showModal() {
+  myModal.show();
+}
+function hideModal(){
+  myModal.hide();
+}
+
 </script>
 
 <template>
@@ -539,7 +593,6 @@ function userClick() {
     <div v-if="props.readOnly">
       <textarea :value="fileContent" id="editor" cols="30" rows="10"></textarea>
     </div>
-    <!-- @click="userClick" -->
     <div v-else @click="userClick">
       <textarea
         id="editor"
@@ -548,6 +601,40 @@ function userClick() {
         rows="10"
         style="pointer-events: none"
       ></textarea>
+    </div>
+  </div>
+  <button @click="showModal">show modal</button>
+  <div id="save-alert">
+    <div
+      class="modal fade"
+      id="exampleModal"
+      ref="modalObject"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="myModalLabel"
+      aria-hidden="false"
+    >
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header text-center">
+            <h4 class="modal-title w-100 font-weight-bold">Create Version</h4>
+            <button
+              type="button"
+              class="close btn btn-indigo"
+              data-bs-dismiss="modal"
+              data-dismiss="modal"
+              aria-label="Close"
+            >
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body mx-3">是否要儲存？</div>
+          <div style="display: flex; justify-content: center">
+            <button class="confirm-btn" @click="saveFileRecord">是</button>
+            <button class="confirm-btn" @click="hideModal">否</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
   <button @click="playback">Playback</button>
@@ -568,5 +655,17 @@ li {
 }
 a {
   color: #42b983;
+}
+
+#save-alert {
+  left: 100px;
+  background-color: aliceblue;
+  position: absolute;
+  top: 50px;
+  height: 500px;
+}
+
+.confirm-btn{
+  margin: 5%;
 }
 </style>

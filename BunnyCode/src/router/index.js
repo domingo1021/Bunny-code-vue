@@ -11,6 +11,11 @@ const router = createRouter({
       component: HomeView,
     },
     {
+      path: "/workspace",
+      name: "workspace_home",
+      component: () => import("../views/WorkHomeView.vue"),
+    },
+    {
       path: "/code-mirror/:projectName",
       name: "code-mirror",
       component: () => import("../views/WorkSpace.vue"),
