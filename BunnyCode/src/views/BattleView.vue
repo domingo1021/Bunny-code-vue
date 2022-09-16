@@ -185,7 +185,7 @@ onBeforeMount(() => {
         @updateAllRecords="updateAllRecords"
         @updateTimeBetween="updateTimeBetween"
       />
-      <button @click="runCode(index)">Run code</button>
+      <button v-if="!readOnlies[index]" @click="runCode(index)">Run code</button>
       <TerminalComponent id="terminal" :terminalResult="info.terminalResult" />
     </div>
   </div>

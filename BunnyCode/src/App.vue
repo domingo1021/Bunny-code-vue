@@ -8,11 +8,11 @@
             >Home</RouterLink
           >
           <RouterLink
-            to="/code-mirror/bunny_code"
+            to="/workspace"
             class="nav-item"
             @click="updateView('code')"
           >
-            Code Mirror
+            Workspace
           </RouterLink>
           <RouterLink
             to="/battle/1"
@@ -25,46 +25,68 @@
           <RouterLink class="nav-item" to="/login" @click="updateView('user')"
             >個人資訊</RouterLink
           >
+          <NotificationView :socket="socket" />
           <!-- <div class="nav-item">個人資訊</div> -->
-          <SearchComponent @updateProjects="updateProjects" />
+          <SearchComponent :socket="socket" />
         </div>
       </div>
     </nav>
   </header>
   <body>
-    <RouterView :key="view" />
+    <RouterView :userID="userID" :socket="socket" :key="view" />
   </body>
 </template>
 
 <script setup>
+import Socket from "./socket";
 import { RouterLink, RouterView, useRouter } from "vue-router";
 import SearchComponent from "./components/SearchComponent.vue";
-import { onBeforeMount, ref } from "vue";
+import { ref } from "vue";
+import axios from "axios";
+import io from "socket.io-client";
+import NotificationView from "./views/NotificationView.vue";
 
+const localhostServer = "http://localhost:3000";
+const productionServer = "wss://domingoos.store";
+const jwt = localStorage.getItem("jwt");
+const isLogin = ref(false);
+const userID = ref(-1);
+let socket = ref();
 const view = ref("home");
 const router = useRouter();
-const child = ref(null);
-const jwt = localStorage.getItem('jwt');
 
-function updateProjects(emitObject){
-  child.value.updateProjects(emitObject);
-}
+axios({
+  method: "get",
+  url: localhostServer + "/api/1.0/user/auth",
+  headers: {
+    Authorization: `Bearer ${jwt}`,
+  },
+})
+  .then((response) => {
+    isLogin.value = true;
+    userID.value = response.data.data;
+    socket.value = new Socket(
+      io(localhostServer, {
+        auth: (cb) => {
+          cb({ token: `Bearer ${jwt}` });
+        },
+        path: "/api/socket/",
+      })
+    );
+    socket.value.socketOn("disconnect", (reason)=>{
+      console.log(`Disconnecting with reason: ${reason}`);
+      alert("disconnected");
+      router.push("/login");
+    })
+  })
+  .catch((error) => {
+    console.log("error message: ", error.response.data.msg);
+    isLogin.value = false;
+  });
 
 async function updateView(viewPage) {
   view.value = viewPage;
-  if (view.value === "code") {
-    await router.push({ name: "home" });
-    await router.push({
-      name: "code-mirror",
-      params: { projectName: "bunny_code" },
-    });
-  }
 }
-
-onBeforeMount( () => {
-  
-})
-
 </script>
 
 <style scoped>

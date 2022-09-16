@@ -1,40 +1,34 @@
 <script setup>
+import Socket from "../socket";
 import CodeMirrorComponent from "../components/CodeMirrorComponent.vue";
 import TerminalComponent from "../components/TerminalComponent.vue";
-import { ref, onMounted, onUpdated, onBeforeMount } from "vue";
-import axios from "axios";
-import io from "socket.io-client";
+import { ref, onMounted, watch, onBeforeUnmount, onUpdated } from "vue";
 
 // TODO: 如果是本人進入頁面（認為想要 edit）, 則建立 Socket, 並更動 edit 狀態，
 
 const props = defineProps({
+  socket: Socket,
   projectID: Number,
   folderInfo: Object,
+  recordInfo: Object,
   version: Object,
   readOnly: Boolean,
   authorization: Boolean,
+  targetVersionIndex: Number,
 });
 
-const emit = defineEmits(["changeUserStatus"]);
-
-// const emit = defineEmits(["updateFolderInfo"]);
+const emit = defineEmits(["changeUserStatus", "pushSaveRecordsRoot"]);
 
 const atAlt = ref(false);
 const atCtl = ref(false);
 const jwt = localStorage.getItem("jwt");
-// const readOnly = ref(props.readOnly);
-// const authorization = ref(props.authorization);
-// const ifSelf = ref(true);
-// const editStatus = ref(true);
 
 const folderInfo = ref(props.folderInfo);
 
 const terminalResult = ref([]);
 
-//emit function
 function updateCurrCodes(emitObject) {
   folderInfo.value[emitObject.fileNumber].fileContent = emitObject.code;
-  // 比較：props.folderInfo[emitObject.fileNumber].fileContent = emitObject.code;
 }
 
 function updateCurrIndex(emitObject) {
@@ -64,47 +58,80 @@ function updateTimeBetween(emitObject) {
   folderInfo.value[emitObject.fileNumber].timeBetween = emitObject.timeBetween;
 }
 
+function pushSaveRecords(emitObject) {
+  emit("pushSaveRecordsRoot", {
+    targetVersionIndex: props.targetVersionIndex,
+    newSaveRecords: emitObject,
+  });
+}
+
 function changeEdit() {
-  socket.emit("changeEdit", {
+  props.socket.socketEmit("changeEdit", {
     projectID: props.projectID,
     versionID: props.version.versionID,
   });
 }
 
-const localhostServer = "http://localhost:3000";
-const productionServer = "wss://domingoos.store";
-
-const socket = io(localhostServer, {
-  auth: (cb) => {
-    cb({ token: `Bearer ${localStorage.getItem("jwt")}` });
-  },
-  path: "/api/socket/",
-});
-
-socket.on("statusChecked", (responseObject) => {
-  console.log("Response Object: ", responseObject);
-  emit("changeUserStatus", responseObject);
-});
-
-onMounted(() => {
-  // check whether version is editing with version.versionID
-  if (props.readOnly !== false) {
-    socket.emit("checkProjectStatus", {
+function socketInit() {
+  props.socket.socketOn("statusChecked", (responseObject) => {
+    if (props.recordInfo.length !== 0) {
+      responseObject.readOnly = true;
+    }
+    console.log("responseObject after update: ", responseObject);
+    emit("changeUserStatus", responseObject);
+  });
+  if (props.recordInfo.length === 0) {
+    console.log("projectInfo: ", props.recordInfo.length);
+    props.socket.socketEmit("checkProjectStatus", {
       projectID: props.projectID,
       versionID: props.version.versionID,
     });
   }
+}
+
+watch(
+  () => props.socket,
+  (now, prev) => {
+    if (props.socket) {
+      socketInit();
+    }
+  }
+);
+
+onMounted(() => {
+  // check whether version is editing with version.versionID
+  console.log("View mount");
+  console.log("versionID: ", props.version.versionID);
+  if (props.socket) {
+    socketInit();
+  }
 });
 
+onBeforeUnmount(() => {
+  console.log("view unmount");
+  if (props.socket) {
+    props.socket.socketOff("statusChecked");
+    console.log(props.readOnly, props.authorization);
+    if (!props.readOnly || props.authorization) {
+      props.socket.socketEmit("unEdit", {
+        versionID: props.version.versionID,
+      });
+    }
+  }
+});
 </script>
 
 <template>
-  <div v-if="authorization">
+  <div
+    v-if="
+      authorization && props.socket !== undefined && recordInfo.length === 0
+    "
+  >
     <button @click="changeEdit">Edit</button>
   </div>
   <div v-if="folderInfo.length !== 0">
     <div>
-      <div style="color: azure">ReadyOnly: {{props.readOnly}}</div>
+      <div style="color: azure">ReadyOnly: {{ props.readOnly }}</div>
       <div
         v-for="(fileInfo, index) in folderInfo"
         @input="updateContent"
@@ -114,10 +141,12 @@ onMounted(() => {
       >
         <CodeMirrorComponent
           :info="fileInfo"
+          :records="props.recordInfo"
           :atAlt="atAlt"
           :atCtl="atCtl"
           :jwt="jwt"
           :readOnly="props.readOnly"
+          :projectID="props.projectID"
           @updateCurrCodes="updateCurrCodes"
           @updateCurrIndex="updateCurrIndex"
           @updateCurrLine="updateCurrLine"
@@ -125,8 +154,12 @@ onMounted(() => {
           @pushTerminal="pushTerminal"
           @updateAllRecords="updateAllRecords"
           @updateTimeBetween="updateTimeBetween"
+          @pushSaveRecords="pushSaveRecords"
         />
-        <TerminalComponent :terminalResult="terminalResult" style="top:350px" />
+        <TerminalComponent
+          :terminalResult="terminalResult"
+          style="top: 350px"
+        />
       </div>
     </div>
   </div>

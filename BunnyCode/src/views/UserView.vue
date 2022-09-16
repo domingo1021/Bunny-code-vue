@@ -1,11 +1,19 @@
 <script setup>
 import axios from "axios";
-import { version } from "codemirror";
-import { onBeforeMount, onMounted, onUpdated, ref } from "vue";
+import {
+  onBeforeMount,
+  onBeforeUnmount,
+  onMounted,
+  onUnmounted,
+  onUpdated,
+  ref,
+  watch,
+} from "vue";
 import { useRouter, useRoute } from "vue-router";
 import ProjectCardComponent from "../components/ProjectCardComponent.vue";
 
 const props = defineProps({
+  socket: Object,
   userID: String,
 });
 const localhostServer = "http://localhost:3000";
@@ -18,8 +26,24 @@ const projectName = ref("");
 const projectDescription = ref("");
 const versionName = ref("");
 const fileName = ref("");
-const picked = ref(1);
-const buttonClickable = ref(true);
+const projectPublic = ref(1);
+const buttonClickable = ref(false);
+
+const battleName = ref("");
+const searchBattler = ref("");
+const secondBattler = ref("");
+const battlePublic = ref(1);
+
+const chooseDate = ref("");
+const startDate = new Date();
+const minDate = startDate.toISOString().split("T")[0];
+const endDate = new Date(startDate);
+endDate.setDate(endDate.getDate() + 7);
+const maxDate = endDate.toISOString().split("T")[0];
+
+watch(chooseDate, (newDate, prevDate) => {
+  console.log("Date change", new Date(newDate));
+});
 
 const CLIENT_CATEGORY = {
   visitor: 0,
@@ -28,10 +52,10 @@ const CLIENT_CATEGORY = {
 };
 
 async function createProject() {
-  console.log("Is public: ", +picked.value);
+  console.log("Is public: ", +projectPublic.value);
   let responseProjects;
   try {
-    if( !fileName.value.includes(".js") ){
+    if (!fileName.value.includes(".js")) {
       fileName.value += ".js";
     }
     responseProjects = await axios({
@@ -43,7 +67,7 @@ async function createProject() {
       data: {
         projectName: projectName.value,
         projectDescription: projectDescription.value,
-        isPublic: +picked.value,
+        isPublic: +projectPublic.value,
         userID: +props.userID,
         versionName: versionName.value,
         fileName: fileName.value,
@@ -59,7 +83,7 @@ async function createProject() {
     projectsDisplayed.value.unshift({
       projectID: responseProjects.data.data.projectID,
       projectName: projectName.value,
-      isPublic: picked.value,
+      isPublic: projectPublic.value,
       projectDescription: projectDescription.value,
       versionName: versionName.value,
       starCount: 0,
@@ -68,9 +92,27 @@ async function createProject() {
   }
   projectName.value = "";
   projectDescription.value = "";
-  picked.value = 1;
+  projectPublic.value = 1;
   versionName.value = "";
   fileName.value = "";
+}
+
+async function createBattle() {
+  alert("Createing battle...");
+}
+
+function initSocket() {
+  if (props.socket) {
+    props.socket.socketOn("responseUsers", (responseObject) => {
+      console.log("hello: ", responseObject);
+    });
+  }
+}
+
+async function filterFunction() {
+  if (props.socket) {
+    props.socket.socketEmit("searchUsers", searchBattler.value);
+  }
 }
 
 onUpdated(() => {
@@ -109,6 +151,13 @@ onBeforeMount(async () => {
   }
   console.log(projectsDisplayed.value);
   console.log("User auth value: ", userAuth.value);
+  if (props.socket) {
+    initSocket();
+  }
+});
+
+onBeforeUnmount(() => {
+  props.socket.socketOff("responseUsers");
 });
 </script>
 
@@ -136,7 +185,8 @@ onBeforeMount(async () => {
             <h4 class="modal-title w-100 font-weight-bold">Create Project</h4>
             <button
               type="button"
-              class="close"
+              class="close btn btn-indigo"
+              data-bs-dismiss="modal"
               data-dismiss="modal"
               aria-label="Close"
             >
@@ -191,7 +241,7 @@ onBeforeMount(async () => {
                   id="Public"
                   name="drone"
                   value="1"
-                  v-model="picked"
+                  v-model="projectPublic"
                 />
                 <label for="huey">Public</label>
               </div>
@@ -201,7 +251,7 @@ onBeforeMount(async () => {
                   id="Private"
                   name="drone"
                   value="0"
-                  v-model="picked"
+                  v-model="projectPublic"
                 />
                 <label for="Private">Private</label>
               </div>
@@ -251,6 +301,133 @@ onBeforeMount(async () => {
               class="btn btn-indigo"
               data-bs-dismiss="modal"
               @click="createProject"
+              v-if="buttonClickable"
+            >
+              Submit <i class="fas fa-paper-plane-o ml-1"></i>
+            </button>
+            <button id="invalid-btn" class="btn btn-indigo" v-else>
+              Submit
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Create battle -->
+    <button
+      type="button"
+      class="btn btn-primary"
+      data-bs-toggle="modal"
+      data-bs-target="#battleModal"
+    >
+      Create Battle
+    </button>
+    <div
+      class="modal fade"
+      id="battleModal"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="myModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header text-center">
+            <h4 class="modal-title w-100 font-weight-bold">Create Battle</h4>
+            <button
+              type="button"
+              class="close btn btn-indigo"
+              data-bs-dismiss="modal"
+              data-dismiss="modal"
+              aria-label="Close"
+            >
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body mx-3">
+            <div class="md-form mb-4" style="display: flex">
+              <!-- <i class="fas fa-user prefix grey-text"></i> -->
+              <label
+                class="label-header"
+                data-error="wrong"
+                data-success="right"
+                for="form3"
+                >Battle name</label
+              >
+              <input
+                type="text"
+                id="form3"
+                class="form-control validate"
+                v-model="battleName"
+              />
+            </div>
+            <div class="warning" v-if="projectName.length > 29">
+              Project name length too long.
+            </div>
+            <form style="margin-bottom: 8%">
+              <div>
+                <label for="compotition-date" class="battle-title"
+                  >Compotition date: &nbsp;</label
+                >
+                <input
+                  type="date"
+                  id="compotition-date"
+                  name="compotition-date"
+                  v-model="chooseDate"
+                  :min="minDate"
+                  :max="maxDate"
+                />
+              </div>
+            </form>
+            <div class="md-form mb-4" style="display: flex">
+              <i class="fas fa-envelope prefix grey-text"></i>
+              <div style="margin-right: 15px">
+                <input
+                  type="radio"
+                  id="Public"
+                  name="drone"
+                  value="1"
+                  v-model="battlePublic"
+                />
+                <label for="huey">Public</label>
+              </div>
+              <div>
+                <input
+                  type="radio"
+                  id="Private"
+                  name="drone"
+                  value="0"
+                  v-model="battlePublic"
+                />
+                <label for="Private">Private</label>
+              </div>
+            </div>
+            <div class="md-form mb-4" style="display: flex">
+              <div class="dropdown">
+                <div id="myDropdown">
+                  <label for="compotition-date" class="battle-title"
+                    >Invite battler: &nbsp;</label
+                  >
+                  <input
+                    type="text"
+                    placeholder="Search.."
+                    id="myInput"
+                    v-model="searchBattler"
+                    @keyup="filterFunction"
+                  />
+                  <!-- <a href="#about">About</a> -->
+                </div>
+              </div>
+            </div>
+            <div class="warning" v-if="projectName.length > 29">
+              Project name length too long.
+            </div>
+          </div>
+          <div class="modal-footer d-flex justify-content-center">
+            <button
+              id="valid-btn"
+              class="btn btn-indigo"
+              data-bs-dismiss="modal"
+              @click="createBattle"
               v-if="buttonClickable"
             >
               Submit <i class="fas fa-paper-plane-o ml-1"></i>
@@ -320,5 +497,53 @@ onBeforeMount(async () => {
 .warning {
   top: -20px;
   color: rgb(255, 100, 100);
+}
+
+.battle-title {
+  width: 150px;
+}
+
+/* The search field */
+#myInput {
+  box-sizing: border-box;
+  background-image: url("searchicon.png");
+  background-position: 14px 12px;
+  background-repeat: no-repeat;
+  font-size: 16px;
+  padding: 14px 20px 12px 45px;
+  border: none;
+  border-bottom: 1px solid #ddd;
+}
+
+#myInput:focus {
+  outline: 1px solid #ddd;
+}
+
+/* The container <div> - needed to position the dropdown content */
+.dropdown {
+  display: flex;
+}
+
+/* Dropdown Content (Hidden by Default) */
+.dropdown-content {
+  display: block;
+  position: absolute;
+  background-color: #f6f6f6;
+  min-width: 230px;
+  border: 1px solid #ddd;
+  z-index: 1;
+}
+
+/* Links inside the dropdown */
+.dropdown-content a {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+}
+
+/* Change color of dropdown links on hover */
+.dropdown-content a:hover {
+  background-color: #f1f1f1;
 }
 </style>

@@ -13,25 +13,25 @@ const timeBetween = ref([0]);
 
 onMounted(async () => {
   input.value[targetLine.value].focus();
-  const recordResponse = await axios.post(
-    "https://domingoos.store/api/1.0/history/1",
-    {
-      projectID: 1,
-      startTime: "2022-09-03T04:25:32.985Z",
-      stopTime: "2022-09-10T04:25:32.985Z",
-    }
-  );
-  recordData.value = recordResponse.data.data;
-  for (let i = 0; i < recordData.value.length; i++) {
-    if (i == 0) {
-      continue;
-    }
-    timeBetween.value.push(
-      new Date(recordData.value[i].timestamp).getTime() -
-        new Date(recordData.value[i - 1].timestamp).getTime()
-    );
-  }
-  console.log(recordData.value);
+  // const recordResponse = await axios.post(
+  //   "https://domingoos.store/api/1.0/history/1",
+  //   {
+  //     projectID: 1,
+  //     startTime: "2022-09-03T04:25:32.985Z",
+  //     stopTime: "2022-09-10T04:25:32.985Z",
+  //   }
+  // );
+  // recordData.value = recordResponse.data.data;
+  // for (let i = 0; i < recordData.value.length; i++) {
+  //   if (i == 0) {
+  //     continue;
+  //   }
+  //   timeBetween.value.push(
+  //     new Date(recordData.value[i].timestamp).getTime() -
+  //       new Date(recordData.value[i - 1].timestamp).getTime()
+  //   );
+  // }
+  // console.log(recordData.value);
 });
 
 const startVideo = async () => {
