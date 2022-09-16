@@ -15,10 +15,16 @@
             Workspace
           </RouterLink>
           <RouterLink
+            to="/battle"
+            class="nav-item"
+            @click="updateView('battle')"
+            >Battle Home</RouterLink
+          >
+          <RouterLink
             to="/battle/1"
             class="nav-item"
             @click="updateView('battle')"
-            >Battle</RouterLink
+            >Battle Link</RouterLink
           >
         </div>
         <div class="right-flex">
@@ -34,6 +40,46 @@
   </header>
   <body>
     <RouterView :userID="userID" :socket="socket" :key="view" />
+    <div id="save-alert">
+      <div
+        class="modal fade"
+        id="exampleModal"
+        ref="modalObject"
+        tabindex="-1"
+        role="dialog"
+        aria-labelledby="myModalLabel"
+        aria-hidden="false"
+      >
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header text-center">
+              <h4 class="modal-title w-100 font-weight-bold">BATTLE BOOM !!</h4>
+              <button
+                type="button"
+                class="close btn btn-indigo"
+                data-bs-dismiss="modal"
+                data-dismiss="modal"
+                aria-label="Close"
+              >
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body mx-3">
+              <div>Battle Name: {{ modalBattleName }}</div>
+              <div>Battle Level: {{ modalBattleLevel }}</div>
+              <div>Battle Competitor: {{ modalFirstUserName }}</div>
+            </div>
+            <div class="modal-body mx-3" style="text-align: center">
+              是否要接受挑戰？
+            </div>
+            <div style="display: flex; justify-content: center">
+              <button class="confirm-btn" @click="acceptBattle">是</button>
+              <button class="confirm-btn" @click="hideModal">否</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </body>
 </template>
 
@@ -41,11 +87,17 @@
 import Socket from "./socket";
 import { RouterLink, RouterView, useRouter } from "vue-router";
 import SearchComponent from "./components/SearchComponent.vue";
-import { ref } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 import axios from "axios";
 import io from "socket.io-client";
 import NotificationView from "./views/NotificationView.vue";
+import { createToaster } from "@meforma/vue-toaster";
+// import BattleLaunchComponent from "./components/BattleLaunchComponent.vue";
+import { Modal } from "bootstrap";
+import BattleLaunchComponent from "./components/BattleLaunchComponent.vue";
 
+let myModal;
+const modalObject = ref(null);
 const localhostServer = "http://localhost:3000";
 const productionServer = "wss://domingoos.store";
 const jwt = localStorage.getItem("jwt");
@@ -54,6 +106,44 @@ const userID = ref(-1);
 let socket = ref();
 const view = ref("home");
 const router = useRouter();
+const battleName = ref();
+const battleLevel = ref();
+const firstUserID = ref();
+const firstUserName = ref();
+const targetSocketID = ref();
+const modalBattleName = ref();
+const modalBattleLevel = ref();
+const modalFirstUserID = ref();
+const modalFirstUserName = ref();
+const modalTargetSocketID = ref();
+
+const battleLevelConfig = {
+  0: "Easy",
+  1: "Medium",
+  2: "Hard",
+};
+
+function showModal() {
+  myModal.show();
+}
+function hideModal() {
+  myModal.hide();
+}
+
+const toaster = createToaster({
+  position: "top-right",
+  duration: 10000,
+  maxToasts: 1,
+  onClick: () => {
+    alert("接受挑戰");
+    modalBattleName.value = battleName.value;
+    modalBattleLevel.value = battleLevel.value;
+    modalFirstUserID.value = firstUserID.value;
+    modalFirstUserName.value = firstUserName.value;
+    modalTargetSocketID.value = targetSocketID.value;
+    showModal();
+  },
+});
 
 axios({
   method: "get",
@@ -73,11 +163,33 @@ axios({
         path: "/api/socket/",
       })
     );
-    socket.value.socketOn("disconnect", (reason)=>{
+    socket.value.socketOn("userInvite", (emitObject) => {
+      console.log("invite user: ", emitObject);
+      battleName.value = emitObject.name;
+      battleLevel.value = battleLevelConfig[emitObject.level];
+      firstUserID.value = emitObject.firstUserID;
+      firstUserName.value = emitObject.firstUserName;
+      targetSocketID.value = emitObject.socketID;
+      toaster.success(
+        `<div>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!</div>
+        <div>User ${emitObject.firstUserName} launch ${emitObject.name}</div>
+        <div>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!</div>`
+      );
+    });
+    socket.value.socketOn("battleFailed", (msg) => {
+      alert(msg);
+    });
+    socket.value.socketOn("battleCreated", (emitObject) => {
+      router.push({
+        name: "battle",
+        params: { battleID: emitObject.battleID },
+      });
+    });
+    socket.value.socketOn("disconnect", (reason) => {
       console.log(`Disconnecting with reason: ${reason}`);
       alert("disconnected");
       router.push("/login");
-    })
+    });
   })
   .catch((error) => {
     console.log("error message: ", error.response.data.msg);
@@ -87,6 +199,27 @@ axios({
 async function updateView(viewPage) {
   view.value = viewPage;
 }
+
+function acceptBattle() {
+  if (socket.value) {
+    socket.value.socketEmit("acceptBattle", {
+      socketID: modalTargetSocketID.value,
+      firstUserID: modalFirstUserID.value,
+    });
+  }
+  myModal.hide();
+}
+
+onMounted(() => {
+  myModal = new Modal(modalObject.value, {});
+});
+
+onUnmounted(() => {
+  if (!socket.value) {
+    return;
+  }
+  socket.value.socketOff("userInvite");
+});
 </script>
 
 <style scoped>
@@ -141,5 +274,17 @@ nav a:first-of-type {
 
 header + body {
   padding-top: 80px;
+}
+
+#save-alert {
+  left: 100px;
+  background-color: aliceblue;
+  position: absolute;
+  top: 50px;
+  height: 500px;
+}
+
+.confirm-btn {
+  margin: 5%;
 }
 </style>

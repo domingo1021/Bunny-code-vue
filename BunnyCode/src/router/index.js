@@ -16,6 +16,11 @@ const router = createRouter({
       component: () => import("../views/WorkHomeView.vue"),
     },
     {
+      path: "/battle",
+      name: "battle_home",
+      component: () => import("../views/BattleHomeView.vue"),
+    },
+    {
       path: "/code-mirror/:projectName",
       name: "code-mirror",
       component: () => import("../views/WorkSpace.vue"),
@@ -31,6 +36,13 @@ const router = createRouter({
       path: "/battle/:battleID",
       name: "battle",
       component: () => import("../views/BattleView.vue"),
+      meta: { requireAuth: true },
+      props: true,
+    },
+    {
+      path: "/battle/review/:battleID",
+      name: "battle_review",
+      component: () => import("../views/BattleReview.vue"),
       meta: { requireAuth: true },
       props: true,
     },

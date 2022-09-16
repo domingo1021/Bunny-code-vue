@@ -8,6 +8,7 @@
 import Socket from '../socket';
 
 const props = defineProps({
+  userID: Number,
   socket: Socket,
 })
 

@@ -29,22 +29,6 @@ const fileName = ref("");
 const projectPublic = ref(1);
 const buttonClickable = ref(false);
 
-const battleName = ref("");
-const searchBattler = ref("");
-const secondBattler = ref("");
-const battlePublic = ref(1);
-
-const chooseDate = ref("");
-const startDate = new Date();
-const minDate = startDate.toISOString().split("T")[0];
-const endDate = new Date(startDate);
-endDate.setDate(endDate.getDate() + 7);
-const maxDate = endDate.toISOString().split("T")[0];
-
-watch(chooseDate, (newDate, prevDate) => {
-  console.log("Date change", new Date(newDate));
-});
-
 const CLIENT_CATEGORY = {
   visitor: 0,
   otherMember: 1,
@@ -97,10 +81,6 @@ async function createProject() {
   fileName.value = "";
 }
 
-async function createBattle() {
-  alert("Createing battle...");
-}
-
 function initSocket() {
   if (props.socket) {
     props.socket.socketOn("responseUsers", (responseObject) => {
@@ -109,11 +89,11 @@ function initSocket() {
   }
 }
 
-async function filterFunction() {
-  if (props.socket) {
-    props.socket.socketEmit("searchUsers", searchBattler.value);
-  }
-}
+// async function filterFunction() {
+//   if (props.socket) {
+//     props.socket.socketEmit("searchUsers", searchBattler.value);
+//   }
+// }
 
 onUpdated(() => {
   if (
@@ -301,133 +281,6 @@ onBeforeUnmount(() => {
               class="btn btn-indigo"
               data-bs-dismiss="modal"
               @click="createProject"
-              v-if="buttonClickable"
-            >
-              Submit <i class="fas fa-paper-plane-o ml-1"></i>
-            </button>
-            <button id="invalid-btn" class="btn btn-indigo" v-else>
-              Submit
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-    <!-- Create battle -->
-    <button
-      type="button"
-      class="btn btn-primary"
-      data-bs-toggle="modal"
-      data-bs-target="#battleModal"
-    >
-      Create Battle
-    </button>
-    <div
-      class="modal fade"
-      id="battleModal"
-      tabindex="-1"
-      role="dialog"
-      aria-labelledby="myModalLabel"
-      aria-hidden="true"
-    >
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header text-center">
-            <h4 class="modal-title w-100 font-weight-bold">Create Battle</h4>
-            <button
-              type="button"
-              class="close btn btn-indigo"
-              data-bs-dismiss="modal"
-              data-dismiss="modal"
-              aria-label="Close"
-            >
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <div class="modal-body mx-3">
-            <div class="md-form mb-4" style="display: flex">
-              <!-- <i class="fas fa-user prefix grey-text"></i> -->
-              <label
-                class="label-header"
-                data-error="wrong"
-                data-success="right"
-                for="form3"
-                >Battle name</label
-              >
-              <input
-                type="text"
-                id="form3"
-                class="form-control validate"
-                v-model="battleName"
-              />
-            </div>
-            <div class="warning" v-if="projectName.length > 29">
-              Project name length too long.
-            </div>
-            <form style="margin-bottom: 8%">
-              <div>
-                <label for="compotition-date" class="battle-title"
-                  >Compotition date: &nbsp;</label
-                >
-                <input
-                  type="date"
-                  id="compotition-date"
-                  name="compotition-date"
-                  v-model="chooseDate"
-                  :min="minDate"
-                  :max="maxDate"
-                />
-              </div>
-            </form>
-            <div class="md-form mb-4" style="display: flex">
-              <i class="fas fa-envelope prefix grey-text"></i>
-              <div style="margin-right: 15px">
-                <input
-                  type="radio"
-                  id="Public"
-                  name="drone"
-                  value="1"
-                  v-model="battlePublic"
-                />
-                <label for="huey">Public</label>
-              </div>
-              <div>
-                <input
-                  type="radio"
-                  id="Private"
-                  name="drone"
-                  value="0"
-                  v-model="battlePublic"
-                />
-                <label for="Private">Private</label>
-              </div>
-            </div>
-            <div class="md-form mb-4" style="display: flex">
-              <div class="dropdown">
-                <div id="myDropdown">
-                  <label for="compotition-date" class="battle-title"
-                    >Invite battler: &nbsp;</label
-                  >
-                  <input
-                    type="text"
-                    placeholder="Search.."
-                    id="myInput"
-                    v-model="searchBattler"
-                    @keyup="filterFunction"
-                  />
-                  <!-- <a href="#about">About</a> -->
-                </div>
-              </div>
-            </div>
-            <div class="warning" v-if="projectName.length > 29">
-              Project name length too long.
-            </div>
-          </div>
-          <div class="modal-footer d-flex justify-content-center">
-            <button
-              id="valid-btn"
-              class="btn btn-indigo"
-              data-bs-dismiss="modal"
-              @click="createBattle"
               v-if="buttonClickable"
             >
               Submit <i class="fas fa-paper-plane-o ml-1"></i>

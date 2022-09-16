@@ -4,6 +4,7 @@ import axios from "axios";
 import io from "socket.io-client";
 import BattleSpaceComponent from "../components/BattleSpaceComponent.vue";
 import TerminalComponent from "../components/TerminalComponent.vue";
+import Socket from "../socket";
 
 //TODO: Sending codeing info (recordsing it in local as well) to Server with socket.
 //TODO: Keyboard event (需要用到哪些)
@@ -16,7 +17,9 @@ import TerminalComponent from "../components/TerminalComponent.vue";
 //TODO: "On" Socket room server send information -> 直接渲染整個 content.
 
 const props = defineProps({
+  userID: Number,
   battleID: String,
+  socket: Socket,
 });
 
 const CLIENT_CATEGORY = {
@@ -58,17 +61,17 @@ const battleInfo = ref([
 const atAlt = ref(false);
 const atCtl = ref(false);
 const childEditor = ref([]);
-const localhostServer = "http://localhost:3000";
-const productionServer = "wss://domingoos.store";
+// const localhostServer = "http://localhost:3000";
+// const productionServer = "wss://domingoos.store";
 
-const socket = io(productionServer, {
-  auth: (cb) => {
-    cb({ token: `Bearer ${localStorage.getItem("jwt")}` });
-  },
-  path: "/api/socket/",
-});
+// const socket = io(productionServer, {
+//   auth: (cb) => {
+//     cb({ token: `Bearer ${localStorage.getItem("jwt")}` });
+//   },
+//   path: "/api/socket/",
+// });
 
-socket.on("returnBattler", (responseObject) => {
+props.socket.socketOn("returnBattler", (responseObject) => {
   console.log("return Battler: ", responseObject);
   battleInfo.value[0].userID = responseObject.battleResponse.firstUserID;
   battleInfo.value[0].userName = responseObject.battleResponse.firstUserName;
@@ -85,13 +88,13 @@ socket.on("returnBattler", (responseObject) => {
   }
 });
 
-socket.on("in", (msg) => {
+props.socket.socketOn("in", (msg) => {
   message.value.push(msg);
   console.log(message.value);
   console.log(childEditor.value);
 });
 
-socket.on("newCodes", (recordObject) => {
+props.socket.socketOn("newCodes", (recordObject) => {
   battleInfo.value.forEach((info) => {
     if (
       info.userID == recordObject.userID &&
@@ -105,7 +108,7 @@ socket.on("newCodes", (recordObject) => {
 //emit function
 function updateCurrCodes(emitObject) {
   battleInfo.value[emitObject.battlerNumber].fileContent = emitObject.code;
-  socket.emit("newCodes", {
+  props.socket.socketEmit("newCodes", {
     battleID: props.battleID,
     userID: userID.value,
     newCodes: emitObject.code,
@@ -143,7 +146,7 @@ function updateTimeBetween(emitObject) {
     emitObject.timeBetween;
 }
 
-socket.on("compileDone", (responseObject) => {
+props.socket.socketOn("compileDone", (responseObject) => {
   console.log("responseObject: ", responseObject);
   pushTerminal(responseObject.battlerNumber, responseObject.compilerResult);
 });
@@ -151,7 +154,7 @@ socket.on("compileDone", (responseObject) => {
 async function runCode(battlerNumber) {
   console.log(battlerNumber);
   const allCodes = battleInfo.value[battlerNumber].fileContent;
-  socket.emit("compile", {
+  props.socket.socketEmit("compile", {
     battlerNumber: battlerNumber,
     battleID: props.battleID,
     codes: allCodes,
@@ -160,7 +163,7 @@ async function runCode(battlerNumber) {
 
 onBeforeMount(() => {
   // console.log(props.battleID);
-  socket.emit("queryBattler", {
+  props.socket.socketEmit("queryBattler", {
     battleID: props.battleID,
   });
 });
