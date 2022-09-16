@@ -5,7 +5,6 @@ import 'codemirror/lib/codemirror.css'
 import 'codemirror/theme/material-darker.css'
 import 'codemirror/mode/javascript/javascript.js'
 import { nextTick, onBeforeMount, onMounted, ref, watch } from 'vue'
-import SaveAlterComponent from './SaveAlterComponent.vue'
 import { Modal } from 'bootstrap'
 
 const props = defineProps({
@@ -240,7 +239,7 @@ async function checkEventUp(e) {
     if (props.records.length !== 0) {
       return
     }
-    saveAlert()
+    showModal();
   }
 }
 
@@ -268,25 +267,25 @@ async function saveFileRecord() {
   // Save code file.
   const allCodes = props.info.fileContent
   console.log('entire code:', allCodes)
-  const submitForm = new FormData()
-  const blob = new Blob([JSON.stringify(allCodes)], {
-    type: 'application/javascript',
-  })
-  submitForm.append('files', blob, props.info.fileName)
-  submitForm.append('projectID', props.projectID)
-  submitForm.append('versionID', props.info.versionID)
-  submitForm.append('reqCategory', 'code_file')
-  console.log('prepare to submit !')
-  const response = await axios({
-    method: 'post',
-    url: 'https://domingoos.store/api/1.0/record/file',
-    headers: {
-      Authorization: `Bearer ${props.jwt}`,
-    },
-    data: submitForm,
-  })
-  //TODO: get new Detail
-  console.log(response)
+  // const submitForm = new FormData()
+  // const blob = new Blob([JSON.stringify(allCodes)], {
+  //   type: 'application/javascript',
+  // })
+  // submitForm.append('files', blob, props.info.fileName)
+  // submitForm.append('projectID', props.projectID)
+  // submitForm.append('versionID', props.info.versionID)
+  // submitForm.append('reqCategory', 'code_file')
+  // console.log('prepare to submit !')
+  // const response = await axios({
+  //   method: 'post',
+  //   url: 'https://domingoos.store/api/1.0/record/file',
+  //   headers: {
+  //     Authorization: `Bearer ${props.jwt}`,
+  //   },
+  //   data: submitForm,
+  // })
+  // //TODO: get new Detail
+  // console.log(response)
   myModal.hide()
 }
 
@@ -448,7 +447,6 @@ async function initSaveRecords() {
   if (props.records.length === 0) {
     return
   }
-  console.log('bug')
   try {
     console.log('start time: ', props.records[0].startTime)
     console.log(`stopTime: ${props.records[0].endTime}`)

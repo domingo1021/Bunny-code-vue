@@ -33,7 +33,7 @@
     </nav>
   </header>
   <body>
-    <RouterView :socket="socket" :key="view" />
+    <RouterView :userID="userID" :socket="socket" :key="view" />
   </body>
 </template>
 
@@ -75,6 +75,7 @@ axios({
     );
     socket.value.socketOn("disconnect", (reason)=>{
       console.log(`Disconnecting with reason: ${reason}`);
+      alert("disconnected");
       router.push("/login");
     })
   })
@@ -85,13 +86,6 @@ axios({
 
 async function updateView(viewPage) {
   view.value = viewPage;
-  if (view.value === "code") {
-    // await router.push({ name: "home" });
-    // await router.push({
-    //   name: "code-mirror",
-    //   params: { projectName: "bunny_code" },
-    // });
-  }
 }
 </script>
 

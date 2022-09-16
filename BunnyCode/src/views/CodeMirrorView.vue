@@ -1,8 +1,8 @@
 <script setup>
-import Socket from '../socket'
-import CodeMirrorComponent from '../components/CodeMirrorComponent.vue'
-import TerminalComponent from '../components/TerminalComponent.vue'
-import { ref, onMounted, watch, onBeforeUnmount } from 'vue'
+import Socket from "../socket";
+import CodeMirrorComponent from "../components/CodeMirrorComponent.vue";
+import TerminalComponent from "../components/TerminalComponent.vue";
+import { ref, onMounted, watch, onBeforeUnmount, onUpdated } from "vue";
 
 // TODO: 如果是本人進入頁面（認為想要 edit）, 則建立 Socket, 並更動 edit 狀態，
 
@@ -15,103 +15,110 @@ const props = defineProps({
   readOnly: Boolean,
   authorization: Boolean,
   targetVersionIndex: Number,
-})
+});
 
-const emit = defineEmits(['changeUserStatus', 'pushSaveRecordsRoot'])
+const emit = defineEmits(["changeUserStatus", "pushSaveRecordsRoot"]);
 
-const atAlt = ref(false)
-const atCtl = ref(false)
-const jwt = localStorage.getItem('jwt')
+const atAlt = ref(false);
+const atCtl = ref(false);
+const jwt = localStorage.getItem("jwt");
 
-const folderInfo = ref(props.folderInfo)
+const folderInfo = ref(props.folderInfo);
 
-const terminalResult = ref([])
+const terminalResult = ref([]);
 
 function updateCurrCodes(emitObject) {
-  folderInfo.value[emitObject.fileNumber].fileContent = emitObject.code
+  folderInfo.value[emitObject.fileNumber].fileContent = emitObject.code;
 }
 
 function updateCurrIndex(emitObject) {
-  folderInfo.value[emitObject.fileNumber].index = emitObject.index
+  folderInfo.value[emitObject.fileNumber].index = emitObject.index;
 }
 
 function updateCurrLine(emitObject) {
-  folderInfo.value[emitObject.fileNumber].line = emitObject.line
+  folderInfo.value[emitObject.fileNumber].line = emitObject.line;
 }
 
 function pushCodeRecords(emitObject) {
   folderInfo.value[emitObject.fileNumber].codeRecords.push(
-    emitObject.newRecords,
-  )
-  console.log(folderInfo.value[emitObject.fileNumber].codeRecords)
+    emitObject.newRecords
+  );
+  console.log(folderInfo.value[emitObject.fileNumber].codeRecords);
 }
 
 function pushTerminal(emitObject) {
-  terminalResult.value.push(...emitObject.result)
+  terminalResult.value.push(...emitObject.result);
 }
 
 function updateAllRecords(emitObject) {
-  folderInfo.value[emitObject.fileNumber].codeRecords = emitObject.codeRecords
+  folderInfo.value[emitObject.fileNumber].codeRecords = emitObject.codeRecords;
 }
 
 function updateTimeBetween(emitObject) {
-  folderInfo.value[emitObject.fileNumber].timeBetween = emitObject.timeBetween
+  folderInfo.value[emitObject.fileNumber].timeBetween = emitObject.timeBetween;
 }
 
 function pushSaveRecords(emitObject) {
-  emit('pushSaveRecordsRoot', {
+  emit("pushSaveRecordsRoot", {
     targetVersionIndex: props.targetVersionIndex,
     newSaveRecords: emitObject,
-  })
+  });
 }
 
 function changeEdit() {
-  props.socket.socketEmit('changeEdit', {
+  props.socket.socketEmit("changeEdit", {
     projectID: props.projectID,
     versionID: props.version.versionID,
-    kill: true,
-  })
+  });
 }
 
 function socketInit() {
-  props.socket.socketOn('statusChecked', (responseObject) => {
+  props.socket.socketOn("statusChecked", (responseObject) => {
     if (props.recordInfo.length !== 0) {
-      responseObject.readOnly = true
+      responseObject.readOnly = true;
     }
-    emit('changeUserStatus', responseObject)
-  })
-  props.socket.socketEmit('checkProjectStatus', {
-    projectID: props.projectID,
-    versionID: props.version.versionID,
-  })
+    console.log("responseObject after update: ", responseObject);
+    emit("changeUserStatus", responseObject);
+  });
+  if (props.recordInfo.length === 0) {
+    console.log("projectInfo: ", props.recordInfo.length);
+    props.socket.socketEmit("checkProjectStatus", {
+      projectID: props.projectID,
+      versionID: props.version.versionID,
+    });
+  }
 }
 
 watch(
   () => props.socket,
   (now, prev) => {
     if (props.socket) {
-      socketInit()
+      socketInit();
     }
-  },
-)
+  }
+);
 
 onMounted(() => {
   // check whether version is editing with version.versionID
+  console.log("View mount");
+  console.log("versionID: ", props.version.versionID);
   if (props.socket) {
-    socketInit()
+    socketInit();
   }
-})
+});
 
 onBeforeUnmount(() => {
-  if (props.socket && !props.readOnly) {
-    props.socket.socketEmit('changeEdit', {
-      projectID: props.projectID,
-      versionID: props.version.versionID,
-      kill: false,
-    })
-    props.socket.socketOff('statusChecked')
+  console.log("view unmount");
+  if (props.socket) {
+    props.socket.socketOff("statusChecked");
+    console.log(props.readOnly, props.authorization);
+    if (!props.readOnly || props.authorization) {
+      props.socket.socketEmit("unEdit", {
+        versionID: props.version.versionID,
+      });
+    }
   }
-})
+});
 </script>
 
 <template>
@@ -124,7 +131,7 @@ onBeforeUnmount(() => {
   </div>
   <div v-if="folderInfo.length !== 0">
     <div>
-      <div style="color: azure;">ReadyOnly: {{ props.readOnly }}</div>
+      <div style="color: azure">ReadyOnly: {{ props.readOnly }}</div>
       <div
         v-for="(fileInfo, index) in folderInfo"
         @input="updateContent"
@@ -151,7 +158,7 @@ onBeforeUnmount(() => {
         />
         <TerminalComponent
           :terminalResult="terminalResult"
-          style="top: 350px;"
+          style="top: 350px"
         />
       </div>
     </div>

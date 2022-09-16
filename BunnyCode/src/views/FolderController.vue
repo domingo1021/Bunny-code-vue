@@ -45,7 +45,6 @@ const text = ref("123");
 let editor = null;
 
 async function initVersionContent() {
-  console.log("version Object: ", props.version);
   const fileContent = await axios.get(props.version.files[0].fileURL);
   text.value = fileContent.data;
   const editors = Array.from(document.getElementsByClassName("CodeMirror"));

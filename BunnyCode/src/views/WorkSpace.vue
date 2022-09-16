@@ -104,10 +104,10 @@ const router = useRouter()
 // const route = useRoute();
 
 const props = defineProps({
+  userID: Number,
   socket: Socket,
   projectName: String,
-  versionName: String,
-})
+});
 
 async function changePath() {
   await router.push({
@@ -122,6 +122,7 @@ function updateTarget(target) {
 }
 
 function updateTargetVersion(versionIndex) {
+  console.log("updateTargetVersion:", versionIndex);
   targetVersionIndex.value = versionIndex
 }
 
@@ -188,12 +189,13 @@ watch(
 
 onBeforeMount(async () => {
   await updateProjectDetail()
+
 })
 
 onMounted(() => {
   setTimeout(async () => {
-    console.log('in set time out: ', authorization.value)
-    if (!authorization.value) {
+    if (props.userID !== projectDetail.value.userID) {
+      console.log("add project view count");
       await axios.put(
         `http://localhost:3000/api/1.0/project/watch?projectID=${projectDetail.value.projectID}`,
       )
