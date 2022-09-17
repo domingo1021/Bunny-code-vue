@@ -233,7 +233,7 @@ onBeforeMount(async () => {
     }
   });
 
-  props.socket.socketOn("battleOver", (responseObject) => {
+  props.socket.socketOn("battleOver", async (responseObject) => {
     // TODO: modal.show() ... win the game
     alert(
       `${responseObject.winnerName} win the game !! ${responseObject.reason}`
