@@ -14,7 +14,7 @@ import ProjectCardComponent from "../components/ProjectCardComponent.vue";
 
 const props = defineProps({
   socket: Object,
-  userID: String,
+  userID: Number,
 });
 const localhostServer = "http://localhost:3000";
 const router = useRouter();
@@ -34,6 +34,12 @@ const CLIENT_CATEGORY = {
   otherMember: 1,
   self: 2,
 };
+
+function renderPath(index) {
+  router.push(
+    `/code-mirror/${projectsDisplayed.value[index].projectName}`
+  );
+}
 
 async function createProject() {
   console.log("Is public: ", +projectPublic.value);
@@ -88,12 +94,6 @@ function initSocket() {
     });
   }
 }
-
-// async function filterFunction() {
-//   if (props.socket) {
-//     props.socket.socketEmit("searchUsers", searchBattler.value);
-//   }
-// }
 
 onUpdated(() => {
   if (

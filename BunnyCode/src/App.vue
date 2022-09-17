@@ -20,18 +20,18 @@
             @click="updateView('battle')"
             >Battle Home</RouterLink
           >
-          <RouterLink
+          <!-- <RouterLink
             to="/battle/1"
             class="nav-item"
             @click="updateView('battle')"
             >Battle Link</RouterLink
-          >
+          > -->
         </div>
         <div class="right-flex">
           <RouterLink class="nav-item" to="/login" @click="updateView('user')"
             >個人資訊</RouterLink
           >
-          <NotificationView :socket="socket" />
+          <!-- <NotificationView :socket="socket" /> -->
           <!-- <div class="nav-item">個人資訊</div> -->
           <SearchComponent :socket="socket" />
         </div>

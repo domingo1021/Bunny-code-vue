@@ -1,10 +1,11 @@
 <script setup>
-import { nextTick, onBeforeMount, onMounted, ref } from "vue";
+import { nextTick, onBeforeMount, onBeforeUnmount, onMounted, ref } from "vue";
 import axios from "axios";
 import io from "socket.io-client";
 import BattleSpaceComponent from "../components/BattleSpaceComponent.vue";
 import TerminalComponent from "../components/TerminalComponent.vue";
 import Socket from "../socket";
+import { read } from "@popperjs/core";
 
 //TODO: Sending codeing info (recordsing it in local as well) to Server with socket.
 //TODO: Keyboard event (需要用到哪些)
@@ -29,6 +30,8 @@ const CLIENT_CATEGORY = {
 };
 
 const readOnlies = ref([true, true]);
+const ready = ref([false, false]);
+const start = ref(false);
 const userID = ref(-1);
 //default visitor.
 const authorization = ref(0);
@@ -71,43 +74,12 @@ const childEditor = ref([]);
 //   path: "/api/socket/",
 // });
 
-props.socket.socketOn("returnBattler", (responseObject) => {
-  console.log("return Battler: ", responseObject);
-  battleInfo.value[0].userID = responseObject.battleResponse.firstUserID;
-  battleInfo.value[0].userName = responseObject.battleResponse.firstUserName;
-  battleInfo.value[1].userID = responseObject.battleResponse.secondUserID;
-  battleInfo.value[1].userName = responseObject.battleResponse.secondUserName;
-  userID.value = responseObject.userID;
-  authorization.value = responseObject.category;
-  if (responseObject.category === 0) {
-    readOnlies.value = [true, true];
-  } else {
-    readOnlies.value = battleInfo.value.map((info) => {
-      return info.userID !== responseObject.userID;
-    });
-  }
-});
-
-props.socket.socketOn("in", (msg) => {
-  message.value.push(msg);
-  console.log(message.value);
-  console.log(childEditor.value);
-});
-
-props.socket.socketOn("newCodes", (recordObject) => {
-  battleInfo.value.forEach((info) => {
-    if (
-      info.userID == recordObject.userID &&
-      userID.value !== recordObject.userID
-    ) {
-      info.fileContent = recordObject.newCodes;
-    }
-  });
-});
-
 //emit function
 function updateCurrCodes(emitObject) {
   battleInfo.value[emitObject.battlerNumber].fileContent = emitObject.code;
+  if (!start.value) {
+    return;
+  }
   props.socket.socketEmit("newCodes", {
     battleID: props.battleID,
     userID: userID.value,
@@ -146,10 +118,89 @@ function updateTimeBetween(emitObject) {
     emitObject.timeBetween;
 }
 
+props.socket.socketOn("returnBattler", (responseObject) => {
+  console.log("return Battler: ", responseObject);
+  battleInfo.value[0].userID = responseObject.battleResponse.firstUserID;
+  battleInfo.value[0].userName = responseObject.battleResponse.firstUserName;
+  battleInfo.value[1].userID = responseObject.battleResponse.secondUserID;
+  battleInfo.value[1].userName = responseObject.battleResponse.secondUserName;
+  userID.value = responseObject.userID;
+  authorization.value = responseObject.category;
+  if (responseObject.firstUserReady === "0") {
+    ready.value[0] = false;
+  } else {
+    ready.value[0] = true;
+  }
+  if (responseObject.secondUserReady === "0") {
+    ready.value[1] = false;
+  } else {
+    ready.value[1] = true;
+  }
+  if (ready.value[0] && ready.value[1]) {
+    start.value = true;
+  }
+  if (responseObject.category === 0) {
+    readOnlies.value = [true, true];
+  } else {
+    readOnlies.value = battleInfo.value.map((info) => {
+      return info.userID !== responseObject.userID;
+    });
+  }
+});
+
+props.socket.socketOn("in", (msg) => {
+  message.value.push(msg);
+});
+
+props.socket.socketOn("newCodes", (recordObject) => {
+  battleInfo.value.forEach((info) => {
+    if (
+      info.userID == recordObject.userID &&
+      userID.value !== recordObject.userID
+    ) {
+      info.fileContent = recordObject.newCodes;
+    }
+  });
+});
+
 props.socket.socketOn("compileDone", (responseObject) => {
   console.log("responseObject: ", responseObject);
   pushTerminal(responseObject.battlerNumber, responseObject.compilerResult);
 });
+
+props.socket.socketOn("userReady", (emitObject) => {
+  battleInfo.value.forEach((battler, index) => {
+    if (battler.userID === emitObject.readyUserID) {
+      ready.value[index] = true;
+    }
+  });
+});
+
+props.socket.socketOn("battleStart", () => {
+  //TODO: 倒數特效
+  alert("5 秒鐘後活動開始");
+  setTimeout(() => {
+    start.value = true;
+  }, 5000);
+});
+
+props.socket.socketOn("readyFailed", (responseObject) => {
+  if (responseObject.failedUserID === props.userID) {
+    alert(responseObject.reason);
+  }
+});
+
+function setReady(index) {
+  let anotherUserIndex = 1;
+  if (index === 1) {
+    anotherUserIndex = 0;
+  }
+  props.socket.socketEmit("setReady", {
+    battleID: props.battleID,
+    currentUserID: battleInfo.value[index].userID,
+    anotherUserID: battleInfo.value[anotherUserIndex].userID,
+  });
+}
 
 async function runCode(battlerNumber) {
   console.log(battlerNumber);
@@ -166,6 +217,11 @@ onBeforeMount(() => {
   props.socket.socketEmit("queryBattler", {
     battleID: props.battleID,
   });
+});
+
+onBeforeUnmount(() => {
+  //TODO: set socket event listener off.
+  props.socket.socketOff();
 });
 </script>
 
@@ -188,7 +244,21 @@ onBeforeMount(() => {
         @updateAllRecords="updateAllRecords"
         @updateTimeBetween="updateTimeBetween"
       />
-      <button v-if="!readOnlies[index]" @click="runCode(index)">Run code</button>
+      <div style="display: flex;">
+        <div v-if="!start">
+          <button v-if="!ready[index] && !readOnlies[index]" type="button" @click="setReady(index)">
+            準備開始
+          </button>
+          <div v-else-if="!ready[index] && readOnlies[index]">挑戰者準備中..</div>
+          <div v-else>{{ battleInfo[index].userName }} 已經準備好了！</div>
+        </div>
+        <div v-else-if="start">
+          <div>遊戲開始！</div>
+        </div>
+        <button v-if="!readOnlies[index] && ready" @click="runCode(index)">
+          Run code
+        </button>
+      </div>
       <TerminalComponent id="terminal" :terminalResult="info.terminalResult" />
     </div>
   </div>
