@@ -103,7 +103,8 @@ import BattleLaunchComponent from "./components/BattleLaunchComponent.vue";
 let myModal;
 const modalObject = ref(null);
 const localhostServer = "http://localhost:3000";
-const productionServer = "wss://domingoos.store";
+const productionServer = "https://domingoos.store";
+const productionSocket = "wss://domingoos.store";
 const jwt = localStorage.getItem("jwt");
 const isLogin = ref(false);
 const userID = ref(-1);
@@ -161,7 +162,7 @@ axios({
     isLogin.value = true;
     userID.value = response.data.data;
     socket.value = new Socket(
-      io(productionServer, {
+      io(productionSocket, {
       // io(localhostServer, {
         auth: (cb) => {
           cb({ token: `Bearer ${jwt}` });
