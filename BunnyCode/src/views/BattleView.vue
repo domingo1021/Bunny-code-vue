@@ -251,7 +251,7 @@ onBeforeMount(async () => {
         method: 'post',
         url: 'https://domingoos.store/api/1.0/record/file',
         headers: {
-          Authorization: `Bearer ${jwt.value}`,
+          Authorization: `Bearer ${jwt}`,
         },
         data: submitForm,
       })
