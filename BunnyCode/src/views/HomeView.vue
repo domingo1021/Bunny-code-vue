@@ -58,6 +58,7 @@ defineExpose({
       <div id="flex-box">
         <div
           clsss="flex-item"
+          style="margin: 1%;"
           v-for="(project, index) in projectsDisplayed.projects"
           :key="index"
         >
@@ -95,4 +96,5 @@ defineExpose({
   height: 30%;
   padding-top: 10px;
 }
+
 </style>

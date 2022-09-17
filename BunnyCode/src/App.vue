@@ -3,9 +3,9 @@
     <nav id="top-navbar">
       <div class="flex-container">
         <div class="flex-container-2">
-          <div>Bunny code</div>
+          <!-- <div>Bunny code</div> -->
           <RouterLink to="/" class="nav-item" @click="updateView('home')"
-            >Home</RouterLink
+            >Bunny code</RouterLink
           >
           <RouterLink
             to="/workspace"
@@ -223,17 +223,17 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-nav a.router-link-exact-active {
+/* nav a.router-link-exact-active {
   color: var(--color-text);
-}
-nav a.router-link-exact-active:hover {
+} */
+/* nav a.router-link-exact-active:hover {
   background-color: transparent;
 }
 nav a {
   display: inline-block;
   padding: 0 1rem;
   border-left: 1px solid var(--color-border);
-}
+} */
 nav a:first-of-type {
   border: 0;
 }
@@ -244,9 +244,9 @@ nav a:first-of-type {
   position: fixed;
   z-index: 99;
   width: 100vw;
-  height: 80px;
-  background-color: rgb(255, 255, 255);
-  border-bottom: 40px solid #2c2c2c;
+  height: 50px;
+  background-color: #161b22;
+  /* border-bottom: 40px solid #2c2c2c; */
 }
 .flex-container {
   display: flex;
@@ -258,8 +258,13 @@ nav a:first-of-type {
 }
 
 .flex-container-2 {
+  margin-top: 5px;
   display: flex;
   flex-direction: row;
+}
+
+.flex-container-2:hover {
+  cursor: pointer;
 }
 
 .right-flex {
