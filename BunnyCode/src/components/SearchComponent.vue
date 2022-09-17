@@ -1,7 +1,7 @@
 <template>
   <div id="search-area" @keyup="enterSearch">
     <input id=input-area placeholder="Search or jump to ..." type="text" v-model="keywords" />
-    <button id='search-btn' @click="searchProject()">search</button>
+    <!-- <button id='search-btn' @click="searchProject()">search</button> -->
   </div>
 </template>
 
@@ -33,8 +33,9 @@ async function enterSearch(e) {
   border: 0.5px solid rgb(98, 100, 123);
   color: rgb(255,255,255);
   background-color: #161b22;
-  width: 200px;
+  width: 220px;
   padding: 2%;
+  padding-left: 4%;
   margin: 0%;
   border-radius: 5%;
 }
@@ -45,6 +46,8 @@ async function enterSearch(e) {
 }
 
 #search-btn{
+  border: 0.5px solid rgb(98, 100, 123);
+  border-radius: 10%;
   color: azure;
   background: #161b22;
 }

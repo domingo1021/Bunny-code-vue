@@ -1,10 +1,10 @@
 <script setup>
 import { onBeforeMount, onBeforeUnmount, ref } from "vue";
 import axios from "axios";
-import Markdown from 'vue3-markdown-it';
+import Markdown from "vue3-markdown-it";
 import BattleSpaceComponent from "../components/BattleSpaceComponent.vue";
 import TerminalComponent from "../components/TerminalComponent.vue";
-import 'highlight.js/styles/monokai.css';
+import "highlight.js/styles/monokai.css";
 import Socket from "../socket";
 
 //TODO: Sending codeing info (recordsing it in local as well) to Server with socket.
@@ -29,6 +29,7 @@ const CLIENT_CATEGORY = {
   self: 2,
 };
 
+const jwt = localStorage.getItem('jwt');
 const readOnlies = ref([true, true]);
 const ready = ref([false, false]);
 const start = ref(false);
@@ -39,6 +40,7 @@ const questionContent = ref("");
 //default visitor.
 const authorization = ref(0);
 const message = ref([]);
+const battleName = ref("");
 const battleInfo = ref([
   {
     battlerNumber: 0,
@@ -63,6 +65,7 @@ const battleInfo = ref([
     terminalResult: [],
   },
 ]);
+const compiledCode = ref("");
 
 const atAlt = ref(false);
 const atCtl = ref(false);
@@ -135,16 +138,16 @@ function setReady(index) {
 
 async function runCode(battlerNumber) {
   console.log(battlerNumber);
-  const allCodes = battleInfo.value[battlerNumber].fileContent;
+  compiledCode.value = battleInfo.value[battlerNumber].fileContent;
   props.socket.socketEmit("compile", {
     battlerNumber: battlerNumber,
     battleID: props.battleID,
-    codes: allCodes,
+    codes: compiledCode.value,
   });
 }
 
-onBeforeMount(() => {
-  if(!props.socket){
+onBeforeMount(async () => {
+  if (!props.socket) {
     return;
   }
   props.socket.socketEmit("queryBattler", {
@@ -152,6 +155,7 @@ onBeforeMount(() => {
   });
   props.socket.socketOn("returnBattler", async (responseObject) => {
     console.log("return Battler: ", responseObject);
+    battleName.value = responseObject.battleResponse.battleName;
     battleInfo.value[0].userID = responseObject.battleResponse.firstUserID;
     battleInfo.value[0].userName = responseObject.battleResponse.firstUserName;
     battleInfo.value[1].userID = responseObject.battleResponse.secondUserID;
@@ -183,7 +187,7 @@ onBeforeMount(() => {
     }
     console.log("URL: ", questionURL.value);
     const question = await axios.get(questionURL.value);
-    console.log(question)
+    console.log(question);
     questionContent.value = question.data;
   });
 
@@ -234,12 +238,30 @@ onBeforeMount(() => {
     alert(
       `${responseObject.winnerName} win the game !! ${responseObject.reason}`
     );
+    if (responseObject.winnerID === props.userID) {
+      // TODO: upload...
+      const submitForm = new FormData()
+      const blob = new Blob([JSON.stringify(compiledCode.value)], {
+        type: 'application/javascript',
+      })
+      submitForm.append('files', blob, `${battleName.value}.js`)
+      submitForm.append('battleID', props.battleID);
+      submitForm.append('reqCategory', 'battle_file')
+      const response = await axios({
+        method: 'post',
+        url: 'https://domingoos.store/api/1.0/record/file',
+        headers: {
+          Authorization: `Bearer ${jwt.value}`,
+        },
+        data: submitForm,
+      })
+      console.log(response.data);
+      alert("upload success")
+    }
   });
 });
-const test = ref('# Hello World!')
 
 onBeforeUnmount(() => {
-  //TODO: set socket event listener off.
   props.socket.socketOff("returnBattler");
   props.socket.socketOff("in");
   props.socket.socketOff("newCodes");
@@ -298,7 +320,7 @@ onBeforeUnmount(() => {
 </template>
 
 <style>
-#mark-down{
+#mark-down {
   padding-left: 5%;
   padding-right: 5%;
   margin-left: 5%;

@@ -17,6 +17,7 @@ const props = defineProps({
   userID: Number,
 });
 const localhostServer = "http://localhost:3000";
+const productionServer = "https://domingoos.store";
 const router = useRouter();
 const route = useRoute();
 const jwt = localStorage.getItem("jwt");
@@ -50,7 +51,7 @@ async function createProject() {
     }
     responseProjects = await axios({
       method: "post",
-      url: localhostServer + `/api/1.0/user/${props.userID}/project`,
+      url: productionServer + `/api/1.0/user/${props.userID}/project`,
       headers: {
         Authorization: `Bearer ${jwt}`,
       },
@@ -111,7 +112,7 @@ onUpdated(() => {
 onBeforeMount(async () => {
   let responseProjects = await axios({
     method: "get",
-    url: localhostServer + `/api/1.0/user/${props.userID}/project`,
+    url: productionServer + `/api/1.0/user/${props.userID}/project`,
     headers: {
       Authorization: `Bearer ${jwt}`,
     },
@@ -120,7 +121,7 @@ onBeforeMount(async () => {
   try {
     const authResponse = await axios({
       method: "get",
-      url: localhostServer + `/api/1.0/user/${props.userID}/auth`,
+      url: productionServer + `/api/1.0/user/${props.userID}/auth`,
       headers: {
         Authorization: `Bearer ${jwt}`,
       },

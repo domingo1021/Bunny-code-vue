@@ -4,19 +4,19 @@
       <div class="flex-container">
         <div class="flex-container-2">
           <!-- <div>Bunny code</div> -->
-          <RouterLink to="/" class="nav-item" @click="updateView('home')"
+          <RouterLink to="/" class="nav-item link" @click="updateView('home')"
             >Bunny code</RouterLink
           >
           <RouterLink
             to="/workspace"
-            class="nav-item"
+            class="nav-item link"
             @click="updateView('code')"
           >
             Workspace
           </RouterLink>
           <RouterLink
             to="/battle"
-            class="nav-item"
+            class="nav-item link"
             @click="updateView('battle')"
             >Battle Home</RouterLink
           >
@@ -28,7 +28,11 @@
           > -->
         </div>
         <div class="right-flex">
-          <RouterLink class="nav-item" to="/login" @click="updateView('user')"
+          <RouterLink
+            class="nav-item link"
+            to="/login"
+            @click="updateView('user')"
+            style="margin-top: 5px"
             >個人資訊</RouterLink
           >
           <!-- <NotificationView :socket="socket" /> -->
@@ -147,7 +151,8 @@ const toaster = createToaster({
 
 axios({
   method: "get",
-  url: localhostServer + "/api/1.0/user/auth",
+  url: productionServer + "/api/1.0/user/auth",
+  // url: localhostServer + "/api/1.0/user/auth",
   headers: {
     Authorization: `Bearer ${jwt}`,
   },
@@ -156,7 +161,8 @@ axios({
     isLogin.value = true;
     userID.value = response.data.data;
     socket.value = new Socket(
-      io(localhostServer, {
+      io(productionServer, {
+      // io(localhostServer, {
         auth: (cb) => {
           cb({ token: `Bearer ${jwt}` });
         },
@@ -234,6 +240,11 @@ nav a {
   padding: 0 1rem;
   border-left: 1px solid var(--color-border);
 } */
+
+.link{
+  color: rgb(255,255,255);
+}
+
 nav a:first-of-type {
   border: 0;
 }

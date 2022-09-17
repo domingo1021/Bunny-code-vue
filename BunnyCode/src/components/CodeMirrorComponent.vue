@@ -247,8 +247,8 @@ async function saveFileRecord() {
   let saveResponse;
   try {
     saveResponse = await axios.post(
-      // "https://domingoos.store/api/1.0/record",
-      "http://localhost:3000/api/1.0/record",
+      "https://domingoos.store/api/1.0/record",
+      // "http://localhost:3000/api/1.0/record",
       {
         projectID: props.projectID,
         versionID: props.info.versionID,

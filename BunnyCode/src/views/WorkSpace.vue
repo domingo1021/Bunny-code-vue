@@ -92,6 +92,7 @@ import FolderController from './FolderController.vue'
 import CreateVersionComponent from '../components/CreateVersionComponent.vue'
 
 const localhostServer = 'http://localhost:3000'
+const productionServer = "https://domingoos.store";
 const projectDetail = ref({})
 const targetFunction = ref('Folder')
 // default target version 為第一個 version, (之後根據使用者點選version 做修改)
@@ -150,7 +151,8 @@ async function updateProjectDetail() {
   let projectResponse
   try {
     projectResponse = await axios.get(
-      localhostServer +
+      productionServer +
+      // localhostServer +
         `/api/1.0/project/detail?projectName=${props.projectName}`,
     )
   } catch (error) {
@@ -197,7 +199,8 @@ onMounted(() => {
     if (props.userID !== projectDetail.value.userID) {
       console.log("add project view count");
       await axios.put(
-        `http://localhost:3000/api/1.0/project/watch?projectID=${projectDetail.value.projectID}`,
+        `${productionServer}/api/1.0/project/watch?projectID=${projectDetail.value.projectID}`
+        // `http://localhost:3000/api/1.0/project/watch?projectID=${projectDetail.value.projectID}`,
       )
     }
   }, 5000)

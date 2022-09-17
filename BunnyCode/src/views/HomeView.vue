@@ -8,6 +8,7 @@ const router = useRouter();
 const route = useRoute();
 const projectsDisplayed = ref([]);
 const localhostServer = "http://localhost:3000";
+const productionServer = "https://domingoos.store"
 
 function renderPath(index) {
   router.push(
@@ -25,14 +26,14 @@ async function queryProjects () {
   const paging = route.query.paging || 0;
   if(keywords){
     let responseProjects = await axios.get(
-      localhostServer + `/api/1.0/project/search?keywords=${keywords}&paging=${paging}`
+      productionServer + `/api/1.0/project/search?keywords=${keywords}&paging=${paging}`
     );
     console.log(responseProjects.data.data);
     projectsDisplayed.value = responseProjects.data.data;
     return;
   }
   let responseProjects = await axios.get(
-    localhostServer + `/api/1.0/project/all?paging=${paging}`
+    productionServer + `/api/1.0/project/all?paging=${paging}`
   );
   projectsDisplayed.value = responseProjects.data.data;
 }

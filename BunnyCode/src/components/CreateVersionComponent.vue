@@ -119,7 +119,8 @@ async function createVersion() {
   try {
     createVersionResponse = await axios({
       method: "post",
-      url: `http://localhost:3000/api/1.0/project/${props.projectID}/version`,
+      url: `https://domingoos.store/api/1.0/project/${props.projectID}/version`,
+      // url: `http://localhost:3000/api/1.0/project/${props.projectID}/version`,
       headers: {
         Authorization: `Bearer ${props.jwt}`,
       },

@@ -187,7 +187,8 @@ function goBattle(category, index) {
 }
 
 onBeforeMount(async () => {
-  const allBattles = await axios.get("http://localhost:3000/api/1.0/battle");
+  const allBattles = await axios.get("https://domingoos.store/api/1.0/battle");
+  // const allBattles = await axios.get("http://localhost:3000/api/1.0/battle");
   finishBattles.value = allBattles.data.data.finish;
   stillBattles.value = allBattles.data.data.still;
 });

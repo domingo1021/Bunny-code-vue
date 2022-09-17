@@ -66,6 +66,7 @@ const router = createRouter({
 });
 
 const localhostServer = "http://localhost:3000";
+const productionServer = "https://domingoos.store";
 
 router.beforeEach(async (to, from, next) => {
   console.log("fullpath: ", to.fullPath);
@@ -76,7 +77,8 @@ router.beforeEach(async (to, from, next) => {
       console.log(localhostServer + "/api/1.0/user/auth");
       await axios({
         method: "get",
-        url: localhostServer + "/api/1.0/user/auth",
+        url: productionServer + "/api/1.0/user/auth",
+        // url: localhostServer + "/api/1.0/user/auth",
         headers: {
           Authorization: `Bearer ${jwt}`,
         },
@@ -102,7 +104,8 @@ router.beforeEach(async (to, from, next) => {
       console.log(localhostServer + "/api/1.0/user/auth");
       const authResponse = await axios({
         method: "get",
-        url: localhostServer + "/api/1.0/user/auth",
+        url: productionServer + "/api/1.0/user/auth",
+        // url: localhostServer + "/api/1.0/user/auth",
         headers: {
           Authorization: `Bearer ${jwt}`,
         },
