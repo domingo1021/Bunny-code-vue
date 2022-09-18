@@ -456,8 +456,8 @@ async function initSaveRecords() {
     console.log("start time: ", props.records[0].startTime);
     console.log(`stopTime: ${props.records[0].endTime}`);
     recordResponse = await axios.post(
-      `http://localhost:3000/api/1.0/history/${props.projectID}`,
-      // `https://domingoos.store/api/1.0/history/${projectID}`,
+      // `http://localhost:3000/api/1.0/history/${props.projectID}`,
+      `https://domingoos.store/api/1.0/history/${projectID}`,
       {
         versionID: props.info.versionID,
         startTime: props.records[0].startTime,

@@ -143,8 +143,8 @@ async function updateProjectDetail() {
   let projectResponse
   try {
     projectResponse = await axios.get(
-      // productionServer +
-      localhostServer +
+      productionServer +
+      // localhostServer +
         `/api/1.0/project/detail?projectName=${props.projectName}`,
     )
   } catch (error) {
