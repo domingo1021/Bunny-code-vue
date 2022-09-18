@@ -17,7 +17,7 @@
           <div> v.s.</div>
         </div>
         <h6 class="card-subtitle mb-2">
-          <div class="name">{{battleObject.firstUserName}}</div>
+          <div class="name">{{battleObject.secondUserName}}</div>
         </h6>
       </div>
     </div>
