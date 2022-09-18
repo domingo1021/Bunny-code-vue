@@ -29,7 +29,7 @@ const CLIENT_CATEGORY = {
   self: 2,
 };
 
-const jwt = localStorage.getItem('jwt');
+const jwt = localStorage.getItem("jwt");
 const readOnlies = ref([true, true]);
 const ready = ref([false, false]);
 const start = ref(false);
@@ -240,23 +240,23 @@ onBeforeMount(async () => {
     );
     if (responseObject.winnerID === props.userID) {
       // TODO: upload...
-      const submitForm = new FormData()
+      const submitForm = new FormData();
       const blob = new Blob([JSON.stringify(compiledCode.value)], {
-        type: 'application/javascript',
-      })
-      submitForm.append('files', blob, `${battleName.value}.js`)
-      submitForm.append('battleID', props.battleID);
-      submitForm.append('reqCategory', 'battle_file')
+        type: "application/javascript",
+      });
+      submitForm.append("files", blob, `${responseObject.winnerID}.js`);
+      submitForm.append("battleID", props.battleID);
+      submitForm.append("reqCategory", "battle_file");
       const response = await axios({
-        method: 'post',
-        url: 'https://domingoos.store/api/1.0/record/file',
+        method: "post",
+        url: "https://domingoos.store/api/1.0/record/battle",
         headers: {
           Authorization: `Bearer ${jwt}`,
         },
         data: submitForm,
-      })
+      });
       console.log(response.data);
-      alert("upload success")
+      alert("upload success");
     }
   });
 });
