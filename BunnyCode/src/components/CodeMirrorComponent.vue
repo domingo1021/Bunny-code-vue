@@ -315,7 +315,16 @@ async function runCode() {
 async function playback() {
   //TODO: setValue 所有上一個版本的 Code 作為初始值
   const baseContent = await axios.get(props.records[0].baseURL);
-  console.log("base content: ", baseContent.data);
+  const currentLine = baseContent.data.split("\n").length - 1;
+  const currentIndex = baseContent.data.split("\n")[currentLine].length;
+  emit("updateCurrIndex", {
+    fileNumber: props.info.fileNumber,
+    index: currentIndex,
+  });
+  emit("updateCurrLine", {
+    fileNumber: props.info.fileNumber,
+    line: currentLine,
+  });
   editor.getDoc().setValue(baseContent.data);
   for (let i = 0; i < props.info.timeBetween.length; i++) {
     await new Promise((resolve, reject) => {
@@ -543,6 +552,7 @@ async function initCodeMirror() {
     mode: "javascript",
   });
   editor.getDoc().setValue(props.info.fileContent);
+  console.log(editor.getDoc().getCursor());
   editor.getDoc().setCursor({ line: props.info.line, ch: props.info.index });
   if (props.readOnly) {
     await initSaveRecords();
