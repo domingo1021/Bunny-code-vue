@@ -542,6 +542,7 @@ async function initCodeMirror() {
     theme: "material-darker",
     mode: "javascript",
   });
+  editor.getDoc().setValue(props.info.fileContent);
   editor.getDoc().setCursor({ line: props.info.line, ch: props.info.index });
   if (props.readOnly) {
     await initSaveRecords();
