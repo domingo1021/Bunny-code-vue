@@ -30,7 +30,7 @@
         "
       >
         <CreateVersionComponent
-          v-if="authorization === true"
+          v-if="props.userID === projectDetail.userID"
           :projectID="projectDetail.projectID"
           :currentVersionLength="projectDetail.version.length"
           @updateTargetVersion="updateTargetVersion"
@@ -187,6 +187,7 @@ onBeforeMount(async () => {
 })
 
 onMounted(() => {
+  console.log("autorization: ", authorization.value);
   setTimeout(async () => {
     if (props.userID !== projectDetail.value.userID) {
       console.log("add project view count");
