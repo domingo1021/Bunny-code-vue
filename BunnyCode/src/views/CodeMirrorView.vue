@@ -131,7 +131,7 @@ onBeforeUnmount(() => {
   </div>
   <div v-if="folderInfo.length !== 0">
     <div>
-      <div style="color: azure">ReadyOnly: {{ props.readOnly }}</div>
+      <!-- <div style="color: azure">ReadyOnly: {{ props.readOnly }}</div> -->
       <div
         v-for="(fileInfo, index) in folderInfo"
         @input="updateContent"
@@ -147,6 +147,7 @@ onBeforeUnmount(() => {
           :jwt="jwt"
           :readOnly="props.readOnly"
           :projectID="props.projectID"
+          :authorization="props.authorization"
           @updateCurrCodes="updateCurrCodes"
           @updateCurrIndex="updateCurrIndex"
           @updateCurrLine="updateCurrLine"

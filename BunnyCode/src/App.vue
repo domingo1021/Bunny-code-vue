@@ -4,28 +4,22 @@
       <div class="flex-container">
         <div class="flex-container-2">
           <!-- <div>Bunny code</div> -->
-          <RouterLink to="/" class="nav-item link" @click="updateView('home')"
+          <RouterLink to="/" class="nav-item link left-item" @click="updateView('home')"
             >Bunny code</RouterLink
           >
           <RouterLink
             to="/workspace"
-            class="nav-item link"
+            class="nav-item link left-item"
             @click="updateView('code')"
           >
             Workspace
           </RouterLink>
           <RouterLink
             to="/battle"
-            class="nav-item link"
+            class="nav-item link left-item"
             @click="updateView('battle')"
-            >Battle Home</RouterLink
+            >Battle valleys</RouterLink
           >
-          <!-- <RouterLink
-            to="/battle/1"
-            class="nav-item"
-            @click="updateView('battle')"
-            >Battle Link</RouterLink
-          > -->
         </div>
         <div class="right-flex">
           <RouterLink
@@ -162,8 +156,8 @@ axios({
     isLogin.value = true;
     userID.value = response.data.data;
     socket.value = new Socket(
-      io(productionSocket, {
-      // io(localhostServer, {
+      // io(productionSocket, {
+      io(localhostServer, {
         auth: (cb) => {
           cb({ token: `Bearer ${jwt}` });
         },
@@ -286,7 +280,12 @@ nav a:first-of-type {
 }
 
 .nav-item {
-  margin-left: 15px;
+  padding-left: 15px;
+}
+
+.left-item{
+  padding-right: 10px;
+  border-right: 0.5px solid rgb(255,255,255);
 }
 
 header + body {

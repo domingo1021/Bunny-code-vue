@@ -1,14 +1,21 @@
 <template>
   <div v-if="props.userID !== -1 && props.socket">
-    <div>Create battle</div>
-    <button
-      type="button"
-      class="btn btn-primary"
-      data-bs-toggle="modal"
-      data-bs-target="#battleModal"
-    >
-      Create Battle
-    </button>
+    <div style="text-align: right;">
+      <button
+        type="button"
+        id="battle-btn"
+        class="launch-btn"
+        data-bs-toggle="modal"
+        data-bs-target="#battleModal"
+      >
+      Launch battle
+        <!-- <img
+          id="battle-btn"
+          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSJJXoY_VjsNh2vhczR8q8KsHHmYucn6TbuVQ&usqp=CAU"
+          alt=""
+        /> -->
+      </button>
+    </div>
     <div
       class="modal fade"
       id="battleModal"
@@ -27,6 +34,7 @@
               data-bs-dismiss="modal"
               data-dismiss="modal"
               aria-label="Close"
+              style="position: absolute; right: 30px;"
             >
               <span aria-hidden="true">&times;</span>
             </button>
@@ -84,22 +92,6 @@
                 <label for="hard">困難</label>
               </div>
             </div>
-            <!-- <div class="md-form mb-4" style="display: flex">
-              <div class="dropdown">
-                <div id="myDropdown">
-                  <label for="compotition-date" class="battle-title"
-                    >Invite battler: &nbsp;</label
-                  >
-                  <input
-                    type="text"
-                    placeholder="Search.."
-                    id="myInput"
-                    v-model="searchBattler"
-                    @keyup="filterFunction"
-                  />
-                </div>
-              </div>
-            </div> -->
           </div>
           <div class="modal-footer d-flex justify-content-center">
             <button
@@ -119,26 +111,44 @@
       </div>
     </div>
   </div>
-  <div>
-    <div>精彩回顧..</div>
-    <div
-      v-for="(finish, index) in finishBattles"
-      :key="index"
-      @click="goBattle('finish', index)"
-    >
-      {{ finish.battleName }}
+  <main>
+    <div id="project-content">
+      <div>
+        <div class="battle-field">
+          <h3 class="battle-title">Finish</h3>
+          <div id="flex-box">
+            <div
+              clsss="flex-item"
+              style="margin: 1%"
+              v-for="(finish, index) in finishBattles"
+              :key="index"
+            >
+              <BattleCardComponent
+                :battleObject="finish"
+                @click="goBattle('finish', index)"
+              />
+            </div>
+          </div>
+        </div>
+        <div class="battle-field">
+          <h3 class="battle-title" style="width: 100vw">Still battling...</h3>
+          <div id="flex-box">
+            <div
+              clsss="flex-item"
+              style="margin: 1%"
+              v-for="(still, index) in stillBattles"
+              :key="index"
+            >
+              <BattleCardComponent
+                :battleObject="still"
+                @click="goBattle('still', index)"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
-  <div>
-    <div>現正熱映中..</div>
-    <div
-      v-for="(still, index) in stillBattles"
-      :key="index"
-      @click="goBattle('still', index)"
-    >
-      {{ still.battleName }}
-    </div>
-  </div>
+  </main>
 </template>
 
 <script setup>
@@ -146,6 +156,7 @@ import { ref, onBeforeMount, watch } from "vue";
 import { useRouter } from "vue-router";
 import axios from "axios";
 import Socket from "../socket";
+import BattleCardComponent from "../components/BattleCardComponent.vue";
 
 const props = defineProps({
   userID: Number,
@@ -187,10 +198,12 @@ function goBattle(category, index) {
 }
 
 onBeforeMount(async () => {
-  const allBattles = await axios.get("https://domingoos.store/api/1.0/battle");
-  // const allBattles = await axios.get("http://localhost:3000/api/1.0/battle");
+  //TODO: update battle data. order by watch and question level ...
+  // const allBattles = await axios.get("https://domingoos.store/api/1.0/battle");
+  const allBattles = await axios.get("http://localhost:3000/api/1.0/battle");
   finishBattles.value = allBattles.data.data.finish;
   stillBattles.value = allBattles.data.data.still;
+  console.log(finishBattles.value);
 });
 
 watch(battleName, () => {
@@ -205,8 +218,8 @@ watch(battleName, () => {
 <style scoped>
 #project-content {
   text-align: center;
-  margin-left: 10%;
-  margin-right: 10%;
+  margin-left: 5%;
+  margin-right: 5%;
 }
 #flex-box {
   display: flex;
@@ -228,6 +241,13 @@ watch(battleName, () => {
   color: azure;
 }
 
+.battle-title {
+  font-weight: bold;
+  font-size: 1.5rem;
+  width: 100vw;
+  text-align: left;
+}
+
 .flex-item {
   background-color: rgb(161, 180, 201);
   flex-grow: 1;
@@ -240,6 +260,28 @@ watch(battleName, () => {
   top: 5px;
 }
 
+#battleModal{
+  color: rgb(0,0,0);
+}
+
+.launch-btn{
+  padding-right: 1%;
+  padding-left: 1%;
+  background-color: rgb(72, 72, 72);
+  border-radius: 3px;
+  color: #f6f6f6;
+  border: 0.5px solid #f6f6f6;
+  right: 5%;
+}
+
+.launch-btn:hover{
+  background-color: rgb(154, 143, 143);
+  outline: none;
+}
+.launch-btn:focus{
+  outline: none;
+}
+
 .warning {
   top: -20px;
   color: rgb(255, 100, 100);
@@ -247,6 +289,12 @@ watch(battleName, () => {
 
 .battle-title {
   width: 150px;
+}
+
+.battle-field {
+  border-bottom: 1px solid rgb(142, 142, 142);
+  padding-bottom: 3%;
+  margin-bottom: 5%;
 }
 
 /* The search field */

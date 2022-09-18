@@ -7,16 +7,6 @@ import TerminalComponent from "../components/TerminalComponent.vue";
 import "highlight.js/styles/monokai.css";
 import Socket from "../socket";
 
-//TODO: Sending codeing info (recordsing it in local as well) to Server with socket.
-//TODO: Keyboard event (需要用到哪些)
-//TODO: Emit 父層事件，只需要 Records? 假設要提供賽事重播，是不是 Index, Line 的變數也都要有
-//TODO: 控制活動時間
-//TODO: 如果要做 Recording，那要什麼時間送到後端 / 還是要每分每秒傳到後端的時候就塞 DB ?
-//TODO: --> Enter 的時候偷偷將 Record 資料送到後端; 使用者按下 Run 程式碼查看 Console 的時候送到後端
-
-//TODO: Receiving coding info from server with socket.
-//TODO: "On" Socket room server send information -> 直接渲染整個 content.
-
 const props = defineProps({
   userID: Number,
   battleID: String,
@@ -33,10 +23,12 @@ const jwt = localStorage.getItem("jwt");
 const readOnlies = ref([true, true]);
 const ready = ref([false, false]);
 const start = ref(false);
+const battleOver = ref(false);
 const userID = ref(-1);
 const questionName = ref();
 const questionURL = ref();
 const questionContent = ref("");
+const boardContent = ref("");
 //default visitor.
 const authorization = ref(0);
 const message = ref([]);
@@ -150,6 +142,8 @@ onBeforeMount(async () => {
   if (!props.socket) {
     return;
   }
+  const welcome = await axios.get("https://d1vj6hotf8ce5i.cloudfront.net/question/battlerContent.md");
+  boardContent.value = welcome.data;
   props.socket.socketEmit("queryBattler", {
     battleID: props.battleID,
   });
@@ -220,6 +214,7 @@ onBeforeMount(async () => {
   });
 
   props.socket.socketOn("battleStart", () => {
+    boardContent.value = questionContent.value;
     //TODO: 倒數特效
     alert("5 秒鐘後活動開始");
     setTimeout(() => {
@@ -258,6 +253,7 @@ onBeforeMount(async () => {
       console.log(response.data);
       alert("upload success");
     }
+    battleOver.value = true;
   });
 });
 
@@ -274,7 +270,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <Markdown id="mark-down" :source="questionContent" />
+  <Markdown id="mark-down" :source="boardContent" />
   <div id="battle-main-board">
     <div class="battle-editor" v-for="(info, index) in battleInfo" :key="index">
       <BattleSpaceComponent
@@ -310,7 +306,7 @@ onBeforeUnmount(() => {
         <div v-else-if="start">
           <div>遊戲開始！</div>
         </div>
-        <button v-if="!readOnlies[index] && ready" @click="runCode(index)">
+        <button v-if="!readOnlies[index] && start && !battleOver" @click="runCode(index)">
           Run code
         </button>
       </div>

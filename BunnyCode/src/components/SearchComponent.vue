@@ -13,7 +13,7 @@ const router = useRouter();
 // const localhostServer = "http://localhost:3000";
 
 async function searchProject() {
-  router.push({ path: "/", query: { keywords: `${keywords.value}` } });
+  router.push({ path: "/workspace", query: { keywords: `${keywords.value}` } });
 }
 
 async function enterSearch(e) {

@@ -28,6 +28,7 @@
 import { onBeforeMount, ref, watch } from "vue";
 import * as CodeMirror from "codemirror";
 import "codemirror/lib/codemirror.css";
+import "codemirror/theme/night.css"
 import "codemirror/theme/material-darker.css";
 import "codemirror/mode/javascript/javascript.js";
 import axios from "axios";
@@ -45,12 +46,17 @@ const text = ref("123");
 let editor = null;
 
 async function initVersionContent() {
+  console.log(props.version.files[0].fileURL);
   const fileContent = await axios.get(props.version.files[0].fileURL);
   text.value = fileContent.data;
+  console.log(text.value);
   const editors = Array.from(document.getElementsByClassName("CodeMirror"));
+  console.log(editors.length);
   editors.forEach((element) => {
+    console.log("removeing...");
     element.remove();
   });
+  console.log(document.getElementById("version"));
   editor = CodeMirror.fromTextArea(document.getElementById("version"), {
     value: text.value,
     lineNumbers: true,

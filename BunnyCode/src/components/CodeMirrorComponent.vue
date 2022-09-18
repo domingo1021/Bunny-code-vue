@@ -15,6 +15,7 @@ const props = defineProps({
   atAlt: Boolean,
   atCtl: Boolean,
   readOnly: Boolean,
+  authorization: Boolean,
 });
 
 const emit = defineEmits([
@@ -267,25 +268,25 @@ async function saveFileRecord() {
   // Save code file.
   const allCodes = props.info.fileContent;
   console.log("entire code:", allCodes);
-  // const submitForm = new FormData()
-  // const blob = new Blob([JSON.stringify(allCodes)], {
-  //   type: 'application/javascript',
-  // })
-  // submitForm.append('files', blob, props.info.fileName)
-  // submitForm.append('projectID', props.projectID)
-  // submitForm.append('versionID', props.info.versionID)
-  // submitForm.append('reqCategory', 'code_file')
-  // console.log('prepare to submit !')
-  // const response = await axios({
-  //   method: 'post',
-  //   url: 'https://domingoos.store/api/1.0/record/file',
-  //   headers: {
-  //     Authorization: `Bearer ${props.jwt}`,
-  //   },
-  //   data: submitForm,
-  // })
+  const submitForm = new FormData();
+  const blob = new Blob([JSON.stringify(allCodes)], {
+    type: "application/javascript",
+  });
+  submitForm.append("files", blob, props.info.fileName);
+  submitForm.append("projectID", props.projectID);
+  submitForm.append("versionID", props.info.versionID);
+  submitForm.append("reqCategory", "code_file");
+  console.log("prepare to submit !");
+  const response = await axios({
+    method: "post",
+    url: "https://domingoos.store/api/1.0/record/file",
+    headers: {
+      Authorization: `Bearer ${props.jwt}`,
+    },
+    data: submitForm,
+  });
   // //TODO: get new Detail
-  // console.log(response)
+  console.log(response)
   myModal.hide();
 }
 
@@ -527,6 +528,7 @@ async function initCodeMirror() {
       element.remove();
     });
   }
+  console.log("file content:", props.info.fileContent);
   editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
     value: props.info.fileContent,
     lineNumbers: true,
@@ -635,7 +637,7 @@ function hideModal() {
     </div>
   </div>
   <button @click="playback">Playback</button>
-  <button @click="runCode">Run code</button>
+  <button v-if="props.authorization" @click="runCode">Run code</button>
 </template>
 
 <style scoped>
