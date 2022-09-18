@@ -1,8 +1,8 @@
 <template>
   <div style="display: flex; height: 100vh;">
     <div id="left-bar">
-      <div @click="updateTarget('Folder')">Folder</div>
-      <div @click="updateTarget('Version')">Version</div>
+      <div id="folder-control" @click="updateTarget('Folder')">Folder</div>
+      <div id="version-control" @click="updateTarget('Version')">Version</div>
     </div>
     <div id="info-bar">
       <div
@@ -30,7 +30,7 @@
         "
       >
         <CreateVersionComponent
-          v-if="authorization === true"
+          v-if="props.userID === projectDetail.userID"
           :projectID="projectDetail.projectID"
           :currentVersionLength="projectDetail.version.length"
           @updateTargetVersion="updateTargetVersion"
@@ -50,7 +50,6 @@
     <div id="main-content" v-if="targetFunction === 'Folder'">
       <div v-if="Object.keys(projectDetail).length !== 0">
         <div v-if="projectDetail.version.length !== 0">
-          <button @click="changePath">Change Path</button>
           <CodeMirrorView
             v-if="Object.keys(projectDetail).length !== 0"
             :socket="props.socket"
@@ -92,6 +91,7 @@ import FolderController from './FolderController.vue'
 import CreateVersionComponent from '../components/CreateVersionComponent.vue'
 
 const localhostServer = 'http://localhost:3000'
+const productionServer = "https://domingoos.store";
 const projectDetail = ref({})
 const targetFunction = ref('Folder')
 // default target version 為第一個 version, (之後根據使用者點選version 做修改)
@@ -108,13 +108,6 @@ const props = defineProps({
   socket: Socket,
   projectName: String,
 });
-
-async function changePath() {
-  await router.push({
-    name: 'code-mirror',
-    params: { projectName: 'bunny_code' },
-  })
-}
 
 function updateTarget(target) {
   // 跳到 File or 跳到 version.
@@ -150,7 +143,8 @@ async function updateProjectDetail() {
   let projectResponse
   try {
     projectResponse = await axios.get(
-      localhostServer +
+      productionServer +
+      // localhostServer +
         `/api/1.0/project/detail?projectName=${props.projectName}`,
     )
   } catch (error) {
@@ -193,11 +187,13 @@ onBeforeMount(async () => {
 })
 
 onMounted(() => {
+  console.log("autorization: ", authorization.value);
   setTimeout(async () => {
     if (props.userID !== projectDetail.value.userID) {
       console.log("add project view count");
       await axios.put(
-        `http://localhost:3000/api/1.0/project/watch?projectID=${projectDetail.value.projectID}`,
+        `${productionServer}/api/1.0/project/watch?projectID=${projectDetail.value.projectID}`
+        // `http://localhost:3000/api/1.0/project/watch?projectID=${projectDetail.value.projectID}`,
       )
     }
   }, 5000)
@@ -208,16 +204,30 @@ onMounted(() => {
 .version-list {
   font-size: 0.75rem;
 }
+#folder-control{
+  margin-top: 10px;
+  margin-bottom: 4%;
+  /* border: 0.5px solid rgb(255,255,255);
+  border-radius: 5px; */
+  padding: 5%;
+}
+/* #folder:hover{
+  background-color: #5e4242;
+  padding: 5%;
+} */
+#left-bar {
+  background-color: #2a2a2a;
+}
 #info-bar {
   border-left: 1px solid rgb(255, 255, 255);
   padding-left: 30px;
   padding-right: 20px;
   width: 250px;
-  background-color: rgb(36, 36, 36);
+  background-color: rgb(25, 25, 25);
   color: rgb(255, 255, 255);
 }
 #main-content {
-  background-color: #2c2c2c;
+  background-color: #161515;
   width: 100%;
 }
 #main-content-2 {

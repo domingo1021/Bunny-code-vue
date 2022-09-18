@@ -1,98 +1,205 @@
+<template>
+  <div class="window">
+    <div class="title-bar">
+      <button aria-label="Close" class="close"></button>
+      <h1 class="title">Bunny code</h1>
+      <button aria-label="Resize" class="resize"></button>
+    </div>
+    <div class="separator"></div>
+
+    <div class="window-pane">&nbsp; {{ helloContent }}</div>
+  </div>
+</template>
+
 <script setup>
-import { onBeforeMount, onUpdated, ref, watch } from "vue";
-import { useRouter, useRoute } from "vue-router";
-import ProjectCardComponent from "../components/ProjectCardComponent.vue";
-import axios from "axios";
+import { onMounted, ref } from "vue";
+const helloContent = ref("");
+const pendingContent = ref([
+  {
+    content: ".",
+    action: "create",
+    time: "100",
+  },
+  {
+    content: " ",
+    action: "replace",
+    time: "500",
+  },
+  {
+    content: ".",
+    action: "replace",
+    time: "500",
+  },
+  {
+    content: " ",
+    action: "replace",
+    time: "500",
+  },
+  {
+    content: ".",
+    action: "replace",
+    time: "500",
+  },
+  {
+    content: " ",
+    action: "replace",
+    time: "500",
+  },
+  {
+    content: "W",
+    action: "create",
+    time: "400",
+  },
+  {
+    content: "e",
+    action: "create",
+    time: "150",
+  },
+  {
+    content: "l",
+    action: "create",
+    time: "150",
+  },
+  {
+    content: "c",
+    action: "create",
+    time: "150",
+  },
+  {
+    content: "o",
+    action: "create",
+    time: "150",
+  },
+  {
+    content: "m",
+    action: "create",
+    time: "140",
+  },
+  {
+    content: "e",
+    action: "create",
+    time: "140",
+  },
+  {
+    content: " ",
+    action: "create",
+    time: "140",
+  },
+  {
+    content: "t",
+    action: "create",
+    time: "140",
+  },
+  {
+    content: "o",
+    action: "create",
+    time: "140",
+  },
+  {
+    content: " ",
+    action: "create",
+    time: "500",
+  },
+  {
+    content: "b",
+    action: "create",
+    time: "100",
+  },
+  {
+    content: "u",
+    action: "create",
+    time: "100",
+  },
+  {
+    content: "n",
+    action: "create",
+    time: "100",
+  },
+  {
+    content: "n",
+    action: "create",
+    time: "100",
+  },
+  {
+    content: "y",
+    action: "create",
+    time: "100",
+  },
+  {
+    content: " ",
+    action: "create",
+    time: "100",
+  },
+  {
+    content: "c",
+    action: "create",
+    time: "50",
+  },
+  {
+    content: "o",
+    action: "create",
+    time: "50",
+  },
+  {
+    content: "d",
+    action: "create",
+    time: "50",
+  },
+  {
+    content: "e",
+    action: "create",
+    time: "50",
+  },
+  {
+    content: "!",
+    action: "create",
+    time: "50",
+  },
+  {
+    content: "!",
+    action: "create",
+    time: "50",
+  },
+  {
+    content: "!",
+    action: "create",
+    time: "50",
+  },
+]);
 
-const router = useRouter();
-const route = useRoute();
-const projectsDisplayed = ref([]);
-const localhostServer = "http://localhost:3000";
-
-function renderPath(index) {
-  router.push(
-    `/code-mirror/${projectsDisplayed.value.projects[index].projectName}`
-  );
-}
-
-function updateProjects(emitObject) {
-  projectsDisplayed.value = emitObject;
-  console.log(projectsDisplayed.value);
-}
-
-async function queryProjects () {
-  const {keywords} = route.query;
-  const paging = route.query.paging || 0;
-  if(keywords){
-    let responseProjects = await axios.get(
-      localhostServer + `/api/1.0/project/search?keywords=${keywords}&paging=${paging}`
-    );
-    console.log(responseProjects.data.data);
-    projectsDisplayed.value = responseProjects.data.data;
-    return;
+function checkAction(index) {
+  if (pendingContent.value[index].action === "create") {
+    helloContent.value += pendingContent.value[index].content;
+  } else if (pendingContent.value[index].action === "replace") {
+    helloContent.value =
+      helloContent.value.substring(0, helloContent.value.length - 1) +
+      pendingContent.value[index].content;
+      console.log(pendingContent.value[index].content)
   }
-  let responseProjects = await axios.get(
-    localhostServer + `/api/1.0/project/all?paging=${paging}`
-  );
-  projectsDisplayed.value = responseProjects.data.data;
+  index += 1;
+  if (index < pendingContent.value.length) {
+    setTimeout(() => {
+      checkAction(index);
+    }, pendingContent.value[index].time);
+  }
 }
-watch(
-  () => route.fullPath,
-  async (newRoute, prevRoute) => {
-  console.log("route change");
-  await queryProjects();
-})
 
-onBeforeMount(async () => {
-  await queryProjects();
-});
-
-defineExpose({
-  updateProjects,
+onMounted(() => {
+  let index = 0;
+  setTimeout(() => {
+    checkAction(index);
+  }, pendingContent.value[index].time);
 });
 </script>
 
-<template>
-  <main>
-    <div id="project-content">
-      <div id="flex-box">
-        <div
-          clsss="flex-item"
-          v-for="(project, index) in projectsDisplayed.projects"
-          :key="index"
-        >
-          <ProjectCardComponent
-            :projectObject="project"
-            @click="renderPath(index)"
-          />
-        </div>
-      </div>
-      <div>Current page: {{ projectsDisplayed.page }}</div>
-      <div>All page: {{ projectsDisplayed.allPage }}</div>
-    </div>
-  </main>
-</template>
-
 <style scoped>
-#project-content {
+.title {
+  color: black;
+}
+.window-pane {
   text-align: center;
-  margin-left: 10%;
-  margin-right: 10%;
-}
-#flex-box {
-  display: flex;
-  margin: auto;
-  /* justify-content: center; */
-  /* align-self: center; */
-  flex-wrap: wrap;
-  flex-direction: row;
-  max-width: 1200px;
-}
-.flex-item {
-  background-color: rgb(161, 180, 201);
-  flex-grow: 1;
-  flex-basis: 40%;
-  height: 30%;
-  padding-top: 10px;
+  color: black;
+  font-size: 2rem;
+  height: 100px;
 }
 </style>
