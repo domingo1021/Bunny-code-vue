@@ -27,6 +27,7 @@ const emit = defineEmits([
   "updateAllRecords",
   "updateTimeBetween",
   "pushSaveRecords",
+  "updateVersionFile",
 ]);
 
 let editor = null;
@@ -286,6 +287,9 @@ async function saveFileRecord() {
     data: submitForm,
   });
   // //TODO: get new Detail
+  emit("updateVersionFile", {
+    fileURL: response.data.data,
+  })
   console.log(response)
   myModal.hide();
 }

@@ -46,6 +46,7 @@ const text = ref("123");
 let editor = null;
 
 async function initVersionContent() {
+  console.log("all files: ", props.version.files);
   console.log(props.version.files[0].fileURL);
   const fileContent = await axios.get(props.version.files[0].fileURL);
   text.value = fileContent.data;

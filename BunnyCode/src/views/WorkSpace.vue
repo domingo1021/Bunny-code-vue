@@ -62,6 +62,7 @@
             :folderInfo="projectDetail?.version[targetVersionIndex]?.files"
             @changeUserStatus="changeUserStatus"
             @pushSaveRecordsRoot="pushSaveRecordsRoot"
+            @updateParentVersionFile="updateParentVersionFile"
           />
           <div v-else></div>
         </div>
@@ -137,6 +138,11 @@ function pushSaveRecordsRoot(emitObject) {
     emitObject.newSaveRecords
   );
   readOnly.value = true;
+}
+
+function updateParentVersionFile(emitObject) {
+  projectDetail.value.version[emitObject.targetVersionIndex].files[0].fileURL =
+    emitObject.fileURL;
 }
 
 async function updateProjectDetail() {

@@ -17,7 +17,7 @@ const props = defineProps({
   targetVersionIndex: Number,
 });
 
-const emit = defineEmits(["changeUserStatus", "pushSaveRecordsRoot", "setUserID"]);
+const emit = defineEmits(["changeUserStatus", "pushSaveRecordsRoot", "setUserID", "updateParentVersionFile"]);
 
 const atAlt = ref(false);
 const atCtl = ref(false);
@@ -63,6 +63,13 @@ function pushSaveRecords(emitObject) {
     targetVersionIndex: props.targetVersionIndex,
     newSaveRecords: emitObject,
   });
+}
+
+function updateParentVersionFile(emitObject){
+  emit("updateParentVersionFile", {
+    targetVersionIndex: props.targetVersionIndex,
+    fileURL: emitObject.fileURL,
+  })
 }
 
 function changeEdit() {
@@ -156,6 +163,7 @@ onBeforeUnmount(() => {
           @updateAllRecords="updateAllRecords"
           @updateTimeBetween="updateTimeBetween"
           @pushSaveRecords="pushSaveRecords"
+          @updateVersionFile="updateParentVersionFile"
         />
         <TerminalComponent
           :terminalResult="terminalResult"
