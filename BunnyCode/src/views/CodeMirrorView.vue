@@ -17,7 +17,7 @@ const props = defineProps({
   targetVersionIndex: Number,
 });
 
-const emit = defineEmits(["changeUserStatus", "pushSaveRecordsRoot"]);
+const emit = defineEmits(["changeUserStatus", "pushSaveRecordsRoot", "setUserID"]);
 
 const atAlt = ref(false);
 const atCtl = ref(false);

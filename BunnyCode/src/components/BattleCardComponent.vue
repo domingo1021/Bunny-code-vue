@@ -5,7 +5,7 @@
       <div class="flex-box">
         <div class="win" v-if="battleObject.firstUserID === battleObject.winnerID">勝</div>
         <img :src="battleObject.firstUserPicture" alt="picture-1">
-        <div>&nbsp</div>
+        <div>&nbsp;</div>
         <div class="win" v-if="battleObject.secondUserID === battleObject.winnerID">勝</div>
         <img :src="battleObject.secondUserPicture" alt="picture-1">
       </div>

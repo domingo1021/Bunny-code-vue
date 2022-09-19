@@ -4,7 +4,10 @@
       <div class="flex-container">
         <div class="flex-container-2">
           <!-- <div>Bunny code</div> -->
-          <RouterLink to="/" class="nav-item link left-item" @click="updateView('home')"
+          <RouterLink
+            to="/"
+            class="nav-item link left-item"
+            @click="updateView('home')"
             >Bunny code</RouterLink
           >
           <RouterLink
@@ -37,7 +40,12 @@
     </nav>
   </header>
   <body>
-    <RouterView :userID="userID" :socket="socket" :key="view" />
+    <RouterView
+      :userID="userID"
+      :socket="socket"
+      :key="view"
+      @setUserID="setUserID"
+    />
     <div id="save-alert">
       <div
         class="modal fade"
@@ -85,7 +93,7 @@
 import Socket from "./socket";
 import { RouterLink, RouterView, useRouter } from "vue-router";
 import SearchComponent from "./components/SearchComponent.vue";
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, onMounted, onUnmounted, watch } from "vue";
 import axios from "axios";
 import io from "socket.io-client";
 import NotificationView from "./views/NotificationView.vue";
@@ -129,6 +137,10 @@ function hideModal() {
   myModal.hide();
 }
 
+function setUserID(emitUserID) {
+  userID.value = emitUserID;
+}
+
 const toaster = createToaster({
   position: "top-right",
   duration: 10000,
@@ -144,6 +156,10 @@ const toaster = createToaster({
   },
 });
 
+watch(userID, () => {
+  initiateSocket();
+});
+
 axios({
   method: "get",
   url: productionServer + "/api/1.0/user/auth",
@@ -155,47 +171,51 @@ axios({
   .then((response) => {
     isLogin.value = true;
     userID.value = response.data.data;
-    socket.value = new Socket(
-      io(productionSocket, {
-      // io(localhostServer, {
-        auth: (cb) => {
-          cb({ token: `Bearer ${jwt}` });
-        },
-        path: "/api/socket/",
-      })
-    );
-    socket.value.socketOn("userInvite", (emitObject) => {
-      console.log("invite user: ", emitObject);
-      battleName.value = emitObject.name;
-      battleLevel.value = battleLevelConfig[emitObject.level];
-      firstUserID.value = emitObject.firstUserID;
-      firstUserName.value = emitObject.firstUserName;
-      targetSocketID.value = emitObject.socketID;
-      toaster.success(
-        `<div>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!</div>
-        <div>User ${emitObject.firstUserName} launch ${emitObject.name}</div>
-        <div>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!</div>`
-      );
-    });
-    socket.value.socketOn("battleFailed", (msg) => {
-      alert(msg);
-    });
-    socket.value.socketOn("battleCreated", (emitObject) => {
-      router.push({
-        name: "battle",
-        params: { battleID: emitObject.battleID },
-      });
-    });
-    socket.value.socketOn("disconnect", (reason) => {
-      console.log(`Disconnecting with reason: ${reason}`);
-      alert("disconnected");
-      router.push("/login");
-    });
+    initiateSocket();
   })
   .catch((error) => {
     console.log("error message: ", error.response.data.msg);
     isLogin.value = false;
   });
+
+function initiateSocket() {
+  socket.value = new Socket(
+    io(productionSocket, {
+      // io(localhostServer, {
+      auth: (cb) => {
+        cb({ token: `Bearer ${jwt}` });
+      },
+      path: "/api/socket/",
+    })
+  );
+  socket.value.socketOn("userInvite", (emitObject) => {
+    console.log("invite user: ", emitObject);
+    battleName.value = emitObject.name;
+    battleLevel.value = battleLevelConfig[emitObject.level];
+    firstUserID.value = emitObject.firstUserID;
+    firstUserName.value = emitObject.firstUserName;
+    targetSocketID.value = emitObject.socketID;
+    toaster.success(
+      `<div>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!</div>
+        <div>User ${emitObject.firstUserName} launch ${emitObject.name}</div>
+        <div>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!</div>`
+    );
+  });
+  socket.value.socketOn("battleFailed", (msg) => {
+    alert(msg);
+  });
+  socket.value.socketOn("battleCreated", (emitObject) => {
+    router.push({
+      name: "battle",
+      params: { battleID: emitObject.battleID },
+    });
+  });
+  socket.value.socketOn("disconnect", (reason) => {
+    console.log(`Disconnecting with reason: ${reason}`);
+    alert("disconnected");
+    router.push("/login");
+  });
+}
 
 async function updateView(viewPage) {
   view.value = viewPage;
@@ -236,8 +256,8 @@ nav a {
   border-left: 1px solid var(--color-border);
 } */
 
-.link{
-  color: rgb(255,255,255);
+.link {
+  color: rgb(255, 255, 255);
 }
 
 nav a:first-of-type {
@@ -283,13 +303,13 @@ nav a:first-of-type {
   padding-left: 15px;
 }
 
-.left-item{
+.left-item {
   padding-right: 10px;
-  border-right: 0.5px solid rgb(255,255,255);
+  border-right: 0.5px solid rgb(255, 255, 255);
 }
 
 header + body {
-  padding-top: 80px;
+  padding-top: 50px;
 }
 
 #save-alert {

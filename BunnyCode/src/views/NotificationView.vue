@@ -9,6 +9,7 @@ import { onBeforeMount, onMounted, ref, watch } from "vue";
 const props = defineProps({
   socket: Socket,
 });
+const emits = defineEmits(["setUserID"]);
 
 const notificationCount = ref(0);
 
