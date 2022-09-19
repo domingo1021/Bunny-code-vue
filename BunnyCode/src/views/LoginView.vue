@@ -75,6 +75,7 @@ const signUpPassword = ref("");
 const signUpMessage = ref("");
 const isDisabled = ref(false);
 const localhostServer = "http://localhost:3000";
+const productionServer = "https://domingoos.store";
 const emits = defineEmits(["setUserID"]);
 
 function checkEmail(category, email) {
@@ -149,7 +150,7 @@ async function signUp() {
   let signUpResponse;
   try {
     signUpResponse = await axios.post(
-      localhostServer + "/api/1.0/user/signup",
+      productionServer + "/api/1.0/user/signup",
       {
         name: signUpName.value,
         email: signUpEmail.value,
@@ -182,7 +183,7 @@ async function login() {
   }
   let loginResopnse;
   try {
-    loginResopnse = await axios.post(localhostServer + "/api/1.0/user/signin", {
+    loginResopnse = await axios.post(productionServer + "/api/1.0/user/signin", {
       email: loginEmail.value,
       password: loginPassword.value,
     });

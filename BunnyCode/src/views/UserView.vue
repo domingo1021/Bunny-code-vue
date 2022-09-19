@@ -105,7 +105,7 @@ onMounted(async () => {
   await nextTick();
   let responseProjects = await axios({
     method: "get",
-    url: localhostServer + `/api/1.0/user/${route.params.userID}/project`,
+    url: productionServer + `/api/1.0/user/${route.params.userID}/project`,
     headers: {
       Authorization: `Bearer ${jwt}`,
     },
