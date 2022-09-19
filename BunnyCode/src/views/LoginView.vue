@@ -187,7 +187,11 @@ async function login() {
       password: loginPassword.value,
     });
   } catch (error) {
-    console.log("sign up error: ", error);
+    loginMessage.value = error.response.data.msg;
+    setTimeout(() => {
+      loginMessage.value = "";
+    }, 5000);
+    isDisabled.value = false;
     return;
   }
   isDisabled.value = false;
