@@ -1,15 +1,6 @@
 <script setup>
 import axios from "axios";
-import {
-nextTick,
-  onBeforeMount,
-  onBeforeUnmount,
-  onMounted,
-  onUnmounted,
-  onUpdated,
-  ref,
-  watch,
-} from "vue";
+import { nextTick, onBeforeUnmount, onMounted, onUpdated, ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import ProjectCardComponent from "../components/ProjectCardComponent.vue";
 
@@ -109,51 +100,23 @@ onUpdated(() => {
   }
 });
 
-// watch(props.socket, async (now, prev) => {
-//   if (now !== undefined) {
-//     let responseProjects = await axios({
-//       method: "get",
-//       url: productionServer + `/api/1.0/user/${props.userID}/project`,
-//       headers: {
-//         Authorization: `Bearer ${jwt}`,
-//       },
-//     });
-//     projectsDisplayed.value = responseProjects.data.data;
-//     try {
-//       const authResponse = await axios({
-//         method: "get",
-//         url: productionServer + `/api/1.0/user/${props.userID}/auth`,
-//         headers: {
-//           Authorization: `Bearer ${jwt}`,
-//         },
-//       });
-//       userAuth.value = authResponse.data.data.clientCategory;
-//     } catch (error) {
-//       userAuth.value = 0;
-//     }
-//     console.log(projectsDisplayed.value);
-//     console.log("User auth value: ", userAuth.value);
-//     if (props.socket) {
-//       initSocket();
-//     }
-//   }
-// });
-
 onMounted(async () => {
-// onBeforeMount(async () => {
+  // onBeforeMount(async () => {
   await nextTick();
   let responseProjects = await axios({
     method: "get",
-    url: productionServer + `/api/1.0/user/${props.userID}/project`,
+    url: localhostServer + `/api/1.0/user/${route.params.userID}/project`,
     headers: {
       Authorization: `Bearer ${jwt}`,
     },
   });
+  console.log(props.userID);
+  console.log(responseProjects.data.data);
   projectsDisplayed.value = responseProjects.data.data;
   try {
     const authResponse = await axios({
       method: "get",
-      url: productionServer + `/api/1.0/user/${props.userID}/auth`,
+      url: productionServer + `/api/1.0/user/${route.params.userID}/auth`,
       headers: {
         Authorization: `Bearer ${jwt}`,
       },
