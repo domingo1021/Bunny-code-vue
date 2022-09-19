@@ -1,3 +1,4 @@
+<!-- eslint-disable prettier/prettier -->
 <script setup>
 import * as CodeMirror from "codemirror";
 import axios from "axios";
@@ -344,6 +345,9 @@ async function playback() {
 function triggerEvent(recordObject) {
   const action = recordObject.action;
   if (action === "create") {
+    if(recordObject.code === "\"\""){
+      recordObject.code = '"';
+    }
     const prevCodes = editor.getDoc().getValue();
     const codes = prevCodes.split("\n");
     codes[recordObject.line] =
