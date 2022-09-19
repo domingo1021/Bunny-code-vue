@@ -46,7 +46,7 @@
       :key="view"
       @setUserID="setUserID"
     />
-    <div id="save-alert">
+    <div id="battle-invitation">
       <div
         class="modal fade"
         id="exampleModal"
@@ -312,9 +312,10 @@ header + body {
   padding-top: 50px;
 }
 
-#save-alert {
+#battle-invitation {
   left: 100px;
   background-color: aliceblue;
+  color: rgb(18, 18, 18);
   position: absolute;
   top: 50px;
   height: 500px;
