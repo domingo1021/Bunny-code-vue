@@ -141,8 +141,7 @@ async function checkEventUp(e) {
       });
       emit("updateCurrIndex", {
         battlerNumber: props.info.battlerNumber,
-        index: editor.getDoc().getValue().split("\n")[props.info.line]
-          .length,
+        index: editor.getDoc().getValue().split("\n")[props.info.line].length,
       });
     } else {
       emit("updateCurrIndex", {
@@ -443,12 +442,10 @@ onUpdated(async () => {
     );
     mirrorCreated.value = true;
   }
-  if(props.readOnly){
+  if (props.readOnly) {
     console.log("updated");
     editor.getDoc().setValue(props.info.fileContent);
-    editor
-        .getDoc()
-        .setCursor({ line: props.info.line, ch: props.info.index });
+    editor.getDoc().setCursor({ line: props.info.line, ch: props.info.index });
   }
 });
 

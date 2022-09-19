@@ -180,8 +180,8 @@ axios({
 
 function initiateSocket() {
   socket.value = new Socket(
-    io(productionSocket, {
-      // io(localhostServer, {
+    // io(productionSocket, {
+      io(localhostServer, {
       auth: (cb) => {
         cb({ token: `Bearer ${jwt}` });
       },
@@ -324,4 +324,5 @@ header + body {
 .confirm-btn {
   margin: 5%;
 }
+
 </style>

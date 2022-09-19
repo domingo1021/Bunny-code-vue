@@ -40,11 +40,14 @@ defineProps({
   cursor: pointer;
   background-color: rgb(69, 75, 103);
 }
+.name{
+  margin-top: 10px;
+}
 .flex-box{
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  margin-right: 10%;
+  margin-right: 8%;
   margin-left: 10%;
 }
 

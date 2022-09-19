@@ -149,14 +149,12 @@ onBeforeMount(async () => {
     battleID: props.battleID,
   });
   props.socket.socketOn("returnBattler", async (responseObject) => {
-    console.log("return Battler: ", responseObject);
     battleName.value = responseObject.battleResponse.battleName;
     battleInfo.value[0].userID = responseObject.battleResponse.firstUserID;
     battleInfo.value[0].userName = responseObject.battleResponse.firstUserName;
     battleInfo.value[1].userID = responseObject.battleResponse.secondUserID;
     battleInfo.value[1].userName = responseObject.battleResponse.secondUserName;
     questionName.value = responseObject.battleResponse.questionName;
-    console.log("url: ", responseObject.battleResponse.questionURL);
     questionURL.value = responseObject.battleResponse.questionURL;
     userID.value = responseObject.userID;
     authorization.value = responseObject.category;
@@ -170,6 +168,7 @@ onBeforeMount(async () => {
     } else {
       ready.value[1] = true;
     }
+    console.log(ready.value[0], ready.value[1]);
     if (ready.value[0] && ready.value[1]) {
       start.value = true;
     }
@@ -182,8 +181,8 @@ onBeforeMount(async () => {
     }
     console.log("URL: ", questionURL.value);
     const question = await axios.get(questionURL.value);
-    console.log(question);
     questionContent.value = question.data;
+    boardContent.value = questionContent.value;
   });
 
   props.socket.socketOn("in", (msg) => {

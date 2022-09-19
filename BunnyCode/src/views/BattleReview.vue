@@ -116,7 +116,7 @@ onBeforeUnmount(() => {
 });
 </script>
 
-<style>
+<style scoped>
 #mark-down {
   padding-top: 3vh;
   padding-left: 5%;
@@ -139,5 +139,6 @@ onBeforeUnmount(() => {
   top: 0%;
   right: 5%;
   width: 600px;
+  /* padding: 5; */
 }
 </style>
