@@ -29,9 +29,13 @@
             class="nav-item link"
             to="/login"
             @click="updateView('user')"
-            style="margin-top: 5px"
-            >個人資訊</RouterLink
           >
+            <img
+              src="@/assets/login.png"
+              alt="login-icon"
+              style="width: 35px; margin-bottom: 5px"
+            />
+          </RouterLink>
           <!-- <NotificationView :socket="socket" /> -->
           <!-- <div class="nav-item">個人資訊</div> -->
           <SearchComponent :socket="socket" />
@@ -324,5 +328,4 @@ header + body {
 .confirm-btn {
   margin: 5%;
 }
-
 </style>
