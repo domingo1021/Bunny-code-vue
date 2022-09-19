@@ -1,24 +1,18 @@
 <template>
-  <div class="window">
-    <div class="title-bar">
-      <button aria-label="Close" class="close"></button>
-      <h1 class="title">Bunny code</h1>
-      <button aria-label="Resize" class="resize"></button>
-    </div>
-    <div class="separator"></div>
-
-    <div class="window-pane">&nbsp; {{ helloContent }}</div>
+  <div id="hello-window">
+    <div id="hello-content">{{helloContent}}</div>
   </div>
 </template>
 
 <script setup>
 import { onMounted, ref } from "vue";
+const emits = defineEmits(["setUserID"]);
 const helloContent = ref("");
 const pendingContent = ref([
   {
-    content: ".",
+    content: "|",
     action: "create",
-    time: "100",
+    time: "20",
   },
   {
     content: " ",
@@ -26,7 +20,7 @@ const pendingContent = ref([
     time: "500",
   },
   {
-    content: ".",
+    content: "|",
     action: "replace",
     time: "500",
   },
@@ -36,7 +30,7 @@ const pendingContent = ref([
     time: "500",
   },
   {
-    content: ".",
+    content: "|",
     action: "replace",
     time: "500",
   },
@@ -53,32 +47,32 @@ const pendingContent = ref([
   {
     content: "e",
     action: "create",
-    time: "150",
+    time: "80",
   },
   {
     content: "l",
     action: "create",
-    time: "150",
+    time: "80",
   },
   {
     content: "c",
     action: "create",
-    time: "150",
+    time: "80",
   },
   {
     content: "o",
     action: "create",
-    time: "150",
+    time: "80",
   },
   {
     content: "m",
     action: "create",
-    time: "140",
+    time: "80",
   },
   {
     content: "e",
     action: "create",
-    time: "140",
+    time: "80",
   },
   {
     content: " ",
@@ -93,7 +87,7 @@ const pendingContent = ref([
   {
     content: "o",
     action: "create",
-    time: "140",
+    time: "80",
   },
   {
     content: " ",
@@ -151,6 +145,11 @@ const pendingContent = ref([
     time: "50",
   },
   {
+    content: " ",
+    action: "create",
+    time: "50",
+  },
+  {
     content: "!",
     action: "create",
     time: "50",
@@ -174,7 +173,6 @@ function checkAction(index) {
     helloContent.value =
       helloContent.value.substring(0, helloContent.value.length - 1) +
       pendingContent.value[index].content;
-      console.log(pendingContent.value[index].content)
   }
   index += 1;
   if (index < pendingContent.value.length) {
@@ -193,6 +191,26 @@ onMounted(() => {
 </script>
 
 <style scoped>
+#hello-window{
+  font-size: 4rem;
+  height: 120px;
+  text-align: center;
+  margin-top: 150px;
+  color: azure;
+  background: none;
+}
+
+#hello-logo{
+  transition: 0.5s ease-in-out;
+  transform: translateY(-180px);
+}
+
+#hello-content{
+  top: 35px;
+  text-shadow: 2px 2px #847e7e;
+  font-weight: bold;
+}
+
 .title {
   color: black;
 }

@@ -12,6 +12,7 @@ const props = defineProps({
   battleID: String,
   socket: Socket,
 });
+const emits = defineEmits(["setUserID"]);
 
 const CLIENT_CATEGORY = {
   visitor: 0,

@@ -89,7 +89,7 @@ router.beforeEach(async (to, from, next) => {
       isLogin = false;
     }
     if (!isLogin) {
-      next({
+      return next({
         path: "/login",
         query: { redirect: to.fullPath },
       });
@@ -116,15 +116,15 @@ router.beforeEach(async (to, from, next) => {
       isLogin = false;
     }
     if (isLogin) {
-      next({
+      return next({
         name: "user",
         params: { userID: userID },
       });
     } else {
-      next();
+      return next();
     }
   } else {
-    next();
+    return next();
   }
 });
 

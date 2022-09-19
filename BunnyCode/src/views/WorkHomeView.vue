@@ -9,7 +9,7 @@ const route = useRoute();
 const projectsDisplayed = ref([]);
 const localhostServer = "http://localhost:3000";
 const productionServer = "https://domingoos.store";
-
+const emits = defineEmits(["setUserID"]);
 const topThreeProejct = [
   {
     projectName: "hello",

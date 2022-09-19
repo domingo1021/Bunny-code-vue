@@ -1,6 +1,7 @@
 <script setup>
 import axios from "axios";
 import {
+nextTick,
   onBeforeMount,
   onBeforeUnmount,
   onMounted,
@@ -16,6 +17,7 @@ const props = defineProps({
   socket: Object,
   userID: Number,
 });
+const emits = defineEmits(["setUserID"]);
 const localhostServer = "http://localhost:3000";
 const productionServer = "https://domingoos.store";
 const router = useRouter();
@@ -37,9 +39,7 @@ const CLIENT_CATEGORY = {
 };
 
 function renderPath(index) {
-  router.push(
-    `/code-mirror/${projectsDisplayed.value[index].projectName}`
-  );
+  router.push(`/code-mirror/${projectsDisplayed.value[index].projectName}`);
 }
 
 async function createProject() {
@@ -109,7 +109,39 @@ onUpdated(() => {
   }
 });
 
-onBeforeMount(async () => {
+// watch(props.socket, async (now, prev) => {
+//   if (now !== undefined) {
+//     let responseProjects = await axios({
+//       method: "get",
+//       url: productionServer + `/api/1.0/user/${props.userID}/project`,
+//       headers: {
+//         Authorization: `Bearer ${jwt}`,
+//       },
+//     });
+//     projectsDisplayed.value = responseProjects.data.data;
+//     try {
+//       const authResponse = await axios({
+//         method: "get",
+//         url: productionServer + `/api/1.0/user/${props.userID}/auth`,
+//         headers: {
+//           Authorization: `Bearer ${jwt}`,
+//         },
+//       });
+//       userAuth.value = authResponse.data.data.clientCategory;
+//     } catch (error) {
+//       userAuth.value = 0;
+//     }
+//     console.log(projectsDisplayed.value);
+//     console.log("User auth value: ", userAuth.value);
+//     if (props.socket) {
+//       initSocket();
+//     }
+//   }
+// });
+
+onMounted(async () => {
+// onBeforeMount(async () => {
+  await nextTick();
   let responseProjects = await axios({
     method: "get",
     url: productionServer + `/api/1.0/user/${props.userID}/project`,

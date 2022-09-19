@@ -162,6 +162,7 @@ const props = defineProps({
   userID: Number,
   socket: Socket,
 });
+const emits = defineEmits(["setUserID"]);
 
 const router = useRouter();
 const finishBattles = ref([]);
@@ -265,9 +266,10 @@ watch(battleName, () => {
 }
 
 .launch-btn{
+  margin-top: 3%;
   padding-right: 1%;
   padding-left: 1%;
-  background-color: rgb(72, 72, 72);
+  background-color: rgb(97, 94, 94);
   border-radius: 3px;
   color: #f6f6f6;
   border: 0.5px solid #f6f6f6;

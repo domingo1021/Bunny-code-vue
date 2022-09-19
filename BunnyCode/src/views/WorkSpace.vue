@@ -1,5 +1,5 @@
 <template>
-  <div style="display: flex; height: 100vh;">
+  <div style="display: flex; height: 100vh">
     <div id="left-bar">
       <div id="folder-control" @click="updateTarget('Folder')">Folder</div>
       <div id="version-control" @click="updateTarget('Version')">Version</div>
@@ -14,10 +14,10 @@
           v-for="(info, index) in projectDetail?.version[targetVersionIndex]
             ?.files"
           :key="index"
-          style="display: flex;"
+          style="display: flex"
           @click="changeCurrFile(info.fileName, index)"
         >
-          <div style="color: yellow; margin-right: 10px;">
+          <div style="color: yellow; margin-right: 10px">
             {{ info.language }}
           </div>
           <div>{{ info.fileName }}</div>
@@ -82,25 +82,26 @@
 </template>
 
 <script setup>
-import Socket from '../socket'
-import { useRouter } from 'vue-router'
-import { onBeforeMount, onMounted, ref, watch } from 'vue'
-import axios from 'axios'
-import CodeMirrorView from './CodeMirrorView.vue'
-import FolderController from './FolderController.vue'
-import CreateVersionComponent from '../components/CreateVersionComponent.vue'
+import Socket from "../socket";
+import { useRouter } from "vue-router";
+import { onBeforeMount, onMounted, ref, watch } from "vue";
+import axios from "axios";
+import CodeMirrorView from "./CodeMirrorView.vue";
+import FolderController from "./FolderController.vue";
+import CreateVersionComponent from "../components/CreateVersionComponent.vue";
 
-const localhostServer = 'http://localhost:3000'
+const localhostServer = "http://localhost:3000";
 const productionServer = "https://domingoos.store";
-const projectDetail = ref({})
-const targetFunction = ref('Folder')
+const projectDetail = ref({});
+const targetFunction = ref("Folder");
 // default target version 為第一個 version, (之後根據使用者點選version 做修改)
-const targetVersionIndex = ref(0)
-const authorization = ref(false)
-const readOnly = ref(true)
+const targetVersionIndex = ref(0);
+const authorization = ref(false);
+const readOnly = ref(true);
+const emits = defineEmits(["setUserID"]);
 
 //TODO: debug: change route when user click header instead
-const router = useRouter()
+const router = useRouter();
 // const route = useRoute();
 
 const props = defineProps({
@@ -111,80 +112,79 @@ const props = defineProps({
 
 function updateTarget(target) {
   // 跳到 File or 跳到 version.
-  targetFunction.value = target
+  targetFunction.value = target;
 }
 
 function updateTargetVersion(versionIndex) {
   console.log("updateTargetVersion:", versionIndex);
-  targetVersionIndex.value = versionIndex
+  targetVersionIndex.value = versionIndex;
 }
 
 function pushVersionObject(versionObject) {
-  projectDetail.value.version.push(versionObject)
-  targetFunction.value = 'Folder'
-  targetVersionIndex.value = projectDetail.value.version.length - 1
-  console.log(projectDetail.value.version[targetVersionIndex.value].files)
+  projectDetail.value.version.push(versionObject);
+  targetFunction.value = "Folder";
+  targetVersionIndex.value = projectDetail.value.version.length - 1;
+  console.log(projectDetail.value.version[targetVersionIndex.value].files);
 }
 
 function changeUserStatus(emitObject) {
-  readOnly.value = emitObject.readOnly
-  authorization.value = emitObject.authorization
+  readOnly.value = emitObject.readOnly;
+  authorization.value = emitObject.authorization;
 }
 
 function pushSaveRecordsRoot(emitObject) {
   projectDetail.value.version[emitObject.targetVersionIndex].records.push(
-    emitObject.newSaveRecords,
-  )
-  readOnly.value = true
+    emitObject.newSaveRecords
+  );
+  readOnly.value = true;
 }
 
 async function updateProjectDetail() {
   // console.log("projectName: ", props.projectName);
-  let projectResponse
+  let projectResponse;
   try {
     projectResponse = await axios.get(
       productionServer +
-      // localhostServer +
-        `/api/1.0/project/detail?projectName=${props.projectName}`,
-    )
+        // localhostServer +
+        `/api/1.0/project/detail?projectName=${props.projectName}`
+    );
   } catch (error) {
-    console.log(error)
-    alert(error.response.data.msg)
-    return
+    console.log(error);
+    alert(error.response.data.msg);
+    return;
   }
-  projectDetail.value = projectResponse.data.data
+  projectDetail.value = projectResponse.data.data;
   projectDetail.value.version.forEach((version) => {
     if (version.files.length !== 0) {
       version.files.forEach((file, index) => {
-        file.fileNumber = index
-        let tmpArray = file.fileName.split('.')
+        file.fileNumber = index;
+        let tmpArray = file.fileName.split(".");
         if (tmpArray.length > 0) {
-          file.language = tmpArray.pop().toUpperCase()
+          file.language = tmpArray.pop().toUpperCase();
         } else {
-          file.language = ''
+          file.language = "";
         }
-        file.fileContent = ''
-        file.index = 0
-        file.line = 0
-        file.codeRecords = []
-        file.timeBetween = []
-      })
+        file.fileContent = "";
+        file.index = 0;
+        file.line = 0;
+        file.codeRecords = [];
+        file.timeBetween = [];
+      });
     }
-  })
-  console.log('Project content: ', projectDetail.value)
+  });
+  console.log("Project content: ", projectDetail.value);
 }
 
 watch(
   () => props.projectName,
   async (newProjectName, prevProjectName) => {
-    await updateProjectDetail()
-  },
-)
+    await updateProjectDetail();
+  }
+);
 
 onBeforeMount(async () => {
-  await updateProjectDetail()
-
-})
+  await updateProjectDetail();
+});
 
 onMounted(() => {
   console.log("autorization: ", authorization.value);
@@ -194,17 +194,17 @@ onMounted(() => {
       await axios.put(
         `${productionServer}/api/1.0/project/watch?projectID=${projectDetail.value.projectID}`
         // `http://localhost:3000/api/1.0/project/watch?projectID=${projectDetail.value.projectID}`,
-      )
+      );
     }
-  }, 5000)
-})
+  }, 5000);
+});
 </script>
 
 <style scoped>
 .version-list {
   font-size: 0.75rem;
 }
-#folder-control{
+#folder-control {
   margin-top: 10px;
   margin-bottom: 4%;
   /* border: 0.5px solid rgb(255,255,255);

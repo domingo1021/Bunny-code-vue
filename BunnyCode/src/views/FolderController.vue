@@ -38,7 +38,7 @@ const props = defineProps({
   version: Object,
 });
 
-const emit = defineEmits(["updateTarget"]);
+const emit = defineEmits(["updateTarget", "setUserID"]);
 
 //TODO: set text default value = "";
 const text = ref("123");
