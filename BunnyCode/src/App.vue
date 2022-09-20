@@ -8,7 +8,13 @@
             to="/"
             class="nav-item link left-item"
             @click="updateView('home')"
-            >Bunny code</RouterLink
+            >
+            <img
+              src="@/assets/logo4.png"
+              alt="login-icon"
+              style="width: 30px; margin-bottom: 5px"
+            />
+            </RouterLink
           >
           <RouterLink
             to="/workspace"
