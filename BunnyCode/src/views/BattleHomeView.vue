@@ -163,6 +163,7 @@ const props = defineProps({
   socket: Socket,
 });
 const emits = defineEmits(["setUserID"]);
+const productionServer = "https://domingoos.store"
 
 const router = useRouter();
 const finishBattles = ref([]);
@@ -200,8 +201,8 @@ function goBattle(category, index) {
 
 onBeforeMount(async () => {
   //TODO: update battle data. order by watch and question level ...
-  const allBattles = await axios.get("https://domingoos.store/api/1.0/battle");
-  // const allBattles = await axios.get("http://localhost:3000/api/1.0/battle");
+  // const allBattles = await axios.get("https://domingoos.store/api/1.0/battle");
+  const allBattles = await axios.get(`${productionServer}/api/1.0/battle`);
   finishBattles.value = allBattles.data.data.finish;
   stillBattles.value = allBattles.data.data.still;
   console.log(finishBattles.value);

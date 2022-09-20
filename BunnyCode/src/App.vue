@@ -8,7 +8,13 @@
             to="/"
             class="nav-item link left-item"
             @click="updateView('home')"
-            >Bunny code</RouterLink
+            >
+            <img
+              src="@/assets/logo4.png"
+              alt="login-icon"
+              style="width: 30px; margin-bottom: 5px"
+            />
+            </RouterLink
           >
           <RouterLink
             to="/workspace"
@@ -29,9 +35,13 @@
             class="nav-item link"
             to="/login"
             @click="updateView('user')"
-            style="margin-top: 5px"
-            >個人資訊</RouterLink
           >
+            <img
+              src="@/assets/login.png"
+              alt="login-icon"
+              style="width: 35px; margin-bottom: 5px"
+            />
+          </RouterLink>
           <!-- <NotificationView :socket="socket" /> -->
           <!-- <div class="nav-item">個人資訊</div> -->
           <SearchComponent :socket="socket" />
@@ -46,7 +56,7 @@
       :key="view"
       @setUserID="setUserID"
     />
-    <div id="save-alert">
+    <div id="battle-invitation">
       <div
         class="modal fade"
         id="exampleModal"
@@ -312,9 +322,10 @@ header + body {
   padding-top: 50px;
 }
 
-#save-alert {
+#battle-invitation {
   left: 100px;
   background-color: aliceblue;
+  color: rgb(18, 18, 18);
   position: absolute;
   top: 50px;
   height: 500px;

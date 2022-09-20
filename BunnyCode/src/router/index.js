@@ -74,7 +74,6 @@ router.beforeEach(async (to, from, next) => {
     let isLogin = false;
     try {
       let jwt = localStorage.getItem("jwt");
-      console.log(localhostServer + "/api/1.0/user/auth");
       await axios({
         method: "get",
         url: productionServer + "/api/1.0/user/auth",
@@ -101,7 +100,6 @@ router.beforeEach(async (to, from, next) => {
     let userID;
     try {
       let jwt = localStorage.getItem("jwt");
-      console.log(localhostServer + "/api/1.0/user/auth");
       const authResponse = await axios({
         method: "get",
         url: productionServer + "/api/1.0/user/auth",

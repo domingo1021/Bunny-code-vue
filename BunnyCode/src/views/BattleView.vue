@@ -143,33 +143,34 @@ onBeforeMount(async () => {
   if (!props.socket) {
     return;
   }
-  const welcome = await axios.get("https://d1vj6hotf8ce5i.cloudfront.net/question/battlerContent.md");
+  const welcome = await axios.get(
+    "https://d1vj6hotf8ce5i.cloudfront.net/question/battlerContent.md"
+  );
   boardContent.value = welcome.data;
   props.socket.socketEmit("queryBattler", {
     battleID: props.battleID,
   });
   props.socket.socketOn("returnBattler", async (responseObject) => {
-    console.log("return Battler: ", responseObject);
     battleName.value = responseObject.battleResponse.battleName;
     battleInfo.value[0].userID = responseObject.battleResponse.firstUserID;
     battleInfo.value[0].userName = responseObject.battleResponse.firstUserName;
     battleInfo.value[1].userID = responseObject.battleResponse.secondUserID;
     battleInfo.value[1].userName = responseObject.battleResponse.secondUserName;
     questionName.value = responseObject.battleResponse.questionName;
-    console.log("url: ", responseObject.battleResponse.questionURL);
     questionURL.value = responseObject.battleResponse.questionURL;
     userID.value = responseObject.userID;
     authorization.value = responseObject.category;
-    if (responseObject.firstUserReady === "0") {
+    if (responseObject.firstUserReady === 0) {
       ready.value[0] = false;
     } else {
       ready.value[0] = true;
     }
-    if (responseObject.secondUserReady === "0") {
+    if (responseObject.secondUserReady === 0) {
       ready.value[1] = false;
     } else {
       ready.value[1] = true;
     }
+    console.log(ready.value[0], ready.value[1]);
     if (ready.value[0] && ready.value[1]) {
       start.value = true;
     }
@@ -180,10 +181,11 @@ onBeforeMount(async () => {
         return info.userID !== responseObject.userID;
       });
     }
-    console.log("URL: ", questionURL.value);
     const question = await axios.get(questionURL.value);
-    console.log(question);
     questionContent.value = question.data;
+    if (ready.value[0] && ready.value[1]) {
+      boardContent.value = questionContent.value;
+    }
   });
 
   props.socket.socketOn("in", (msg) => {
@@ -307,7 +309,10 @@ onBeforeUnmount(() => {
         <div v-else-if="start">
           <div>遊戲開始！</div>
         </div>
-        <button v-if="!readOnlies[index] && start && !battleOver" @click="runCode(index)">
+        <button
+          v-if="!readOnlies[index] && start && !battleOver"
+          @click="runCode(index)"
+        >
           Run code
         </button>
       </div>

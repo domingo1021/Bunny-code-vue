@@ -1,3 +1,4 @@
+<!-- eslint-disable prettier/prettier -->
 <script setup>
 import * as CodeMirror from "codemirror";
 import axios from "axios";
@@ -27,6 +28,7 @@ const emit = defineEmits([
   "updateAllRecords",
   "updateTimeBetween",
   "pushSaveRecords",
+  "updateVersionFile",
 ]);
 
 let editor = null;
@@ -286,6 +288,9 @@ async function saveFileRecord() {
     data: submitForm,
   });
   // //TODO: get new Detail
+  emit("updateVersionFile", {
+    fileURL: response.data.data,
+  })
   console.log(response)
   myModal.hide();
 }
@@ -340,6 +345,9 @@ async function playback() {
 function triggerEvent(recordObject) {
   const action = recordObject.action;
   if (action === "create") {
+    if(recordObject.code === "\"\""){
+      recordObject.code = '"';
+    }
     const prevCodes = editor.getDoc().getValue();
     const codes = prevCodes.split("\n");
     codes[recordObject.line] =
