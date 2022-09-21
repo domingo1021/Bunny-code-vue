@@ -33,16 +33,34 @@ const emit = defineEmits([
 let editor = null;
 
 const fileContent = ref(props.info.fileContent);
+const autoComplete = ["(", "[", "{", '"'];
 
 function updateContent(e) {
   let addCode = e.data;
   let allCode = editor.getDoc().getValue();
-  if (e.data === "(") {
+
+  if (autoComplete.includes(e.data)) {
+    let anotherPart = "";
+    switch (e.data) {
+      case "(":
+        anotherPart = ")";
+        break;
+      case "[":
+        anotherPart = "]";
+        break;
+      case "{":
+        anotherPart = "}";
+        break;
+      case '"':
+        anotherPart = '"';
+        break;
+    }
+    console.log("another part: ", anotherPart);
     const splitCodes = allCode.split("\n");
     let lineCode = splitCodes[props.info.line];
     lineCode =
       lineCode.substring(0, props.info.index + 1) +
-      ")" +
+      anotherPart +
       lineCode.substring(props.info.index + 1);
     allCode = splitCodes.reduce((prev, curr, line) => {
       if (line === splitCodes.length - 1) {
@@ -61,7 +79,7 @@ function updateContent(e) {
       return prev;
     }, "");
     editor.getDoc().setValue(allCode);
-    addCode += ")";
+    addCode += anotherPart;
     editor
       .getDoc()
       .setCursor({ line: props.info.line, ch: props.info.index + 1 });
@@ -320,7 +338,12 @@ function triggerEvent(recordObject) {
   const action = recordObject.action;
   if (action === "create") {
     if (recordObject.code === '""') {
+      console.log("triggered !");
       recordObject.code = '"';
+    }
+    if (recordObject.code === '""""') {
+      console.log("double triggered !");
+      recordObject.code = '""';
     }
     const prevCodes = editor.getDoc().getValue();
     const codes = prevCodes.split("\n");
@@ -564,9 +587,9 @@ onBeforeMount(async () => {
 });
 
 function userClick() {
-  alert("僅提供鍵盤輸入功能");
   editor.getDoc().setCursor({ line: props.info.line, ch: props.info.index });
 }
+
 let myModal;
 onMounted(() => {
   myModal = new Modal(modalObject.value, {});
