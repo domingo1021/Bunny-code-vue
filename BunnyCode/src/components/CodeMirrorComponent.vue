@@ -4,8 +4,17 @@ import axios from "axios";
 import "codemirror/lib/codemirror.css";
 import "codemirror/theme/material-darker.css";
 import "codemirror/mode/javascript/javascript.js";
-import { nextTick, onBeforeMount, onMounted, ref, watch } from "vue";
+import {
+  nextTick,
+  onBeforeMount,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  watch,
+} from "vue";
 import { Modal } from "bootstrap";
+
+// TODO: check user agent for keyword.
 
 const props = defineProps({
   projectID: Number,
@@ -34,8 +43,21 @@ let editor = null;
 
 const fileContent = ref(props.info.fileContent);
 const autoComplete = ["(", "[", "{", '"'];
+let playIndex = 0;
+let keepPlay = false;
+let baseContent;
+let baseLine;
+let baseIndex;
+let redo = [];
+let undo = [];
 
 function updateContent(e) {
+  if (props.readOnly) {
+    editor.getDoc().setValue(props.info.fileContent);
+    editor.getDoc().setCursor({ line: props.info.line, ch: props.info.index });
+    return;
+  }
+  console.log("Input key: ", e.data);
   let addCode = e.data;
   let allCode = editor.getDoc().getValue();
 
@@ -55,7 +77,6 @@ function updateContent(e) {
         anotherPart = '"';
         break;
     }
-    console.log("another part: ", anotherPart);
     const splitCodes = allCode.split("\n");
     let lineCode = splitCodes[props.info.line];
     lineCode =
@@ -105,6 +126,12 @@ function updateContent(e) {
 }
 
 async function checkEventUp(e) {
+  if (props.readOnly) {
+    editor.getDoc().setValue(props.info.fileContent);
+    editor.getDoc().setCursor({ line: props.info.line, ch: props.info.index });
+    return;
+  }
+  console.log("key: ", e.key, e.keyCode, e.metaKey);
   if (e.key === "Enter") {
     console.log("Enter");
     let allCode = editor.getDoc().getValue();
@@ -230,12 +257,146 @@ async function checkEventUp(e) {
       fileNumber: props.info.fileNumber,
       index: currentIndex,
     });
-  } else if (e.ctrlKey && e.keyCode === 83) {
-    console.log("Control + Save");
+  } else if (e.metaKey && e.keyCode === 83) {
+    console.log("Command + Save");
+    e.preventDefault();
     if (props.records.length !== 0) {
       return;
     }
     showModal();
+  } else if (e.ctrlKey && e.keyCode === 65) {
+    if (e.repeat) {
+      return;
+    }
+    console.log("To Front");
+    const currentCursor = editor.getDoc().getCursor();
+    const currentLine = currentCursor.line;
+    const currentIndex = currentCursor.ch;
+    emit("pushCodeRecords", {
+      fileNumber: props.info.fileNumber,
+      newRecords: {
+        action: "front",
+        line: currentLine,
+        index: currentIndex,
+        code: "",
+        timestamp: Date.now().toString() + "000000",
+      },
+    });
+    emit("updateCurrLine", {
+      fileNumber: props.info.fileNumber,
+      line: currentLine,
+    });
+    emit("updateCurrIndex", {
+      fileNumber: props.info.fileNumber,
+      index: currentIndex,
+    });
+  } else if (e.ctrlKey && e.keyCode === 69) {
+    if (e.repeat) {
+      return;
+    }
+    console.log("To end");
+    const currentCursor = editor.getDoc().getCursor();
+    const currentLine = currentCursor.line;
+    const currentIndex = currentCursor.ch;
+    emit("pushCodeRecords", {
+      fileNumber: props.info.fileNumber,
+      newRecords: {
+        action: "end",
+        line: currentLine,
+        index: currentIndex,
+        code: "",
+        timestamp: Date.now().toString() + "000000",
+      },
+    });
+    emit("updateCurrLine", {
+      fileNumber: props.info.fileNumber,
+      line: currentLine,
+    });
+    emit("updateCurrIndex", {
+      fileNumber: props.info.fileNumber,
+      index: currentIndex,
+    });
+  } else if (e.keyCode === 9) {
+    // user press tab
+    const tabCode = "  ";
+    const splitCodes = props.info.fileContent.split("\n");
+    let lineCode = splitCodes[props.info.line];
+    lineCode =
+      lineCode.substring(0, props.info.index) +
+      tabCode +
+      lineCode.substring(props.info.index);
+    const allCode = splitCodes.reduce((prev, curr, line) => {
+      if (line === splitCodes.length - 1) {
+        if (props.info.line === line) {
+          prev += lineCode;
+        } else {
+          prev += curr;
+        }
+      } else {
+        if (props.info.line === line) {
+          prev += lineCode + "\n";
+        } else {
+          prev += curr + "\n";
+        }
+      }
+      return prev;
+    }, "");
+    editor.getDoc().setValue(allCode);
+    editor
+      .getDoc()
+      .setCursor({ line: props.info.line, ch: props.info.index + 2 });
+    emit("updateCurrCodes", {
+      fileNumber: props.info.fileNumber,
+      code: allCode,
+    });
+    emit("pushCodeRecords", {
+      fileNumber: props.info.fileNumber,
+      newRecords: {
+        action: "tab",
+        line: props.info.line,
+        index: props.info.index,
+        code: tabCode,
+        timestamp: Date.now().toString() + "000000",
+      },
+    });
+    emit("updateCurrLine", {
+      fileNumber: props.info.fileNumber,
+      line: props.info.line,
+    });
+    emit("updateCurrIndex", {
+      fileNumber: props.info.fileNumber,
+      index: props.info.index + 2,
+    });
+  } else if (e.metaKey && e.keyCode === 90) {
+    // undo
+    // TODO: push content to redo
+    // emit("pushCodeRecords", {
+    //   fileNumber: props.info.fileNumber,
+    //   newRecords: {
+    //     action: "tab",
+    //     line: props.info.line,
+    //     index: props.info.index,
+    //     code: tabCode,
+    //     timestamp: Date.now().toString() + "000000",
+    //   },
+    // });
+    // emit("updateCurrLine", {
+    //   fileNumber: props.info.fileNumber,
+    //   line: props.info.line,
+    // });
+    // emit("updateCurrIndex", {
+    //   fileNumber: props.info.fileNumber,
+    //   index: props.info.index + 2,
+    // });
+    // redo.pop();
+  } else {
+    if (e.ctrlKey || e.shiftKey || e.metaKey || e.altKey) {
+      e.preventDefault();
+      editor.getDoc().setValue(props.info.fileContent);
+      editor
+        .getDoc()
+        .setCursor({ line: props.info.line, ch: props.info.index });
+    }
   }
 }
 
@@ -307,30 +468,70 @@ async function runCode() {
   });
 }
 
+function clickPlay() {
+  if (keepPlay) {
+    keepPlay = false;
+  } else {
+    keepPlay = true;
+  }
+}
+
 async function playback() {
   // setValue 所有上一個版本的 Code 作為初始值
-  const baseContent = await axios.get(props.records[0].baseURL);
-  const currentLine = baseContent.data.split("\n").length - 1;
-  const currentIndex = baseContent.data.split("\n")[currentLine].length;
-  emit("updateCurrIndex", {
-    fileNumber: props.info.fileNumber,
-    index: currentIndex,
-  });
-  emit("updateCurrLine", {
-    fileNumber: props.info.fileNumber,
-    line: currentLine,
-  });
-  console.log("all records: ", props.info.codeRecords);
-  editor.getDoc().setValue(baseContent.data);
-  for (let i = 0; i < props.info.timeBetween.length; i++) {
-    await new Promise((resolve, reject) => {
-      setTimeout(() => {
-        const currObject = props.info.codeRecords[i];
-        triggerEvent(currObject);
-        resolve();
-      }, props.info.timeBetween[i]);
+  clickPlay();
+  if (playIndex === 0) {
+    const baseResponse = await axios.get(props.records[0].baseURL);
+    baseContent = baseResponse.data;
+    baseLine = baseContent.split("\n").length - 1;
+    baseIndex = baseContent.split("\n")[baseLine].length;
+    emit("updateCurrLine", {
+      fileNumber: props.info.fileNumber,
+      line: baseLine,
+    });
+    emit("updateCurrIndex", {
+      fileNumber: props.info.fileNumber,
+      index: baseIndex,
     });
   }
+  // console.log("all records: ", props.info.codeRecords);
+  editor.getDoc().setValue(baseContent);
+  // editor.getDoc().setCursor({ line: props.info.line, ch: props.info.index });
+  editor.options.readOnly = false;
+  editor.options.cursorHeight = 0.85;
+  editor.focus();
+  editor.getDoc().setCursor({ line: props.info.line, ch: props.info.index });
+  for (let i = playIndex; i < props.info.timeBetween.length; i++) {
+    if (!keepPlay) {
+      editor.options.readOnly = props.readOnly;
+      editor.options.cursorHeight = 0;
+      editor.execCommand("goLineEnd");
+      return;
+    } else {
+      console.log("in");
+      await new Promise((resolve, reject) => {
+        setTimeout(() => {
+          if (!keepPlay) {
+            editor.options.readOnly = props.readOnly;
+            editor.options.cursorHeight = 0;
+            editor.execCommand("goLineEnd");
+            return resolve();
+          }
+          const currObject = props.info.codeRecords[i];
+          currObject.line = Number(currObject.line);
+          currObject.index = Number(currObject.index);
+          triggerEvent(currObject);
+          baseContent = props.info.fileContent;
+          playIndex += 1;
+          return resolve();
+        }, props.info.timeBetween[i]);
+      });
+    }
+  }
+  playIndex = 0;
+  keepPlay = false;
+  editor.options.readOnly = props.readOnly;
+  editor.options.cursorHeight = 0;
+  editor.execCommand("goLineEnd");
 }
 
 function triggerEvent(recordObject) {
@@ -362,12 +563,14 @@ function triggerEvent(recordObject) {
     editor.getDoc().setValue(newCodes);
     emit("updateCurrIndex", {
       fileNumber: props.info.fileNumber,
-      index: props.info.index + recordObject.code.length,
+      index: props.info.index + 1,
+      // index: props.info.index + recordObject.code.length,
     });
     emit("updateCurrCodes", {
       fileNumber: props.info.fileNumber,
       code: newCodes,
     });
+    editor.getDoc().setCursor({ line: props.info.line, ch: props.info.index });
   } else if (action === "delete") {
     const prevCodes = editor.getDoc().getValue();
     const codes = prevCodes.split("\n");
@@ -411,6 +614,7 @@ function triggerEvent(recordObject) {
         index: props.info.index - 1,
       });
     }
+    editor.getDoc().setCursor({ line: props.info.line, ch: props.info.index });
   } else if (action === "enter") {
     const targetLine = recordObject.line;
     const targetIndex = recordObject.index;
@@ -449,11 +653,14 @@ function triggerEvent(recordObject) {
       fileNumber: props.info.fileNumber,
       index: targetIndex,
     });
+    editor.getDoc().setCursor({ line: props.info.line, ch: props.info.index });
   } else if (
     action === "left" ||
     action === "right" ||
     action === "up" ||
-    action === "down"
+    action === "down" ||
+    action === "front" ||
+    action === "end"
   ) {
     emit("updateCurrLine", {
       fileNumber: props.info.fileNumber,
@@ -463,6 +670,46 @@ function triggerEvent(recordObject) {
       fileNumber: props.info.fileNumber,
       index: recordObject.index,
     });
+    editor.getDoc().setCursor({ line: props.info.line, ch: props.info.index });
+  } else if (action === "tab") {
+    const prevCodes = editor.getDoc().getValue();
+    const splitCodes = prevCodes.split("\n");
+    let lineCode = splitCodes[recordObject.line];
+    lineCode =
+      lineCode.substring(0, recordObject.index) +
+      recordObject.code +
+      lineCode.substring(recordObject.index);
+    const allCode = splitCodes.reduce((prev, curr, line) => {
+      if (line === splitCodes.length - 1) {
+        if (props.info.line === line) {
+          prev += lineCode;
+        } else {
+          prev += curr;
+        }
+      } else {
+        if (props.info.line === line) {
+          prev += lineCode + "\n";
+        } else {
+          prev += curr + "\n";
+        }
+      }
+      return prev;
+    }, "");
+    editor.getDoc().setValue(allCode);
+    emit("updateCurrIndex", {
+      fileNumber: props.info.fileNumber,
+      index: props.info.index + 2,
+      // index: props.info.index + recordObject.code.length,
+    });
+    emit("updateCurrCodes", {
+      fileNumber: props.info.fileNumber,
+      code: allCode,
+    });
+    editor.getDoc().setCursor({ line: props.info.line, ch: props.info.index });
+  } else {
+    editor.getDoc().setValue(props.info.fileContent);
+    editor.getDoc().setCursor({ line: props.info.line, ch: props.info.index });
+    return;
   }
 }
 
@@ -524,6 +771,7 @@ async function initCodeMirror() {
     fileNumber: props.info.fileNumber,
     index: props.info.fileContent.length,
   });
+  console.log("line at init: ", props.info.line);
   let tmpReadOnly = props.readOnly;
   let cursorHeight = 0.85;
   if (tmpReadOnly === undefined) {
@@ -543,6 +791,34 @@ async function initCodeMirror() {
       element.remove();
     });
   }
+  const commands = {
+    ...CodeMirror.commands,
+  };
+  const shortcuts = [
+    "newlineAndIndent",
+    "delCharBefore",
+    "goCharLeft",
+    "goCharRight",
+    "goLineUp",
+    "goLineDown",
+    "goGroupLeft",
+    "goGroupRight",
+    "goLineStart",
+    "goLineEnd",
+    // "undo",
+    // "redo",
+    // "insertTab",
+    // "defaultTab",
+  ];
+  Object.keys(CodeMirror.commands).forEach((commandKey) => {
+    if (shortcuts.includes(commandKey)) {
+      CodeMirror.commands[commandKey] = commands[commandKey];
+      return;
+    }
+    CodeMirror.commands[commandKey] = () => {
+      // alert(commandKey);
+    };
+  });
   console.log("file content:", props.info.fileContent);
   editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
     value: props.info.fileContent,
@@ -558,7 +834,6 @@ async function initCodeMirror() {
     mode: "javascript",
   });
   editor.getDoc().setValue(props.info.fileContent);
-  console.log(editor.getDoc().getCursor());
   editor.getDoc().setCursor({ line: props.info.line, ch: props.info.index });
   if (props.readOnly) {
     await initSaveRecords();
@@ -597,16 +872,23 @@ onMounted(() => {
 
 const modalObject = ref(null);
 function showModal() {
+  if (props.readOnly) {
+    return;
+  }
   myModal.show();
 }
 function hideModal() {
   myModal.hide();
 }
+
+onBeforeUnmount(() => {
+  keepPlay = false;
+});
 </script>
 
 <template>
   <div @input="updateContent" @keydown="checkEventUp">
-    <div v-if="props.readOnly">
+    <div v-if="props.readOnly" @click="userClick">
       <textarea :value="fileContent" id="editor" cols="30" rows="10"></textarea>
     </div>
     <div v-else @click="userClick">
@@ -619,7 +901,7 @@ function hideModal() {
       ></textarea>
     </div>
   </div>
-  <button v-if="!props.readOnly" @click="showModal">show modal</button>
+  <!-- <button v-if="!props.readOnly" @click="showModal">show modal</button> -->
   <div id="save-alert">
     <div
       class="modal fade"
@@ -653,11 +935,14 @@ function hideModal() {
       </div>
     </div>
   </div>
-  <button @click="playback">Playback</button>
+  <button @click="playback" v-if="props.readOnly">Playback</button>
   <button v-if="props.authorization" @click="runCode">Run code</button>
 </template>
 
 <style scoped>
+/* .CodeMirror{ */
+/* max-width: 70vw; */
+/* } */
 h3 {
   margin: 40px 0 0;
 }
