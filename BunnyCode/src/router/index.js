@@ -21,7 +21,7 @@ const router = createRouter({
       component: () => import("../views/BattleHomeView.vue"),
     },
     {
-      path: "/code-mirror/:projectName",
+      path: "/code-mirror/:projectName/:versionNumber?",
       name: "code-mirror",
       component: () => import("../views/WorkSpace.vue"),
       props: true,

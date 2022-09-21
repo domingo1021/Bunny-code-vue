@@ -96,20 +96,22 @@ const productionServer = "https://domingoos.store";
 const projectDetail = ref({});
 const targetFunction = ref("Folder");
 // default target version 為第一個 version, (之後根據使用者點選version 做修改)
-const targetVersionIndex = ref(0);
-const authorization = ref(false);
-const readOnly = ref(true);
-const emits = defineEmits(["setUserID"]);
-
-//TODO: debug: change route when user click header instead
-const router = useRouter();
-// const route = useRoute();
-
 const props = defineProps({
   userID: Number,
   socket: Socket,
   projectName: String,
+  versionNumber: String,
 });
+
+const targetVersionIndex = ref(0);
+if (props.versionNumber !== "") {
+  targetVersionIndex.value = Number(props.versionNumber) - 1;
+}
+const authorization = ref(false);
+const readOnly = ref(true);
+const emits = defineEmits(["setUserID"]);
+
+const router = useRouter();
 
 function updateTarget(target) {
   // 跳到 File or 跳到 version.
@@ -146,7 +148,6 @@ function updateParentVersionFile(emitObject) {
 }
 
 async function updateProjectDetail() {
-  // console.log("projectName: ", props.projectName);
   let projectResponse;
   try {
     projectResponse = await axios.get(
@@ -178,6 +179,10 @@ async function updateProjectDetail() {
       });
     }
   });
+  if (targetVersionIndex.value > projectDetail.value.version.length - 1 || targetVersionIndex.value < 0) {
+    alert("版本不存在");
+    targetVersionIndex.value = 0;
+  }
   console.log("Project content: ", projectDetail.value);
 }
 
@@ -187,6 +192,23 @@ watch(
     await updateProjectDetail();
   }
 );
+
+watch(
+  () => props.versionNumber,
+  async (newVersionNumber, prevVersionNumber) => {
+    targetVersionIndex.value = Number(newVersionNumber) - 1;
+  }
+);
+
+watch(targetVersionIndex, () => {
+  router.push({
+    name: "code-mirror",
+    params: {
+      projectName: props.projectName,
+      versionNumber: `${targetVersionIndex.value + 1}`,
+    },
+  });
+});
 
 onBeforeMount(async () => {
   await updateProjectDetail();

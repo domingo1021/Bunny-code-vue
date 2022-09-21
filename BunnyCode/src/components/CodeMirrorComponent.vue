@@ -1,4 +1,3 @@
-<!-- eslint-disable prettier/prettier -->
 <script setup>
 import * as CodeMirror from "codemirror";
 import axios from "axios";
@@ -36,11 +35,32 @@ let editor = null;
 const fileContent = ref(props.info.fileContent);
 
 function updateContent(e) {
-  console.log("input: ", e.data);
   let addCode = e.data;
   let allCode = editor.getDoc().getValue();
   if (e.data === "(") {
-    editor.getDoc().setValue(editor.getDoc().getValue() + ")");
+    const splitCodes = allCode.split("\n");
+    let lineCode = splitCodes[props.info.line];
+    lineCode =
+      lineCode.substring(0, props.info.index + 1) +
+      ")" +
+      lineCode.substring(props.info.index + 1);
+    allCode = splitCodes.reduce((prev, curr, line) => {
+      if (line === splitCodes.length - 1) {
+        if (props.info.line === line) {
+          prev += lineCode;
+        } else {
+          prev += curr;
+        }
+      } else {
+        if (props.info.line === line) {
+          prev += lineCode + "\n";
+        } else {
+          prev += curr + "\n";
+        }
+      }
+      return prev;
+    }, "");
+    editor.getDoc().setValue(allCode);
     addCode += ")";
     editor
       .getDoc()
@@ -52,7 +72,6 @@ function updateContent(e) {
       action: "create",
       line: props.info.line,
       index: props.info.index,
-      //length: addCode.length --> 拉出來的時候再去取得就可以了
       code: addCode,
       timestamp: Date.now().toString() + "000000",
     },
@@ -65,55 +84,45 @@ function updateContent(e) {
     fileNumber: props.info.fileNumber,
     code: allCode,
   });
-  console.log("file content: ", props.info.fileContent);
-  console.log("file line: ", props.info.line);
-  console.log("file index: ", props.info.index);
 }
 
 async function checkEventUp(e) {
-  console.log(e.key);
   if (e.key === "Enter") {
     console.log("Enter");
-    //1. change curr code (可以直接讀 Code mirror 的資訊);
-    //2. push records
-    //3. change line
-    //4. change index
     let allCode = editor.getDoc().getValue();
     emit("updateCurrCodes", {
       fileNumber: props.info.fileNumber,
       code: allCode,
     });
+    const currentCursor = editor.getDoc().getCursor();
     emit("pushCodeRecords", {
       fileNumber: props.info.fileNumber,
       newRecords: {
         action: "enter",
-        line: props.info.line,
-        index: props.info.index,
+        line: currentCursor.line,
+        index: currentCursor.ch,
         code: "",
         timestamp: Date.now().toString() + "000000",
       },
     });
     emit("updateCurrLine", {
       fileNumber: props.info.fileNumber,
-      line: props.info.line + 1,
+      line: currentCursor.line,
     });
     emit("updateCurrIndex", {
       fileNumber: props.info.fileNumber,
-      index: 0,
+      index: currentCursor.ch,
     });
   } else if (e.key === "Backspace") {
     // 1. 如果index=0 且 line>0 ，換行
     // 2. 其餘則直接修改當行 index, code;
     // 3. push records
     let deletedCode;
-    let changeLineStatus = 0;
     if (props.info.index === 0 && props.info.line === 0) {
       return;
     } else if (props.info.index === 0 && props.info.line > 0) {
       deletedCode = "\n";
-      changeLineStatus = 1;
     } else {
-      console.log("content", props.info.fileContent);
       deletedCode = props.info.fileContent
         .split("\n")
         [props.info.line].substring(props.info.index - 1, props.info.index);
@@ -132,111 +141,77 @@ async function checkEventUp(e) {
         timestamp: Date.now().toString() + "000000",
       },
     });
-    if (changeLineStatus) {
-      emit("updateCurrLine", {
-        fileNumber: props.info.fileNumber,
-        line: props.info.line - 1,
-      });
-      emit("updateCurrIndex", {
-        fileNumber: props.info.fileNumber,
-        index: editor.getDoc().getValue().split("\n")[props.info.line].length,
-      });
-    } else {
-      emit("updateCurrIndex", {
-        fileNumber: props.info.fileNumber,
-        index: props.info.index - 1,
-      });
-    }
-  } else if (e.key === "ArrowLeft") {
-    console.log("left");
-    if (props.info.index === 0 && props.info.line === 0) {
-      return;
-    } else if (props.info.index === 0 && props.info.line > 0) {
+    const currentCursor = editor.getDoc().getCursor();
+    emit("updateCurrLine", {
+      fileNumber: props.info.fileNumber,
+      line: currentCursor.line,
+    });
+    emit("updateCurrIndex", {
+      fileNumber: props.info.fileNumber,
+      index: currentCursor.ch,
+    });
+  } else if (
+    e.keyCode === 40 ||
+    e.keyCode === 38 ||
+    e.key === "ArrowRight" ||
+    e.key === "ArrowLeft"
+  ) {
+    const currentCursor = editor.getDoc().getCursor();
+    const currentLine = currentCursor.line;
+    const currentIndex = currentCursor.ch;
+    if (e.keyCode === 40) {
       emit("pushCodeRecords", {
         fileNumber: props.info.fileNumber,
         newRecords: {
-          action: "left",
-          line: props.info.line,
-          index: props.info.index,
+          action: "down",
+          line: currentLine,
+          index: currentIndex,
           code: "",
           timestamp: Date.now().toString() + "000000",
         },
       });
-      emit("updateCurrLine", {
-        fileNumber: props.info.fileNumber,
-        line: props.info.line - 1,
-      });
-      emit("updateCurrIndex", {
-        fileNumber: props.info.fileNumber,
-        index: props.info.fileContent.split("\n")[props.info.line].length - 1,
-      });
-    } else {
+    } else if (e.keyCode === 38) {
       emit("pushCodeRecords", {
         fileNumber: props.info.fileNumber,
         newRecords: {
-          action: "left",
-          line: props.info.line,
-          index: props.info.index,
+          action: "up",
+          line: currentLine,
+          index: currentIndex,
           code: "",
           timestamp: Date.now().toString() + "000000",
         },
       });
-      emit("updateCurrIndex", {
-        fileNumber: props.info.fileNumber,
-        index: props.info.index - 1,
-      });
-    }
-  } else if (e.key === "ArrowRight") {
-    console.log("right");
-    // console.log("index: ",  props.info.index ,
-    // props.info.fileContent.split("\n")[props.info.line].length - 1)
-    // console.log("line: ",  props.info.line, props.info.fileContent.split("\n").length - 1)
-    if (
-      props.info.index ===
-        props.info.fileContent.split("\n")[props.info.line].length &&
-      props.info.line === props.info.fileContent.split("\n").length - 1
-    ) {
-      console.log("out");
-      return;
-    } else if (
-      props.info.index ===
-        props.info.fileContent.split("\n")[props.info.line].length &&
-      props.info.fileContent.split("\n").length > 0
-    ) {
+    } else if (e.key === "ArrowRight") {
       emit("pushCodeRecords", {
         fileNumber: props.info.fileNumber,
         newRecords: {
           action: "right",
-          line: props.info.line,
-          index: props.info.index,
-          code: "\n",
-          timestamp: Date.now().toString() + "000000",
-        },
-      });
-      emit("updateCurrLine", {
-        fileNumber: props.info.fileNumber,
-        line: props.info.line + 1,
-      });
-      emit("updateCurrIndex", {
-        fileNumber: props.info.fileNumber,
-        index: 0,
-      });
-    } else {
-      emit("pushCodeRecords", {
-        fileNumber: props.info.fileNumber,
-        newRecords: {
-          action: "right",
-          line: props.info.line,
-          index: props.info.index,
+          line: currentLine,
+          index: currentIndex,
           code: "",
           timestamp: Date.now().toString() + "000000",
         },
       });
-      emit("updateCurrIndex", {
+    } else if (e.key === "ArrowLeft") {
+      emit("pushCodeRecords", {
         fileNumber: props.info.fileNumber,
-        index: props.info.index + 1,
+        newRecords: {
+          action: "left",
+          line: currentLine,
+          index: currentIndex,
+          code: "",
+          timestamp: Date.now().toString() + "000000",
+        },
       });
     }
+    emit("updateCurrLine", {
+      fileNumber: props.info.fileNumber,
+      line: currentLine,
+    });
+    emit("updateCurrIndex", {
+      fileNumber: props.info.fileNumber,
+      index: currentIndex,
+    });
   } else if (e.ctrlKey && e.keyCode === 83) {
     console.log("Control + Save");
     if (props.records.length !== 0) {
@@ -264,9 +239,8 @@ async function saveFileRecord() {
     alert(error.response.data.msg);
     return;
   }
-  console.log(saveResponse.data);
+  // console.log(saveResponse.data);
   emit("pushSaveRecords", saveResponse.data);
-  // SaveResponse.data.data
   // Save code file.
   const allCodes = props.info.fileContent;
   console.log("entire code:", allCodes);
@@ -287,11 +261,9 @@ async function saveFileRecord() {
     },
     data: submitForm,
   });
-  // //TODO: get new Detail
   emit("updateVersionFile", {
     fileURL: response.data.data,
-  })
-  console.log(response)
+  });
   myModal.hide();
 }
 
@@ -318,7 +290,7 @@ async function runCode() {
 }
 
 async function playback() {
-  //TODO: setValue 所有上一個版本的 Code 作為初始值
+  // setValue 所有上一個版本的 Code 作為初始值
   const baseContent = await axios.get(props.records[0].baseURL);
   const currentLine = baseContent.data.split("\n").length - 1;
   const currentIndex = baseContent.data.split("\n")[currentLine].length;
@@ -330,6 +302,7 @@ async function playback() {
     fileNumber: props.info.fileNumber,
     line: currentLine,
   });
+  console.log("all records: ", props.info.codeRecords);
   editor.getDoc().setValue(baseContent.data);
   for (let i = 0; i < props.info.timeBetween.length; i++) {
     await new Promise((resolve, reject) => {
@@ -343,9 +316,10 @@ async function playback() {
 }
 
 function triggerEvent(recordObject) {
+  // editor.setCursor({line: recordObject.line})
   const action = recordObject.action;
   if (action === "create") {
-    if(recordObject.code === "\"\""){
+    if (recordObject.code === '""') {
       recordObject.code = '"';
     }
     const prevCodes = editor.getDoc().getValue();
@@ -376,7 +350,6 @@ function triggerEvent(recordObject) {
     const codes = prevCodes.split("\n");
     let newCodes = "";
     let changeLineStatus = false;
-    console.log(recordObject.code);
     if (recordObject.code === "\r\n") {
       changeLineStatus = true;
       codes[recordObject.line - 1] += codes[recordObject.line];
@@ -409,10 +382,6 @@ function triggerEvent(recordObject) {
         fileNumber: props.info.fileNumber,
         index: newCodes.split("\n")[props.info.line].length,
       });
-      console.log(
-        "update index at: ",
-        newCodes.split("\n")[props.info.line].length
-      );
     } else {
       emit("updateCurrIndex", {
         fileNumber: props.info.fileNumber,
@@ -420,19 +389,24 @@ function triggerEvent(recordObject) {
       });
     }
   } else if (action === "enter") {
-    console.log("enter");
+    const targetLine = recordObject.line;
+    const targetIndex = recordObject.index;
     const prevCodes = editor.getDoc().getValue();
-    const codes = prevCodes.split("\n");
+    let codes = prevCodes.split("\n");
     let lineCode = codes[props.info.line];
-    console.log(recordObject.index, props.info.index);
-    codes.splice(
-      props.info.line + 1,
-      0,
-      lineCode.substring(recordObject.index)
-    );
-    codes[props.info.line] = lineCode.substring(0, recordObject.index);
-    const newCodes = codes.reduce((prev, curr, index) => {
-      if (index !== codes.length - 1) {
+    let tmpCodes = [...codes.slice(0, props.info.line)];
+    tmpCodes.push(lineCode.substring(0, props.info.index));
+    if (targetIndex > 1) {
+      tmpCodes.push(
+        " ".repeat(targetIndex) + lineCode.substring(props.info.index)
+      );
+    } else {
+      tmpCodes.push(lineCode.substring(props.info.index));
+    }
+    const remains = codes.filter((element, index) => index > props.info.line);
+    tmpCodes = [...tmpCodes, ...remains];
+    const newCodes = tmpCodes.reduce((prev, curr, index) => {
+      if (index !== tmpCodes.length - 1) {
         prev += curr + "\n";
       } else {
         prev += curr;
@@ -446,23 +420,28 @@ function triggerEvent(recordObject) {
     });
     emit("updateCurrLine", {
       fileNumber: props.info.fileNumber,
-      line: props.info.line + 1,
+      line: targetLine,
     });
     emit("updateCurrIndex", {
       fileNumber: props.info.fileNumber,
-      index: 0,
+      index: targetIndex,
+    });
+  } else if (
+    action === "left" ||
+    action === "right" ||
+    action === "up" ||
+    action === "down"
+  ) {
+    emit("updateCurrLine", {
+      fileNumber: props.info.fileNumber,
+      line: recordObject.line,
+    });
+    emit("updateCurrIndex", {
+      fileNumber: props.info.fileNumber,
+      index: recordObject.index,
     });
   }
 }
-// onBeforeMount(async () => {
-//   console.log("Finding records: ", props.info);
-//   const fileUrlContent = await axios.get(props.info.fileURL);
-//   fileContent.value = fileUrlContent.data;
-//   emit("updateCurrCodes", {
-//     fileNumber: props.info.fileNumber,
-//     code: fileContent.value,
-//   });
-// });
 
 async function initSaveRecords() {
   let recordResponse;
@@ -507,10 +486,6 @@ async function initSaveRecords() {
 }
 
 async function initCodeMirror() {
-  console.log("init index: ", props.info.index);
-  console.log("init line: ", props.info.line);
-  console.log("prepare to initial");
-  console.log("code mirror file URL: ", props.info.fileURL);
   const fileUrlContent = await axios.get(props.info.fileURL);
   if (props.info.fileContent === "") {
     emit("updateCurrCodes", {
@@ -607,7 +582,7 @@ function hideModal() {
 </script>
 
 <template>
-  <div @input="updateContent" @keyup="checkEventUp">
+  <div @input="updateContent" @keydown="checkEventUp">
     <div v-if="props.readOnly">
       <textarea :value="fileContent" id="editor" cols="30" rows="10"></textarea>
     </div>
