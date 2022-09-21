@@ -196,7 +196,11 @@ watch(
 watch(
   () => props.versionNumber,
   async (newVersionNumber, prevVersionNumber) => {
-    targetVersionIndex.value = Number(newVersionNumber) - 1;
+    targetVersionIndex.value = 0;
+    if (props.versionNumber !== "") {
+      targetVersionIndex.value = Number(props.versionNumber) - 1;
+    }
+    // await updateProjectDetail();
   }
 );
 
