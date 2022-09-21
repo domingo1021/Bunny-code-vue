@@ -84,7 +84,7 @@ function socketInit() {
     if (props.recordInfo.length !== 0) {
       responseObject.readOnly = true;
     }
-    console.log("responseObject after update: ", responseObject);
+    console.log("responseObject after update: ", responseObject, props.recordInfo);
     emit("changeUserStatus", responseObject);
   });
   if (props.recordInfo.length === 0) {
@@ -107,8 +107,6 @@ watch(
 
 onMounted(() => {
   // check whether version is editing with version.versionID
-  console.log("View mount");
-  console.log("versionID: ", props.version.versionID);
   if (props.socket) {
     socketInit();
   }
@@ -131,10 +129,10 @@ onBeforeUnmount(() => {
 <template>
   <div
     v-if="
-      authorization && props.socket !== undefined && recordInfo.length === 0
+      authorization && props.socket !== undefined && props.recordInfo.length === 0
     "
   >
-    <button @click="changeEdit">Edit</button>
+    <button @click="changeEdit" v-if="props.readOnly">Edit</button>
   </div>
   <div v-if="folderInfo.length !== 0">
     <div>
