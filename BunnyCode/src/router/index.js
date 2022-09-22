@@ -41,7 +41,7 @@ const router = createRouter({
       props: true,
     },
     {
-      path: "/user/:userID",
+      path: "/user/:pageUserID",
       name: "user",
       component: () => import("../views/UserView.vue"),
       props: true,
@@ -110,7 +110,7 @@ router.beforeEach(async (to, from, next) => {
     if (isLogin) {
       return next({
         name: "user",
-        params: { userID: userID },
+        params: { paseUserID: userID },
       });
     } else {
       return next();

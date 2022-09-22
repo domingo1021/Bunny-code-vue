@@ -46,7 +46,7 @@ function goProfile() {
   display: flex;
   color: rgb(249, 247, 247);
   top: 10px;
-  left: 200px;
+  right: 20px;
   width: 90px;
   border-radius: 10px;
   justify-content: center;
@@ -60,7 +60,7 @@ function goProfile() {
 }
 .card {
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
-  max-width: 300px;
+  max-width: 500px;
   margin: auto;
   text-align: center;
 }

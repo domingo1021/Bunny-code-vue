@@ -1,11 +1,19 @@
 <script setup>
 import axios from "axios";
-import { nextTick, onBeforeUnmount, onMounted, onUpdated, ref } from "vue";
+import {
+  nextTick,
+  onBeforeMount,
+  onBeforeUnmount,
+  onMounted,
+  onUpdated,
+  ref,
+} from "vue";
 import { useRouter, useRoute } from "vue-router";
-import ProjectCardComponent from "../components/ProjectCardComponent.vue";
+import UserProfileComponent from "../components/UserProfileComponent.vue";
 
 const props = defineProps({
   socket: Object,
+  pageUserID: String,
   userID: Number,
 });
 const emits = defineEmits(["setUserID"]);
@@ -22,6 +30,8 @@ const versionName = ref("");
 const fileName = ref("");
 const projectPublic = ref(1);
 const buttonClickable = ref(false);
+const userInfo = ref({});
+const userKeyword = ref("");
 
 const CLIENT_CATEGORY = {
   visitor: 0,
@@ -31,6 +41,13 @@ const CLIENT_CATEGORY = {
 
 function renderPath(index) {
   router.push(`/workspace/${projectsDisplayed.value[index].projectName}`);
+}
+
+async function searchUserProject() {
+  const userProjectsInfo = await axios.get(
+    `${localhostServer}/api/1.0/user/${props.pageUserID}/project?keyword=${userKeyword.value}`
+  );
+  projectsDisplayed.value = userProjectsInfo.data.data;
 }
 
 async function createProject() {
@@ -100,23 +117,29 @@ onUpdated(() => {
   }
 });
 
+onBeforeMount(async () => {
+  const userDetail = await axios.get(
+    `${localhostServer}/api/1.0/user/${props.userID}/detail`
+  );
+  userInfo.value = userDetail.data.data;
+});
+
 onMounted(async () => {
   // onBeforeMount(async () => {
   await nextTick();
   let responseProjects = await axios({
     method: "get",
-    url: productionServer + `/api/1.0/user/${route.params.userID}/project`,
+    // url: productionServer + `/api/1.0/user/${route.params.userID}/project`,
+    url: localhostServer + `/api/1.0/user/${route.params.pageUserID}/project`,
     headers: {
       Authorization: `Bearer ${jwt}`,
     },
   });
-  console.log(props.userID);
-  console.log(responseProjects.data.data);
   projectsDisplayed.value = responseProjects.data.data;
   try {
     const authResponse = await axios({
       method: "get",
-      url: productionServer + `/api/1.0/user/${route.params.userID}/auth`,
+      url: productionServer + `/api/1.0/user/${route.params.pageUserID}/auth`,
       headers: {
         Authorization: `Bearer ${jwt}`,
       },
@@ -125,8 +148,6 @@ onMounted(async () => {
   } catch (error) {
     userAuth.value = 0;
   }
-  console.log(projectsDisplayed.value);
-  console.log("User auth value: ", userAuth.value);
   if (props.socket) {
     initSocket();
   }
@@ -138,7 +159,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div id="create-project" v-if="userAuth === CLIENT_CATEGORY.self">
+  <!-- <div id="create-project" v-if="userAuth === CLIENT_CATEGORY.self">
     <button
       type="button"
       class="btn btn-primary"
@@ -171,7 +192,6 @@ onBeforeUnmount(() => {
           </div>
           <div class="modal-body mx-3">
             <div class="md-form mb-4" style="display: flex">
-              <!-- <i class="fas fa-user prefix grey-text"></i> -->
               <label
                 class="label-header"
                 data-error="wrong"
@@ -189,7 +209,6 @@ onBeforeUnmount(() => {
             <div class="warning" v-if="projectName.length > 29">
               Project name length too long.
             </div>
-            <!-- projectName, projectDescription, isPublic, userID, versionName, fileName -->
             <div class="md-form mb-4" style="display: flex">
               <i class="fas fa-envelope prefix grey-text"></i>
               <label
@@ -288,17 +307,32 @@ onBeforeUnmount(() => {
         </div>
       </div>
     </div>
-  </div>
-  <main>
-    <div id="project-content">
-      <div id="flex-box">
+  </div> -->
+  <main style="display: flex">
+    <div id="user-profile-component">
+      <UserProfileComponent :userInfo="userInfo" />
+    </div>
+    <div id="user-project-detail">
+      <div id="search-project-bar">
+        <input type="text" v-model="userKeyword" />
+        <button @click="searchUserProject">Search</button>
+      </div>
+      <div id="project-card-long">
         <div
-          clsss="flex-item"
+          clsss="card"
           v-for="(project, index) in projectsDisplayed"
           :key="index"
           @click="renderPath(index)"
         >
-          <ProjectCardComponent :projectObject="project" />
+          <!-- <div class="card"> -->
+          <div class="card-body project-card-detail">
+            <h5 class="card-title">Card title</h5>
+            <p class="card-text">
+              {{project.projectName}}
+            </p>
+            <a href="#" class="btn btn-primary">Go somewhere</a>
+          </div>
+          <!-- </div> -->
         </div>
       </div>
     </div>
@@ -306,19 +340,22 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-#project-content {
-  text-align: center;
-  margin-left: 10%;
-  margin-right: 10%;
+#user-profile-component {
+  display: inline-block !important;
+  margin: 8% 3% 0% 3%;
+  height: 30%;
+  width: 30%;
 }
-#flex-box {
-  display: flex;
-  margin: auto;
-  /* justify-content: center; */
-  /* align-self: center; */
-  flex-wrap: wrap;
-  flex-direction: row;
-  max-width: 1200px;
+#user-project-detail {
+  margin: 5% 5% 5% 10%;
+  width: 50%;
+}
+
+#project-card-long {
+  width: 100%;
+}
+.project-card-detail {
+  border: 3px solid rgb(166, 47, 47);
 }
 
 #valid-btn {
@@ -331,13 +368,6 @@ onBeforeUnmount(() => {
   color: azure;
 }
 
-.flex-item {
-  background-color: rgb(161, 180, 201);
-  flex-grow: 1;
-  flex-basis: 40%;
-  height: 30%;
-  padding-top: 10px;
-}
 .label-header {
   width: 200px;
   top: 5px;
