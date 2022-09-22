@@ -24,6 +24,7 @@ const topThreeProejct = [
     watchCount: 0,
   },
 ];
+const projectPageArray = ref([]);
 
 function renderPath(index) {
   router.push(
@@ -36,9 +37,24 @@ function updateProjects(emitObject) {
   console.log(projectsDisplayed.value);
 }
 
+function searchProjectPage(pageing) {
+  const { keywords } = route.query;
+  if (keywords) {
+    router.push({
+      path: "/workspace",
+      query: { keywords: `${keywords}`, paging: `${pageing}` },
+    });
+  } else {
+    router.push({ path: "/workspace", query: { paging: `${pageing}` } });
+  }
+}
+
 async function queryProjects() {
   const { keywords } = route.query;
-  const paging = route.query.paging || 0;
+  let paging = +route.query.paging - 1;
+  if (!paging || +paging < 0) {
+    paging = 0;
+  }
   if (keywords) {
     let responseProjects = await axios.get(
       productionServer +
@@ -52,6 +68,14 @@ async function queryProjects() {
     productionServer + `/api/1.0/project/all?paging=${paging}`
   );
   projectsDisplayed.value = responseProjects.data.data;
+  console.log(projectsDisplayed.value);
+  projectPageArray.value = [];
+  for (let i = 1; i <= projectsDisplayed.value.allPage; i++) {
+    projectPageArray.value.push(i);
+  }
+  if (projectsDisplayed.value.projects.length === 0) {
+    searchProjectPage(1);
+  }
 }
 watch(
   () => route.fullPath,
@@ -73,9 +97,24 @@ defineExpose({
 <template>
   <main>
     <div id="project-content">
-      <div id="flex-box">
+      <div class="projects-title">Top three projects</div>
+      <div id="top-three" class="projects-display">
         <div
           clsss="flex-item"
+          style="margin: 1%"
+          v-for="(project, index) in topThreeProejct"
+          :key="index"
+        >
+          <ProjectCardComponent
+            :projectObject="project"
+            @click="renderPath(index)"
+          />
+        </div>
+      </div>
+      <div class="projects-title">Project you may like</div>
+      <div id="search-result" class="projects-display">
+        <div
+          class="project-component"
           style="margin: 1%"
           v-for="(project, index) in projectsDisplayed.projects"
           :key="index"
@@ -86,26 +125,58 @@ defineExpose({
           />
         </div>
       </div>
-      <div>Current page: {{ projectsDisplayed.page }}</div>
-      <div>All page: {{ projectsDisplayed.allPage }}</div>
+      <div id="search-project-page">
+        <div
+          class="page-detail"
+          v-for="(pageIndex, index) in projectPageArray"
+          :key="index"
+          @click="searchProjectPage(pageIndex)"
+        >
+          <div id="current-page" v-if="pageIndex === projectsDisplayed.page">
+            {{ pageIndex }}
+          </div>
+          <div v-else>{{ pageIndex }}</div>
+        </div>
+      </div>
     </div>
   </main>
 </template>
 
 <style scoped>
-#project-content {
-  text-align: center;
-  margin-left: 10%;
-  margin-right: 10%;
+#top-three {
+  border-bottom: 1px solid rgb(142, 142, 142);
+  margin-bottom: 7%;
 }
-#flex-box {
+
+#search-result {
+  padding-bottom: 0%;
+  margin-bottom: 2%;
+}
+
+#project-content {
+  margin: 3% 5% 3% 5%;
+  padding-bottom: 2%;
+  border-bottom: 1px solid rgb(142, 142, 142);
+}
+
+.projects-title {
+  margin-left: 5%;
+  font-weight: bold;
+  font-size: 2rem;
+  width: 100vw;
+  text-align: left;
+}
+
+.projects-display {
   display: flex;
   margin: auto;
-  /* justify-content: center; */
-  /* align-self: center; */
+  margin-top: 3%;
+  justify-content: center;
   flex-wrap: wrap;
   flex-direction: row;
-  max-width: 1200px;
+  max-width: 90%;
+  padding-bottom: 3%;
+  text-align: center;
 }
 .flex-item {
   background-color: rgb(161, 180, 201);
@@ -113,5 +184,25 @@ defineExpose({
   flex-basis: 40%;
   height: 30%;
   padding-top: 10px;
+}
+
+#search-project-page {
+  display: flex;
+  justify-content: end;
+}
+
+.page-detail {
+  margin-right: 3%;
+}
+#current-page {
+  width: 30px;
+  height: 30px;
+  text-align: center;
+  font-size: 1.25rem;
+  font-weight: bold;
+  bottom: 0.25rem;
+  background-color: rgb(218, 218, 218);
+  color: rgb(30, 30, 30);
+  border-radius: 50%;
 }
 </style>

@@ -424,6 +424,7 @@ onUnmounted(() => {
   cursor: pointer;
 }
 .version-list {
+  margin-left: 4%;
   font-size: 0.75rem;
 }
 .version-list:hover {
@@ -433,7 +434,7 @@ onUnmounted(() => {
 #folder-control {
   margin-top: 10px;
   margin-bottom: 4%;
-  padding: 5%;
+  padding: 5% 5% 5% 1%;
 }
 
 #shortcuts {
@@ -441,19 +442,21 @@ onUnmounted(() => {
 }
 
 #left-bar {
+  padding-left: 2%;
+  padding-right: 2%;
+  font-size: 1.1rem;
   background-color: #2a2a2a;
 }
 #info-bar {
+  font-size: 1.1rem;
   border-left: 1px solid rgb(255, 255, 255);
-  padding-left: 30px;
-  padding-right: 20px;
+  padding: 1% 0% 0% 2%;
   width: 250px;
   background-color: rgb(25, 25, 25);
   color: rgb(255, 255, 255);
 }
 #main-content {
   margin-top: -30px;
-  /* padding: auto; */
   background-color: #161515;
   width: 100%;
 }
@@ -554,5 +557,8 @@ onUnmounted(() => {
 }
 ::-webkit-scrollbar-button {
   height: 10px;
+}
+button:hover{
+  background-color: #555;
 }
 </style>

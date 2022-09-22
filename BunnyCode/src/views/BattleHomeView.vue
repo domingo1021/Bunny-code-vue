@@ -115,7 +115,7 @@
     <div id="project-content">
       <div>
         <div class="battle-field">
-          <h3 class="battle-title">Finish</h3>
+          <h3 class="battle-title">Finished</h3>
           <div id="flex-box">
             <div
               clsss="flex-item"
@@ -226,11 +226,14 @@ watch(battleName, () => {
 #flex-box {
   display: flex;
   margin: auto;
-  /* justify-content: center; */
-  /* align-self: center; */
+  margin-top: 3%;
+  justify-content: center;
   flex-wrap: wrap;
   flex-direction: row;
-  max-width: 1200px;
+  max-width: 90%;
+  border-bottom: 1px solid rgb(142, 142, 142);
+  padding-bottom: 3%;
+  margin-bottom: 5%;
 }
 
 #valid-btn {
@@ -244,8 +247,9 @@ watch(battleName, () => {
 }
 
 .battle-title {
+  margin-left: 5%;
   font-weight: bold;
-  font-size: 1.5rem;
+  font-size: 2rem;
   width: 100vw;
   text-align: left;
 }
@@ -256,6 +260,7 @@ watch(battleName, () => {
   flex-basis: 40%;
   height: 30%;
   padding-top: 10px;
+
 }
 .label-header {
   width: 200px;
@@ -292,12 +297,6 @@ watch(battleName, () => {
 
 .battle-title {
   width: 150px;
-}
-
-.battle-field {
-  border-bottom: 1px solid rgb(142, 142, 142);
-  padding-bottom: 3%;
-  margin-bottom: 5%;
 }
 
 /* The search field */

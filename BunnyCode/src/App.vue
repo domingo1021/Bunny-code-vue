@@ -243,7 +243,7 @@ nav a:first-of-type {
   top: 0;
   left: 0;
   position: fixed;
-  z-index: 99;
+  z-index: 100;
   width: 100vw;
   height: 50px;
   background-color: #161b22;

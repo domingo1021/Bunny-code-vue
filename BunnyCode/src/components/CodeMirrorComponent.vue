@@ -54,12 +54,13 @@ let redo = [];
 let undo = [];
 
 function updateContent(e) {
+  console.log(props.info.line, props.info.index);
+  console.log("input: ", e.data);
   if (props.readOnly) {
     editor.getDoc().setValue(props.info.fileContent);
     editor.getDoc().setCursor({ line: props.info.line, ch: props.info.index });
     return;
   }
-  console.log("Input key: ", e.data);
   let addCode = e.data;
   let allCode = editor.getDoc().getValue();
 
@@ -392,7 +393,7 @@ async function checkEventUp(e) {
     // });
     // redo.pop();
   } else {
-    if (e.ctrlKey || e.shiftKey || e.metaKey || e.altKey) {
+    if (e.ctrlKey || e.metaKey || e.altKey) {
       e.preventDefault();
       editor.getDoc().setValue(props.info.fileContent);
       editor
@@ -775,9 +776,8 @@ async function initCodeMirror() {
   });
   emit("updateCurrIndex", {
     fileNumber: props.info.fileNumber,
-    index: props.info.fileContent.length,
+    index: props.info.fileContent.split("\n")[props.info.line].length,
   });
-  console.log("line at init: ", props.info.line);
   let tmpReadOnly = props.readOnly;
   let cursorHeight = 0.85;
   if (tmpReadOnly === undefined) {
@@ -790,7 +790,6 @@ async function initCodeMirror() {
   }
   console.log("read only: ", props.readOnly);
   const editors = document.getElementsByClassName("CodeMirror");
-  console.log("Editor length: ", Array.from(editors).length);
   if (editors.length !== 0) {
     console.log("in");
     Array.from(editors).forEach((element) => {
@@ -825,7 +824,6 @@ async function initCodeMirror() {
       // alert(commandKey);
     };
   });
-  console.log("file content:", props.info.fileContent);
   editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
     value: props.info.fileContent,
     lineNumbers: true,
@@ -910,10 +908,10 @@ onBeforeUnmount(() => {
 <template>
   <div id="tool-bar">
     <button class="tool-btn">
-      <img src="@/assets/undo.png" alt="uedo" width="20" height="20">
+      <img src="@/assets/undo.png" alt="uedo" width="20" height="20" />
     </button>
     <button class="tool-btn">
-      <img src="@/assets/redo.png" alt="redo" width="20" height="20">
+      <img src="@/assets/redo.png" alt="redo" width="20" height="20" />
     </button>
     <button
       class="tool-btn"
@@ -1015,7 +1013,7 @@ onBeforeUnmount(() => {
   color: rgb(0, 0, 0);
   background-color: rgb(169, 78, 78);
   z-index: 98;
-  margin: 5px 5px 0px 5px;
+  margin: 1% 2% 0px 5px;
   top: 1%;
   right: 2%;
   font-size: 0.75rem;
@@ -1054,5 +1052,8 @@ onBeforeUnmount(() => {
   position: absolute;
   bottom: 2%;
   left: 1%;
+}
+button:hover {
+  background-color: rgb(180, 180, 180);
 }
 </style>

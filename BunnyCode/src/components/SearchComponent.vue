@@ -31,7 +31,7 @@ async function enterSearch(e) {
 
 #input-area{
   border: 0.5px solid rgb(98, 100, 123);
-  color: rgb(255,255,255);
+  color: rgb(255, 255, 255);
   background-color: #161b22;
   width: 220px;
   padding: 2%;
