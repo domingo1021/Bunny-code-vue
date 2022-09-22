@@ -11,7 +11,7 @@
         <div>{{ file.fileName }}</div>
       </div>
     </div>
-    <div style="width: 100%">
+    <div style="width: 100%; background-color: rgb(36, 36, 36)">
       <textarea
         name=""
         :value="text"
@@ -19,7 +19,11 @@
         cols="20"
         rows="10"
       ></textarea>
-      <button @click="intoFolder">進入檔案</button>
+      <div style="display: flex; width: 100%; justify-content: right">
+        <button @click="intoFolder" style="margin-right: 5%; border-radius: 5px;">
+          Go to version
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -28,7 +32,7 @@
 import { onBeforeMount, ref, watch } from "vue";
 import * as CodeMirror from "codemirror";
 import "codemirror/lib/codemirror.css";
-import "codemirror/theme/night.css"
+import "codemirror/theme/night.css";
 import "codemirror/theme/material-darker.css";
 import "codemirror/mode/javascript/javascript.js";
 import axios from "axios";
@@ -74,7 +78,7 @@ async function initVersionContent() {
   editor.getDoc().setValue(text.value);
 }
 
-function intoFolder(){
+function intoFolder() {
   emit("updateTarget", "Folder");
 }
 

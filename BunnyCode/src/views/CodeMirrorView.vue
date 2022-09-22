@@ -2,12 +2,15 @@
 import Socket from "../socket";
 import CodeMirrorComponent from "../components/CodeMirrorComponent.vue";
 import TerminalComponent from "../components/TerminalComponent.vue";
-import { ref, onMounted, watch, onBeforeUnmount, onUpdated } from "vue";
-
+import { ref, onMounted, watch, onBeforeUnmount } from "vue";
+// import { Vue3ToggleButton } from "vue3-toggle-button";
+// import "@/../node_modules/vue3-toggle-button/dist/style.css";
 // TODO: 如果是本人進入頁面（認為想要 edit）, 則建立 Socket, 並更動 edit 狀態，
 
 const props = defineProps({
   socket: Socket,
+  projectUserID: Number,
+  userID: Number,
   projectID: Number,
   folderInfo: Object,
   recordInfo: Object,
@@ -17,7 +20,12 @@ const props = defineProps({
   targetVersionIndex: Number,
 });
 
-const emit = defineEmits(["changeUserStatus", "pushSaveRecordsRoot", "setUserID", "updateParentVersionFile"]);
+const emit = defineEmits([
+  "changeUserStatus",
+  "pushSaveRecordsRoot",
+  "setUserID",
+  "updateParentVersionFile",
+]);
 
 const atAlt = ref(false);
 const atCtl = ref(false);
@@ -65,11 +73,11 @@ function pushSaveRecords(emitObject) {
   });
 }
 
-function updateParentVersionFile(emitObject){
+function updateParentVersionFile(emitObject) {
   emit("updateParentVersionFile", {
     targetVersionIndex: props.targetVersionIndex,
     fileURL: emitObject.fileURL,
-  })
+  });
 }
 
 function changeEdit() {
@@ -84,7 +92,11 @@ function socketInit() {
     if (props.recordInfo.length !== 0) {
       responseObject.readOnly = true;
     }
-    console.log("responseObject after update: ", responseObject, props.recordInfo);
+    console.log(
+      "responseObject after update: ",
+      responseObject,
+      props.recordInfo
+    );
     emit("changeUserStatus", responseObject);
   });
   if (props.recordInfo.length === 0) {
@@ -129,15 +141,35 @@ onBeforeUnmount(() => {
 <template>
   <div
     v-if="
-      authorization && props.socket !== undefined && props.recordInfo.length === 0
+      authorization &&
+      props.socket !== undefined &&
+      props.recordInfo.length === 0
     "
   >
-    <button @click="changeEdit" v-if="props.readOnly">Edit</button>
+    <button id="edit-btn" @click="changeEdit" v-if="props.readOnly">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="16"
+        height="16"
+        fill="currentColor"
+        class="bi bi-pencil-square"
+        viewBox="0 0 16 16"
+      >
+        <path
+          d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"
+        />
+        <path
+          fill-rule="evenodd"
+          d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"
+        />
+      </svg>
+    </button>
   </div>
   <div v-if="folderInfo.length !== 0">
     <div>
       <!-- <div style="color: azure">ReadyOnly: {{ props.readOnly }}</div> -->
       <div
+        style="margin-top: 5%"
         v-for="(fileInfo, index) in folderInfo"
         @input="updateContent"
         @keyup="checkEventUp"
@@ -145,6 +177,8 @@ onBeforeUnmount(() => {
         :key="index"
       >
         <CodeMirrorComponent
+          :projectUserID="props.projectUserID"
+          :userID="props.userID"
           :info="fileInfo"
           :records="props.recordInfo"
           :atAlt="atAlt"
@@ -163,9 +197,13 @@ onBeforeUnmount(() => {
           @pushSaveRecords="pushSaveRecords"
           @updateVersionFile="updateParentVersionFile"
         />
+        <div id="terminal-header" style="background-color: rgb(36,36,36);">
+          <div>&nbsp;</div>
+          <div id="terminal-title">Terminal</div>
+        </div>
         <TerminalComponent
           :terminalResult="terminalResult"
-          style="top: 350px"
+          style="top: 400px"
         />
       </div>
     </div>
@@ -223,16 +261,41 @@ a {
   padding-left: 20px;
   border-right: 1px solid rgb(255, 255, 255);
 }
-
-#main-content {
-  background-color: #2c2c2c;
-  width: 100%;
-}
 .code-input {
   padding-left: 20px;
   border-width: 0px;
   width: 100%;
   background-color: rgb(78, 78, 78);
   color: rgb(255, 255, 255);
+}
+
+#edit-btn{
+  position: absolute;
+  padding: 0.3% 1% 0.3% 1%;
+  border-radius: 5px;
+  z-index: 98;
+  margin: 5px 5px 0px 5px;
+  top: 5%;
+  right: 2%;
+  border-radius: 5px;
+}
+
+#terminal-header{
+  z-index: 99;
+  position: relative;
+  margin-top: 5%;
+  background-color: rgb(36, 36, 36);
+  height: 50px;
+}
+
+#terminal-title{
+  position: absolute;
+  background-color: #555;
+  right: 2%;
+  top:20%;
+  display: inline-block;
+  padding: 0.5% 1% 0.5% 1%;
+  border-radius: 10px;
+  margin-bottom: 1%;
 }
 </style>

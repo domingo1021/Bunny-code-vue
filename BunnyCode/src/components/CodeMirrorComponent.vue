@@ -17,6 +17,8 @@ import { Modal } from "bootstrap";
 // TODO: check user agent for keyword.
 
 const props = defineProps({
+  projectUserID: Number,
+  userID: Number,
   projectID: Number,
   jwt: String,
   info: Object,
@@ -44,7 +46,7 @@ let editor = null;
 const fileContent = ref(props.info.fileContent);
 const autoComplete = ["(", "[", "{", '"'];
 let playIndex = 0;
-let keepPlay = false;
+let keepPlay = ref(false);
 let baseContent;
 let baseLine;
 let baseIndex;
@@ -263,7 +265,7 @@ async function checkEventUp(e) {
     if (props.records.length !== 0) {
       return;
     }
-    showModal();
+    showSaveModal();
   } else if (e.ctrlKey && e.keyCode === 65) {
     if (e.repeat) {
       return;
@@ -448,6 +450,10 @@ async function saveFileRecord() {
 
 async function runCode() {
   const allCodes = props.info.fileContent;
+  if (allCodes === "") {
+    alert("Please write some codes.");
+    return;
+  }
   let result;
   try {
     const compilerResult = await axios.post(
@@ -460,7 +466,7 @@ async function runCode() {
     );
     result = compilerResult.data.split("\n");
   } catch (error) {
-    result = "QQ 好像有 bug";
+    return;
   }
   emit("pushTerminal", {
     fileNumber: props.fileNumber,
@@ -469,10 +475,10 @@ async function runCode() {
 }
 
 function clickPlay() {
-  if (keepPlay) {
-    keepPlay = false;
+  if (keepPlay.value) {
+    keepPlay.value = false;
   } else {
-    keepPlay = true;
+    keepPlay.value = true;
   }
 }
 
@@ -501,7 +507,7 @@ async function playback() {
   editor.focus();
   editor.getDoc().setCursor({ line: props.info.line, ch: props.info.index });
   for (let i = playIndex; i < props.info.timeBetween.length; i++) {
-    if (!keepPlay) {
+    if (!keepPlay.value) {
       editor.options.readOnly = props.readOnly;
       editor.options.cursorHeight = 0;
       editor.execCommand("goLineEnd");
@@ -510,7 +516,7 @@ async function playback() {
       console.log("in");
       await new Promise((resolve, reject) => {
         setTimeout(() => {
-          if (!keepPlay) {
+          if (!keepPlay.value) {
             editor.options.readOnly = props.readOnly;
             editor.options.cursorHeight = 0;
             editor.execCommand("goLineEnd");
@@ -528,7 +534,7 @@ async function playback() {
     }
   }
   playIndex = 0;
-  keepPlay = false;
+  keepPlay.value = false;
   editor.options.readOnly = props.readOnly;
   editor.options.cursorHeight = 0;
   editor.execCommand("goLineEnd");
@@ -857,29 +863,44 @@ watch(
   }
 );
 
-onBeforeMount(async () => {
-  await initCodeMirror();
-});
-
 function userClick() {
   editor.getDoc().setCursor({ line: props.info.line, ch: props.info.index });
 }
 
-let myModal;
-onMounted(() => {
-  myModal = new Modal(modalObject.value, {});
-});
+let modalSave;
+const modalSaveObject = ref(null);
 
-const modalObject = ref(null);
-function showModal() {
+// let modalIntro;
+// const modalIntroObject = ref(null);
+
+function showSaveModal() {
   if (props.readOnly) {
     return;
   }
-  myModal.show();
+  modalSave.show();
 }
-function hideModal() {
-  myModal.hide();
+
+function hideSaveModal() {
+  modalSave.hide();
 }
+
+// function showIntroModal() {
+//   modalIntro.show();
+// }
+
+// function hideIntroModal() {
+//   modalIntro.hide();
+// }
+
+onBeforeMount(async () => {
+  await initCodeMirror();
+});
+
+onMounted(() => {
+  modalSave = new Modal(modalSaveObject.value, {});
+  // modalIntro = new Modal(modalIntroObject.value, {});
+  // showIntroModal();
+});
 
 onBeforeUnmount(() => {
   keepPlay = false;
@@ -887,8 +908,55 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
+  <div id="tool-bar">
+    <button class="tool-btn">
+      <img src="@/assets/undo.png" alt="uedo" width="20" height="20">
+    </button>
+    <button class="tool-btn">
+      <img src="@/assets/redo.png" alt="redo" width="20" height="20">
+    </button>
+    <button
+      class="tool-btn"
+      @click="playback"
+      v-if="props.readOnly && props.info.timeBetween.length !== 0"
+    >
+      <div v-if="!keepPlay" id="play">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          fill="currentColor"
+          class="bi bi-play"
+          viewBox="0 0 16 16"
+          style="top: -1px"
+        >
+          <path
+            d="M10.804 8 5 4.633v6.734L10.804 8zm.792-.696a.802.802 0 0 1 0 1.392l-6.363 3.692C4.713 12.69 4 12.345 4 11.692V4.308c0-.653.713-.998 1.233-.696l6.363 3.692z"
+          />
+        </svg>
+      </div>
+      <div v-else-if="keepPlay" id="stop-play">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          fill="currentColor"
+          class="bi bi-pause-fill"
+          viewBox="0 0 16 16"
+        >
+          <path
+            d="M5.5 3.5A1.5 1.5 0 0 1 7 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5zm5 0A1.5 1.5 0 0 1 12 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5z"
+          />
+        </svg>
+      </div>
+    </button>
+  </div>
+  <!-- <div id="tool-bar" v-else-if="!props.readOnly">
+    <div class="tool-btn" style="height: 20px !important">&nbsp;</div>
+  </div> -->
   <div @input="updateContent" @keydown="checkEventUp">
     <div v-if="props.readOnly" @click="userClick">
+      <div id="read-only-tag">Read only</div>
       <textarea :value="fileContent" id="editor" cols="30" rows="10"></textarea>
     </div>
     <div v-else @click="userClick">
@@ -901,12 +969,11 @@ onBeforeUnmount(() => {
       ></textarea>
     </div>
   </div>
-  <!-- <button v-if="!props.readOnly" @click="showModal">show modal</button> -->
   <div id="save-alert">
     <div
       class="modal fade"
       id="exampleModal"
-      ref="modalObject"
+      ref="modalSaveObject"
       tabindex="-1"
       role="dialog"
       aria-labelledby="myModalLabel"
@@ -929,33 +996,30 @@ onBeforeUnmount(() => {
           <div class="modal-body mx-3">是否要儲存？</div>
           <div style="display: flex; justify-content: center">
             <button class="confirm-btn" @click="saveFileRecord">是</button>
-            <button class="confirm-btn" @click="hideModal">否</button>
+            <button class="confirm-btn" @click="hideSaveModal">否</button>
           </div>
         </div>
       </div>
     </div>
   </div>
-  <button @click="playback" v-if="props.readOnly">Playback</button>
-  <button v-if="props.authorization" @click="runCode">Run code</button>
+  <div id="run-btn" class="tool-btn" v-if="props.userID === projectUserID">
+    <button id="terminal-btn" @click="runCode">Run code</button>
+  </div>
 </template>
 
 <style scoped>
-/* .CodeMirror{ */
-/* max-width: 70vw; */
-/* } */
-h3 {
-  margin: 40px 0 0;
-}
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-a {
-  color: #42b983;
+#read-only-tag {
+  position: absolute;
+  padding: 0.5% 1% 0.5% 1%;
+  border-radius: 5px;
+  color: rgb(0, 0, 0);
+  background-color: rgb(169, 78, 78);
+  z-index: 98;
+  margin: 5px 5px 0px 5px;
+  top: 1%;
+  right: 2%;
+  font-size: 0.75rem;
+  font-weight: bold;
 }
 
 #save-alert {
@@ -968,5 +1032,27 @@ a {
 
 .confirm-btn {
   margin: 5%;
+}
+
+#tool-bar {
+  padding-top: 1%;
+  padding-bottom: 0.5%;
+  display: flex;
+}
+
+#terminal-btn {
+  border-radius: 5px;
+}
+
+.tool-btn {
+  margin-left: 0.5%;
+  border-radius: 5px;
+}
+
+#run-btn {
+  z-index: 100;
+  position: absolute;
+  bottom: 2%;
+  left: 1%;
 }
 </style>

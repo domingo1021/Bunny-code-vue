@@ -27,7 +27,7 @@ const topThreeProejct = [
 
 function renderPath(index) {
   router.push(
-    `/code-mirror/${projectsDisplayed.value.projects[index].projectName}`
+    `/workspace/${projectsDisplayed.value.projects[index].projectName}`
   );
 }
 

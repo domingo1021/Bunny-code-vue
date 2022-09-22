@@ -30,7 +30,7 @@ const CLIENT_CATEGORY = {
 };
 
 function renderPath(index) {
-  router.push(`/code-mirror/${projectsDisplayed.value[index].projectName}`);
+  router.push(`/workspace/${projectsDisplayed.value[index].projectName}`);
 }
 
 async function createProject() {

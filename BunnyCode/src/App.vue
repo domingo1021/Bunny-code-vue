@@ -4,58 +4,35 @@
       <div class="flex-container">
         <div class="flex-container-2">
           <!-- <div>Bunny code</div> -->
-          <RouterLink
-            to="/"
-            class="nav-item link left-item"
-            @click="updateView('home')"
-            >
+          <RouterLink to="/" class="nav-item link left-item">
             <img
               src="@/assets/logo4.png"
               alt="login-icon"
               style="width: 30px; margin-bottom: 5px"
             />
-            </RouterLink
-          >
-          <RouterLink
-            to="/workspace"
-            class="nav-item link left-item"
-            @click="updateView('code')"
-          >
+          </RouterLink>
+          <RouterLink to="/workspace" class="nav-item link left-item">
             Workspace
           </RouterLink>
-          <RouterLink
-            to="/battle"
-            class="nav-item link left-item"
-            @click="updateView('battle')"
+          <RouterLink to="/battle" class="nav-item link left-item"
             >Battle valleys</RouterLink
           >
         </div>
         <div class="right-flex">
-          <RouterLink
-            class="nav-item link"
-            to="/login"
-            @click="updateView('user')"
-          >
+          <RouterLink class="nav-item link" to="/login">
             <img
               src="@/assets/login.png"
               alt="login-icon"
               style="width: 35px; margin-bottom: 5px"
             />
           </RouterLink>
-          <!-- <NotificationView :socket="socket" /> -->
-          <!-- <div class="nav-item">個人資訊</div> -->
           <SearchComponent :socket="socket" />
         </div>
       </div>
     </nav>
   </header>
   <body>
-    <RouterView
-      :userID="userID"
-      :socket="socket"
-      :key="view"
-      @setUserID="setUserID"
-    />
+    <RouterView :userID="userID" :socket="socket" @setUserID="setUserID" />
     <div id="battle-invitation">
       <div
         class="modal fade"
@@ -227,9 +204,9 @@ function initiateSocket() {
   });
 }
 
-async function updateView(viewPage) {
-  view.value = viewPage;
-}
+// async function updateView(viewPage) {
+//   view.value = viewPage;
+// }
 
 function acceptBattle() {
   if (socket.value) {
@@ -254,18 +231,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* nav a.router-link-exact-active {
-  color: var(--color-text);
-} */
-/* nav a.router-link-exact-active:hover {
-  background-color: transparent;
-}
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-} */
-
 .link {
   color: rgb(255, 255, 255);
 }

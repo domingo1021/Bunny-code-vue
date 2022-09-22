@@ -1,8 +1,23 @@
 <template>
   <div style="display: flex; height: 100vh">
     <div id="left-bar">
-      <div id="folder-control" @click="updateTarget('Folder')">Folder</div>
-      <div id="version-control" @click="updateTarget('Version')">Version</div>
+      <div
+        id="folder-control"
+        class="workspace-func"
+        @click="updateTarget('Folder')"
+      >
+        Folder
+      </div>
+      <div
+        id="version-control"
+        class="workspace-func"
+        @click="updateTarget('Version')"
+      >
+        Version
+      </div>
+      <div id="shortcuts" class="workspace-func">
+        <div @click="showIntroModal">Shortcuts</div>
+      </div>
     </div>
     <div id="info-bar">
       <div
@@ -52,6 +67,8 @@
         <div v-if="projectDetail.version.length !== 0">
           <CodeMirrorView
             v-if="Object.keys(projectDetail).length !== 0"
+            :projectUserID="projectDetail.userID"
+            :userID="props.userID"
             :socket="props.socket"
             :readOnly="readOnly"
             :authorization="authorization"
@@ -80,16 +97,139 @@
       </div>
     </div>
   </div>
+  <div id="intro-alert">
+    <div
+      class="modal fade"
+      id="introModal"
+      ref="modalIntroObject"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="myModalLabel"
+      aria-hidden="false"
+    >
+      <div
+        id="intro-board"
+        class="modal-dialog"
+        role="document"
+        style="overflow-y: auto"
+      >
+        <div id="intro-content" class="modal-content">
+          <div
+            id="intro-header"
+            class="modal-header text-center"
+            style="justify-content: right"
+          >
+            <button
+              id="intro-close-btn"
+              type="button"
+              class="close btn btn-indigo"
+              data-bs-dismiss="modal"
+              data-dismiss="modal"
+              aria-label="Close"
+              @click="hideIntroModal"
+            >
+              <span aria-hidden="true">&times;</span>
+            </button>
+            <div></div>
+          </div>
+          <div id="command-header">
+            <div class="shortcut-detail-1">Command</div>
+            <div class="shortcut-detail-2" style="left: -2%">Shortcut</div>
+          </div>
+
+          <div class="shortcut">
+            <div class="shortcut-detail-1">Cursor left</div>
+            <div class="shortcut-detail-2">←</div>
+          </div>
+          <div class="shortcut">
+            <div class="shortcut-detail-1">Cursor right</div>
+            <div class="shortcut-detail-2">→</div>
+          </div>
+          <div class="shortcut">
+            <div class="shortcut-detail-1">Cursor Up</div>
+            <div class="shortcut-detail-2">↑</div>
+          </div>
+          <div class="shortcut">
+            <div class="shortcut-detail-1">Cursor Down</div>
+            <div class="shortcut-detail-2">↓</div>
+          </div>
+          <div class="shortcut">
+            <div class="shortcut-detail-1">Move a word left</div>
+            <div class="shortcut-detail-2">⌥ + ←</div>
+          </div>
+          <div class="shortcut">
+            <div class="shortcut-detail-1">Move a word Right</div>
+            <div class="shortcut-detail-2">⌥ + →</div>
+          </div>
+          <div class="shortcut">
+            <div class="shortcut-detail-1">To line start</div>
+            <div class="shortcut-detail-2">⌃ + a</div>
+          </div>
+          <div class="shortcut">
+            <div class="shortcut-detail-1">To line end</div>
+            <div class="shortcut-detail-2">⌃ + e</div>
+          </div>
+          <div class="shortcut">
+            <div class="shortcut-detail-1">New Line</div>
+            <div class="shortcut-detail-2">Enter</div>
+          </div>
+          <div class="shortcut">
+            <div class="shortcut-detail-1">Delete left</div>
+            <div class="shortcut-detail-2">Backspace</div>
+          </div>
+          <div class="shortcut">
+            <div class="shortcut-detail-1">Save coding record</div>
+            <div class="shortcut-detail-2">⌘ + s</div>
+          </div>
+          <div class="shortcut">
+            <div class="shortcut-detail-1">
+              Restart and initiate from base content
+            </div>
+            <div class="shortcut-detail-2">⌘ + i</div>
+          </div>
+          <div class="shortcut">
+            <div class="shortcut-detail-1">Undo</div>
+            <div class="shortcut-detail-2">⌘ + z</div>
+          </div>
+          <div class="shortcut">
+            <div class="shortcut-detail-1">Redo</div>
+            <div class="shortcut-detail-2">⇧ + ⌘ + z</div>
+          </div>
+          <div class="shortcut">
+            <div class="shortcut-detail-1">Remove current line</div>
+            <div class="shortcut-detail-2">⌘ + x</div>
+          </div>
+          <div class="shortcut">
+            <div class="shortcut-detail-1">Copy a line down</div>
+            <div class="shortcut-detail-2">⇧ + ⌥ + ↓</div>
+          </div>
+          <div style="display: flex; justify-content: left; margin-top: 5%">
+            <div>
+              <input
+                type="checkbox"
+                v-model="stopIntro"
+                name=""
+                id="intro-notify"
+              />
+            </div>
+            <label style="margin-left: 2%">Stop notification </label>
+            <div>&nbsp;</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
 import Socket from "../socket";
-import { useRouter } from "vue-router";
-import { onBeforeMount, onMounted, ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { onBeforeMount, onMounted, onUnmounted, ref, watch } from "vue";
 import axios from "axios";
 import CodeMirrorView from "./CodeMirrorView.vue";
 import FolderController from "./FolderController.vue";
 import CreateVersionComponent from "../components/CreateVersionComponent.vue";
+import { Modal } from "bootstrap";
 
 const localhostServer = "http://localhost:3000";
 const productionServer = "https://domingoos.store";
@@ -103,6 +243,8 @@ const props = defineProps({
   versionNumber: String,
 });
 
+let modalIntro;
+const modalIntroObject = ref(null);
 const targetVersionIndex = ref(0);
 if (props.versionNumber !== "") {
   targetVersionIndex.value = Number(props.versionNumber) - 1;
@@ -112,6 +254,27 @@ const readOnly = ref(true);
 const emits = defineEmits(["setUserID"]);
 
 const router = useRouter();
+
+const prevIntroStatus = localStorage.getItem("stopIntro");
+
+console.log(prevIntroStatus);
+
+const stopIntro = ref(true);
+
+if (prevIntroStatus === "0" || prevIntroStatus === null) {
+  stopIntro.value = false;
+} else {
+  stopIntro.value = true;
+}
+
+watch(stopIntro, () => {
+  console.log("stopIntro changed. ");
+  if (stopIntro.value) {
+    localStorage.setItem("stopIntro", "1");
+  } else {
+    localStorage.setItem("stopIntro", "0");
+  }
+});
 
 function updateTarget(target) {
   // 跳到 File or 跳到 version.
@@ -179,11 +342,22 @@ async function updateProjectDetail() {
       });
     }
   });
-  if (targetVersionIndex.value > projectDetail.value.version.length - 1 || targetVersionIndex.value < 0) {
+  if (
+    targetVersionIndex.value > projectDetail.value.version.length - 1 ||
+    targetVersionIndex.value < 0
+  ) {
     alert("版本不存在");
     targetVersionIndex.value = 0;
   }
   console.log("Project content: ", projectDetail.value);
+}
+
+function showIntroModal() {
+  modalIntro.show();
+}
+
+function hideIntroModal() {
+  modalIntro.hide();
 }
 
 watch(
@@ -206,7 +380,7 @@ watch(
 
 watch(targetVersionIndex, () => {
   router.push({
-    name: "code-mirror",
+    name: "workspace",
     params: {
       projectName: props.projectName,
       versionNumber: `${targetVersionIndex.value + 1}`,
@@ -217,6 +391,8 @@ watch(targetVersionIndex, () => {
 onBeforeMount(async () => {
   await updateProjectDetail();
 });
+
+const route = useRoute();
 
 onMounted(() => {
   console.log("autorization: ", authorization.value);
@@ -229,24 +405,41 @@ onMounted(() => {
       );
     }
   }, 5000);
+  console.log("Mounted: ", route.fullPath);
+  modalIntro = new Modal(modalIntroObject.value, {});
+  if (!stopIntro.value) {
+    showIntroModal();
+  }
+});
+
+onUnmounted(() => {
+  modalIntro.hide();
 });
 </script>
 
 <style scoped>
+.workspace-func:hover {
+  width: 100%;
+  background-color: #555;
+  cursor: pointer;
+}
 .version-list {
   font-size: 0.75rem;
+}
+.version-list:hover {
+  background-color: #555;
+  cursor: pointer;
 }
 #folder-control {
   margin-top: 10px;
   margin-bottom: 4%;
-  /* border: 0.5px solid rgb(255,255,255);
-  border-radius: 5px; */
   padding: 5%;
 }
-/* #folder:hover{
-  background-color: #5e4242;
-  padding: 5%;
-} */
+
+#shortcuts {
+  margin-top: 9%;
+}
+
 #left-bar {
   background-color: #2a2a2a;
 }
@@ -259,10 +452,107 @@ onMounted(() => {
   color: rgb(255, 255, 255);
 }
 #main-content {
+  margin-top: -30px;
+  /* padding: auto; */
   background-color: #161515;
   width: 100%;
 }
 #main-content-2 {
   width: 100%;
+}
+
+#intro-board {
+  height: 60vh;
+  top: 10%;
+}
+
+#intro-header {
+  height: 1%;
+  border: 0px;
+  padding-bottom: 0%;
+}
+
+#command-header {
+  font-size: 0.9rem;
+  font-weight: bold;
+  display: flex;
+  border-bottom: 1.5px solid rgb(74, 74, 74);
+  padding-left: 4%;
+  padding-bottom: 2%;
+  border-bottom: 2px solid rgb(20, 20, 20);
+}
+
+#intro-content {
+  padding-bottom: 10%;
+  padding-left: 5%;
+  padding-right: 5%;
+  background-color: rgb(41, 41, 41);
+}
+
+.shortcut-detail-1 {
+  /* text-align: left; */
+  width: 75%;
+}
+
+.shortcut-detail-2 {
+  width: 50%;
+}
+
+#intro-close-btn {
+  margin-right: -2%;
+  color: azure;
+}
+
+#intro-notify {
+  height: 20px;
+  width: 20px;
+}
+
+.shortcut {
+  display: flex;
+  justify-content: left;
+  padding-left: 5%;
+  padding-right: 2%;
+  padding-top: 0.5%;
+  padding-bottom: 0.5%;
+  font-size: 0.75rem;
+}
+
+.shortcut:nth-child(even) {
+  background-color: rgb(41, 41, 41);
+}
+.shortcut:nth-child(odd) {
+  background-color: rgb(87, 87, 87);
+}
+
+.confirm-btn {
+  background-color: rgb(205, 204, 203);
+  color: azure;
+  border-radius: 10px;
+  margin: 5%;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  /* height: 10%; */
+}
+
+::-webkit-scrollbar-track {
+  /* margin-top: 50px;
+  margin-bottom: 100px; */
+  /* background: #f1f1f1;  */
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgb(94, 94, 94, 0.7);
+  /* height: 10%; */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+  /* height: 10%; */
+}
+::-webkit-scrollbar-button {
+  height: 10px;
 }
 </style>
