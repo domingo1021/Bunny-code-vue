@@ -63,7 +63,7 @@ body {
   min-height: 100vh;
   color: var(--color-text);
   background: var(--color-background);
-    background-image: url("@/assets/login.jpg");
+    /* background-image: url("@/assets/login.jpg"); */
   background-size: cover;
   background-attachment: fixed;
   background-position-x: center;

@@ -8,7 +8,7 @@
             <img
               src="@/assets/logo4.png"
               alt="login-icon"
-              style="width: 30px; margin-bottom: 5px"
+              style="width: 2.25rem; margin-bottom: 5px"
             />
           </RouterLink>
           <RouterLink to="/workspace" class="nav-item link left-item">
@@ -242,10 +242,11 @@ nav a:first-of-type {
 #top-navbar {
   top: 0;
   left: 0;
+  font-size: 1.5rem;
   position: fixed;
   z-index: 100;
   width: 100vw;
-  height: 50px;
+  height: 60px;
   background-color: #161b22;
   /* border-bottom: 40px solid #2c2c2c; */
 }

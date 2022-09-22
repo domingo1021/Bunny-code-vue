@@ -110,7 +110,7 @@ router.beforeEach(async (to, from, next) => {
     if (isLogin) {
       return next({
         name: "user",
-        params: { paseUserID: userID },
+        params: { pageUserID: userID },
       });
     } else {
       return next();

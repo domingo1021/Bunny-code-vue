@@ -194,6 +194,11 @@ defineExpose({
 .page-detail {
   margin-right: 3%;
 }
+
+.page-detail:hover {
+  cursor: pointer;
+}
+
 #current-page {
   width: 30px;
   height: 30px;
