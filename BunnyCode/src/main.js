@@ -7,15 +7,12 @@ import "bootstrap";
 import Toaster from "@meforma/vue-toaster";
 import "./assets/main.css";
 import Markdown from "vue3-markdown-it";
+import VueSweetalert2 from "vue-sweetalert2";
+import 'sweetalert2/dist/sweetalert2.min.css'
 
 const app = createApp(App);
 
 /* import font awesome icon component */
-import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-import { library } from '@fortawesome/fontawesome-svg-core'
-import { faUserSecret } from '@fortawesome/free-solid-svg-icons'
-library.add(faUserSecret)
-app.component("font-awesome-icon", FontAwesomeIcon);
-app.use(router, axios, Toaster, Markdown);
+app.use(router, axios, Toaster, Markdown, VueSweetalert2);
 
 app.mount("#app");

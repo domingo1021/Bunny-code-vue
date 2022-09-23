@@ -13,6 +13,7 @@ import {
   watch,
 } from "vue";
 import { Modal } from "bootstrap";
+import Swal from "sweetalert2";
 
 // TODO: check user agent for keyword.
 
@@ -418,7 +419,11 @@ async function saveFileRecord() {
       }
     );
   } catch (error) {
-    alert(error.response.data.msg);
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: error.response.data.msg,
+    });
     return;
   }
   // console.log(saveResponse.data);
@@ -452,7 +457,11 @@ async function saveFileRecord() {
 async function runCode() {
   const allCodes = props.info.fileContent;
   if (allCodes === "") {
-    alert("Please write some codes.");
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: "Why not write some code ? happy codding !",
+    });
     return;
   }
   let result;
@@ -821,8 +830,7 @@ async function initCodeMirror() {
       return;
     }
     CodeMirror.commands[commandKey] = () => {
-      // alert(commandKey);
-    };
+  };
   });
   editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
     value: props.info.fileContent,

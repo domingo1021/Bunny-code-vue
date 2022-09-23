@@ -7,9 +7,11 @@ import {
   onMounted,
   onUpdated,
   ref,
+  watch,
 } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import UserProfileComponent from "../components/UserProfileComponent.vue";
+import Swal from "sweetalert2";
 
 const props = defineProps({
   socket: Object,
@@ -32,6 +34,10 @@ const projectPublic = ref(1);
 const buttonClickable = ref(false);
 const userInfo = ref({});
 const userKeyword = ref("");
+const currentPage = ref(1);
+if (+route.query.paging) {
+  currentPage.value = +route.query.paging;
+}
 
 const CLIENT_CATEGORY = {
   visitor: 0,
@@ -48,6 +54,29 @@ async function searchUserProject() {
     `${localhostServer}/api/1.0/user/${props.pageUserID}/project?keyword=${userKeyword.value}`
   );
   projectsDisplayed.value = userProjectsInfo.data.data;
+}
+
+function prevPage() {
+  router.push({
+    name: "user",
+    params: {
+      pageUserID: props.pageUserID,
+    },
+    query: {
+      paging: `${currentPage.value - 1}`,
+    },
+  });
+}
+async function nextPage() {
+  router.push({
+    name: "user",
+    params: {
+      pageUserID: props.pageUserID,
+    },
+    query: {
+      paging: `${currentPage.value + 1}`,
+    },
+  });
 }
 
 async function createProject() {
@@ -74,11 +103,13 @@ async function createProject() {
     });
   } catch (error) {
     console.log(error);
-    alert(error.response.data.msg);
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: error.response.data.msg,
+    });
   }
-  console.log(responseProjects);
   if (responseProjects) {
-    alert(JSON.stringify(responseProjects.data.data));
     projectsDisplayed.value.unshift({
       projectID: responseProjects.data.data.projectID,
       projectName: projectName.value,
@@ -96,11 +127,23 @@ async function createProject() {
   fileName.value = "";
 }
 
-function initSocket() {
-  if (props.socket) {
-    props.socket.socketOn("responseUsers", (responseObject) => {
-      console.log("hello: ", responseObject);
+async function getUserProject() {
+  try {
+    let responseProjects = await axios({
+      method: "get",
+      // url: productionServer + `/api/1.0/user/${route.params.userID}/project`,
+      url:
+        localhostServer +
+        `/api/1.0/user/${route.params.pageUserID}/project?paging=${
+          currentPage.value - 1
+        }`,
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
     });
+    projectsDisplayed.value = responseProjects.data.data;
+  } catch (error) {
+    projectsDisplayed.value = [];
   }
 }
 
@@ -117,25 +160,27 @@ onUpdated(() => {
   }
 });
 
+watch(
+  () => route.query.paging,
+  async () => {
+    currentPage.value = +route.query.paging;
+    await getUserProject();
+  }
+);
+
 onBeforeMount(async () => {
   const userDetail = await axios.get(
-    `${localhostServer}/api/1.0/user/${props.userID}/detail`
+    `${localhostServer}/api/1.0/user/${props.pageUserID}/detail`
   );
   userInfo.value = userDetail.data.data;
+  console.log("User Info: ", userInfo.value);
 });
 
 onMounted(async () => {
   // onBeforeMount(async () => {
   await nextTick();
-  let responseProjects = await axios({
-    method: "get",
-    // url: productionServer + `/api/1.0/user/${route.params.userID}/project`,
-    url: localhostServer + `/api/1.0/user/${route.params.pageUserID}/project`,
-    headers: {
-      Authorization: `Bearer ${jwt}`,
-    },
-  });
-  projectsDisplayed.value = responseProjects.data.data;
+  await getUserProject();
+  console.log("All project item: ", projectsDisplayed.value);
   try {
     const authResponse = await axios({
       method: "get",
@@ -148,13 +193,13 @@ onMounted(async () => {
   } catch (error) {
     userAuth.value = 0;
   }
-  if (props.socket) {
-    initSocket();
-  }
+  // if (props.socket) {
+  //   initSocket();
+  // }
 });
 
 onBeforeUnmount(() => {
-  props.socket.socketOff("responseUsers");
+  // props.socket.socketOff("responseUsers");
 });
 </script>
 
@@ -197,7 +242,9 @@ onBeforeUnmount(() => {
                 d="M2 2.5A2.5 2.5 0 014.5 0h8.75a.75.75 0 01.75.75v12.5a.75.75 0 01-.75.75h-2.5a.75.75 0 110-1.5h1.75v-2h-8a1 1 0 00-.714 1.7.75.75 0 01-1.072 1.05A2.495 2.495 0 012 11.5v-9zm10.5-1V9h-8c-.356 0-.694.074-1 .208V2.5a1 1 0 011-1h8zM5 12.25v3.25a.25.25 0 00.4.2l1.45-1.087a.25.25 0 01.3 0L8.6 15.7a.25.25 0 00.4-.2v-3.25a.25.25 0 00-.25-.25h-3.5a.25.25 0 00-.25.25z"
               ></path>
             </svg>
-            <div style="margin-left: 5%; font-weight:bold; margin-bottom: 2px;">New</div>
+            <div style="margin-left: 5%; font-weight: bold; margin-bottom: 2px">
+              New
+            </div>
           </button>
           <div
             class="modal fade"
@@ -220,7 +267,11 @@ onBeforeUnmount(() => {
                     data-dismiss="modal"
                     aria-label="Close"
                   >
-                    <span aria-hidden="true">&times;</span>
+                    <span
+                      aria-hidden="true"
+                      style="position: absolute; top: -5px; right: 30px"
+                      >&times;</span
+                    >
                   </button>
                 </div>
                 <div class="modal-body mx-3">
@@ -271,7 +322,7 @@ onBeforeUnmount(() => {
                         value="1"
                         v-model="projectPublic"
                       />
-                      <label for="huey">Public</label>
+                      <label class="new-project-label" for="huey">Public</label>
                     </div>
                     <div>
                       <input
@@ -281,7 +332,9 @@ onBeforeUnmount(() => {
                         value="0"
                         v-model="projectPublic"
                       />
-                      <label for="Private">Private</label>
+                      <label class="new-project-label" for="Private"
+                        >Private</label
+                      >
                     </div>
                   </div>
                   <div class="md-form mb-4" style="display: flex">
@@ -347,17 +400,91 @@ onBeforeUnmount(() => {
           clsss="card"
           v-for="(project, index) in projectsDisplayed"
           :key="index"
-          @click="renderPath(index)"
         >
           <div class="card-body project-card-detail">
-            <h5 class="card-title">Card title</h5>
-            <p class="card-text">
-              {{ project.projectName }}
+            <h5 class="card-title" style="display: flex">
+              <div id="project-title" @click="renderPath(index)">
+                {{ project.projectName }}
+              </div>
+              <div
+                id="project-status"
+                style="
+                  margin-left: 3%;
+                  padding: 0% 1.5% 0% 1.5%;
+                  border: 0.5px solid rgb(100, 100, 100);
+                  border-radius: 20px;
+                "
+              >
+                <span v-if="project.isPublic" class="project-status-span"
+                  >Public</span
+                >
+                <span v-else class="project-status-span">Private</span>
+              </div>
+            </h5>
+            <p id="project-description" class="card-text">
+              {{ project.projectDescription }}
             </p>
-            <a href="#" class="btn btn-primary">Go somewhere</a>
+            <div style="display: flex">
+              <svg
+                id="watch-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                fill="currentColor"
+                class="bi bi-eye-fill"
+                viewBox="0 0 16 16"
+              >
+                <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z" />
+                <path
+                  d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"
+                />
+              </svg>
+              <div style="margin-left: 10px; bottom: 2px">
+                {{ project.watchCount }}
+              </div>
+            </div>
+            <!-- <a href="#" class="btn btn-primary">Go somewhere</a> -->
           </div>
           <!-- </div> -->
         </div>
+      </div>
+      <div id="page-render" style="display: flex; justify-content: center">
+        <button
+          id="page-previous-btn"
+          class="user-page-btn"
+          type="button"
+          @click="prevPage()"
+          v-if="currentPage > 1"
+        >
+          previous
+        </button>
+        <button
+          id="page-previous-btn"
+          class="user-page-btn"
+          type="button"
+          style="color: rgb(100, 100, 100)"
+          v-else
+        >
+          previous
+        </button>
+        <button
+          id="page-next-btn"
+          class="user-page-btn"
+          type="button"
+          @click="nextPage()"
+          v-if="projectsDisplayed.length === 6"
+        >
+          next
+        </button>
+        <button
+          id="page-next-btn"
+          class="user-page-btn"
+          type="button"
+          style="color: rgb(100, 100, 100)"
+          v-else
+        >
+          next
+        </button>
       </div>
     </div>
   </main>
@@ -368,18 +495,24 @@ onBeforeUnmount(() => {
   display: inline-block !important;
   margin: 8% 3% 0% 3%;
   height: 30%;
-  width: 30%;
+  width: 40%;
 }
 #user-project-detail {
-  margin: 5% 5% 5% 10%;
-  width: 50%;
+  margin: 5% 10% 5% 5%;
+  width: 90%;
 }
 
 #project-card-long {
   width: 100%;
 }
 .project-card-detail {
-  border: 3px solid rgb(166, 47, 47);
+  /* background-color: rgb(35, 35, 35); */
+  /* border-bottom: 1px solid rgb(189, 189, 189); */
+  margin: 3% 0% 2% 0%;
+  padding: 4% 2% 2% 2%;
+
+  border-top: 1px solid rgba(189, 189, 189, 0.5);
+  /* border-bottom: 1px solid rgba(189, 189, 189, 0.5); */
 }
 
 #valid-btn {
@@ -404,7 +537,7 @@ onBeforeUnmount(() => {
 
 #search-project-area {
   display: flex;
-  height: 8%;
+  height: 60px;
 }
 
 #search-input-area {
@@ -426,17 +559,16 @@ onBeforeUnmount(() => {
 
 #new-project {
   display: flex;
-  /* height: 100%; */
   width: 35%;
-  height: 92%;
+  height: 40px;
   margin-left: 3%;
-  /* justify-content: right; */
+  color: rgb(36, 34, 34);
 }
 
 #new-project-btn {
   font-size: 1.25rem;
   font-weight: bold;
-  height: 80%;
+  height: 100%;
   display: flex;
   justify-content: center;
   text-align: center;
@@ -450,8 +582,51 @@ onBeforeUnmount(() => {
   line-height: 20px;
 }
 
-#new-project-btn:hover{
+#new-project-btn:hover {
   background-color: #389645;
+}
+
+#project-title {
+  color: #58a6ff;
+  font-size: 1.8rem;
+  font-weight: bold;
+  /* text-decoration: underline; */
+  bottom: 4px;
+  padding-bottom: 2px;
+  border-bottom: 2px solid #58a6ff;
+}
+
+#project-title:hover {
+  cursor: pointer;
+}
+
+#project-status {
+  display: flex;
+}
+
+#watch-icon {
+  filter: invert(20%) sepia(93%) saturate(1847%) hue-rotate(196deg)
+    brightness(105%) contrast(101%);
+}
+
+.project-status-span {
+  align-self: center;
+  color: rgb(173, 173, 173);
+  font-size: 1rem;
+  text-align: center;
+  font-weight: bold;
+  width: 50px;
+  margin-left: 3%;
+}
+
+#project-description {
+  margin-top: 1%;
+  font-size: 1.25rem;
+  color: rgb(150, 150, 150);
+}
+
+#exampleModal {
+  margin-top: 5%;
 }
 
 /* The search field */
@@ -496,5 +671,27 @@ onBeforeUnmount(() => {
 /* Change color of dropdown links on hover */
 .dropdown-content a:hover {
   background-color: #f1f1f1;
+}
+
+#page-render {
+  font-size: 1.5rem;
+  margin: -5px 0px 30px 0px;
+}
+
+.user-page-btn {
+  cursor: pointer;
+  color: rgb(255, 255, 255);
+  background: none;
+  border: 0px;
+  margin-right: 3%;
+}
+
+.user-page-btn:hover {
+  border: 1px solid #ddd;
+  border-radius: 10px;
+}
+
+.new-project-label {
+  margin-left: 5px;
 }
 </style>

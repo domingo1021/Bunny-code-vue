@@ -230,6 +230,7 @@ import CodeMirrorView from "./CodeMirrorView.vue";
 import FolderController from "./FolderController.vue";
 import CreateVersionComponent from "../components/CreateVersionComponent.vue";
 import { Modal } from "bootstrap";
+import Swal from "sweetalert2";
 
 const localhostServer = "http://localhost:3000";
 const productionServer = "https://domingoos.store";
@@ -320,7 +321,12 @@ async function updateProjectDetail() {
     );
   } catch (error) {
     console.log(error);
-    alert(error.response.data.msg);
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: error.response.data.msg,
+      footer: '<a href="">Why do I have this issue?</a>',
+    });
     return;
   }
   projectDetail.value = projectResponse.data.data;
@@ -346,7 +352,12 @@ async function updateProjectDetail() {
     targetVersionIndex.value > projectDetail.value.version.length - 1 ||
     targetVersionIndex.value < 0
   ) {
-    alert("版本不存在");
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: "版本不存在",
+      footer: '<a href="">Why do I have this issue?</a>',
+    });
     targetVersionIndex.value = 0;
   }
   console.log("Project content: ", projectDetail.value);
@@ -558,7 +569,7 @@ onUnmounted(() => {
 ::-webkit-scrollbar-button {
   height: 10px;
 }
-button:hover{
+button:hover {
   background-color: #555;
 }
 </style>

@@ -6,6 +6,7 @@ import BattleSpaceComponent from "../components/BattleSpaceComponent.vue";
 import TerminalComponent from "../components/TerminalComponent.vue";
 import "highlight.js/styles/monokai.css";
 import Socket from "../socket";
+import Swal from "sweetalert2";
 
 const props = defineProps({
   userID: Number,
@@ -219,7 +220,7 @@ onBeforeMount(async () => {
   props.socket.socketOn("battleStart", () => {
     boardContent.value = questionContent.value;
     //TODO: 倒數特效
-    alert("5 秒鐘後活動開始");
+    Swal.fire("5 秒鐘後活動開始");
     setTimeout(() => {
       start.value = true;
     }, 5000);
@@ -227,13 +228,16 @@ onBeforeMount(async () => {
 
   props.socket.socketOn("readyFailed", (responseObject) => {
     if (responseObject.failedUserID === props.userID) {
-      alert(responseObject.reason);
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: responseObject.reason,
+      });
     }
   });
 
   props.socket.socketOn("battleOver", async (responseObject) => {
-    // TODO: modal.show() ... win the game
-    alert(
+    Swal.fire(
       `${responseObject.winnerName} win the game !! ${responseObject.reason}`
     );
     if (responseObject.winnerID === props.userID) {
@@ -253,10 +257,15 @@ onBeforeMount(async () => {
         },
         data: submitForm,
       });
-      console.log(response.data);
-      alert("upload success");
     }
     battleOver.value = true;
+    Swal.fire({
+      position: "top-end",
+      icon: "success",
+      title: "Winner code uploaded successfully.",
+      showConfirmButton: false,
+      timer: 1500,
+    });
   });
 });
 

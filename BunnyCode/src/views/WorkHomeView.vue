@@ -26,11 +26,11 @@ const topThreeProejct = [
 ];
 const projectPageArray = ref([]);
 
-function renderPath(index) {
-  router.push(
-    `/workspace/${projectsDisplayed.value.projects[index].projectName}`
-  );
-}
+// function renderPath(index) {
+//   router.push(
+//     `/workspace/${projectsDisplayed.value.projects[index].projectName}`
+//   );
+// }
 
 function updateProjects(emitObject) {
   projectsDisplayed.value = emitObject;
@@ -55,25 +55,27 @@ async function queryProjects() {
   if (!paging || +paging < 0) {
     paging = 0;
   }
+  let responseProjects;
   if (keywords) {
-    let responseProjects = await axios.get(
+    responseProjects = await axios.get(
       productionServer +
         `/api/1.0/project/search?keywords=${keywords}&paging=${paging}`
     );
-    console.log(responseProjects.data.data);
+    console.log("responseData: ", responseProjects.data.data);
     projectsDisplayed.value = responseProjects.data.data;
-    return;
+  } else {
+    responseProjects = await axios.get(
+      productionServer + `/api/1.0/project/all?paging=${paging}`
+    );
+    projectsDisplayed.value = responseProjects.data.data;
   }
-  let responseProjects = await axios.get(
-    productionServer + `/api/1.0/project/all?paging=${paging}`
-  );
-  projectsDisplayed.value = responseProjects.data.data;
-  console.log(projectsDisplayed.value);
   projectPageArray.value = [];
-  for (let i = 1; i <= projectsDisplayed.value.allPage; i++) {
+  for (let i = 1; i <= responseProjects.data.data.allPage; i++) {
+    console.log("push");
     projectPageArray.value.push(i);
   }
   if (projectsDisplayed.value.projects.length === 0) {
+    console.log("search 1");
     searchProjectPage(1);
   }
 }
@@ -105,10 +107,7 @@ defineExpose({
           v-for="(project, index) in topThreeProejct"
           :key="index"
         >
-          <ProjectCardComponent
-            :projectObject="project"
-            @click="renderPath(index)"
-          />
+          <ProjectCardComponent :projectObject="project" />
         </div>
       </div>
       <div class="projects-title">Project you may like</div>
@@ -119,10 +118,7 @@ defineExpose({
           v-for="(project, index) in projectsDisplayed.projects"
           :key="index"
         >
-          <ProjectCardComponent
-            :projectObject="project"
-            @click="renderPath(index)"
-          />
+          <ProjectCardComponent :projectObject="project" />
         </div>
       </div>
       <div id="search-project-page">

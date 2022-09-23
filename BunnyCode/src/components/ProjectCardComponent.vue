@@ -2,8 +2,14 @@
   <div class="card" style="width: 18rem">
     <div class="card-body">
       <h5 class="project-card-title card-title">
-        <div style="width: 100%">{{ projectObject.userName }} / {{ projectObject.projectName }}</div>
-        <!-- <div style="width: 100%">{{ projectObject.projectName }}</div> -->
+        <div style="display: flex; width: 100%; justify-content: center">
+          <div id="project-card-user-name" @click="goUserProfile">
+            {{ projectObject.userName }}&nbsp; / &nbsp;
+          </div>
+          <div id="project-card-project-name" @click="goWorkspace">
+            {{ projectObject.projectName }}
+          </div>
+        </div>
       </h5>
       <h6 class="card-subtitle mb-2 text-muted">
         Star: {{ projectObject.starCount }} Watch:
@@ -17,9 +23,26 @@
 </template>
 
 <script setup>
-defineProps({
+import { onMounted } from "vue";
+import { useRouter } from "vue-router";
+
+const props = defineProps({
   projectObject: Object,
 });
+
+const router = useRouter();
+
+function goUserProfile() {
+  router.push({
+    name: "user",
+    params: { pageUserID: props.projectObject.userID },
+  });
+}
+
+function goWorkspace() {
+  router.push(`/workspace/${props.projectObject.projectName}`);
+}
+
 </script>
 
 <style scoped>
@@ -28,14 +51,20 @@ defineProps({
   border: 0.3px solid #85888b;
   height: 100%;
 }
-.card:hover {
+/* .card:hover {
   cursor: pointer;
   background-color: rgb(69, 75, 103);
-}
+} */
 .project-card-title {
   display: block;
   text-align: center;
-  /* justify-content:left; */
 }
 
+#project-card-user-name:hover {
+  cursor: pointer;
+}
+
+#project-card-project-name:hover {
+  cursor: pointer;
+}
 </style>

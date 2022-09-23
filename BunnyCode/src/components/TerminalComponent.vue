@@ -6,21 +6,16 @@ const props = defineProps({
 
 const terminalScroll = ref(null);
 
-function printScroll() {
-  alert(terminalScroll.value.scrollHeight, terminalScroll.value.childHeight);
-}
-
 watch(
   () => props.terminalResult.length,
   async (now, prev) => {
     await nextTick();
     terminalScroll.value.scrollTo(0, terminalScroll.value.scrollHeight);
-    // terminalScroll.value.scrollTop = terminalScroll.value.scrollHeight * 2;
   }
 );
 </script>
 <template>
-  <div id="terminal" ref="terminalScroll" @click="printScroll">
+  <div id="terminal" ref="terminalScroll">
     <div id="result-area">
       <div v-for="(result, index) in terminalResult" :key="index">
         <div>

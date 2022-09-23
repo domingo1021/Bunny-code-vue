@@ -1,6 +1,6 @@
 <template>
   <div v-if="props.userID !== -1 && props.socket">
-    <div style="text-align: right;">
+    <div style="text-align: right">
       <button
         type="button"
         id="battle-btn"
@@ -8,7 +8,7 @@
         data-bs-toggle="modal"
         data-bs-target="#battleModal"
       >
-      Launch battle
+        Launch battle
         <!-- <img
           id="battle-btn"
           src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSJJXoY_VjsNh2vhczR8q8KsHHmYucn6TbuVQ&usqp=CAU"
@@ -34,7 +34,7 @@
               data-bs-dismiss="modal"
               data-dismiss="modal"
               aria-label="Close"
-              style="position: absolute; right: 30px;"
+              style="position: absolute; right: 30px"
             >
               <span aria-hidden="true">&times;</span>
             </button>
@@ -157,13 +157,14 @@ import { useRouter } from "vue-router";
 import axios from "axios";
 import Socket from "../socket";
 import BattleCardComponent from "../components/BattleCardComponent.vue";
+import Swal from "sweetalert2";
 
 const props = defineProps({
   userID: Number,
   socket: Socket,
 });
 const emits = defineEmits(["setUserID"]);
-const productionServer = "https://domingoos.store"
+const productionServer = "https://domingoos.store";
 
 const router = useRouter();
 const finishBattles = ref([]);
@@ -178,11 +179,22 @@ function inviteBattle() {
   if (!props.socket) {
     return;
   }
+  axios
+    .get(`${productionServer}/api/1.0/battle/${battleName.value}`)
+    .then(() => {
+      props.socket.socketEmit("inviteBattle", {
+        battleName: battleName.value,
+        battleLevel: battleLevel.value,
+      });
+    })
+    .catch((error) => {
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: error.response.data.msg,
+      });
+    });
   //TODO: set 20 秒鐘 unclickable, 限制使用者頻繁送出請求
-  props.socket.socketEmit("inviteBattle", {
-    battleName: battleName.value,
-    battleLevel: battleLevel.value,
-  });
 }
 
 function goBattle(category, index) {
@@ -260,18 +272,17 @@ watch(battleName, () => {
   flex-basis: 40%;
   height: 30%;
   padding-top: 10px;
-
 }
 .label-header {
   width: 200px;
   top: 5px;
 }
 
-#battleModal{
-  color: rgb(0,0,0);
+#battleModal {
+  color: rgb(0, 0, 0);
 }
 
-.launch-btn{
+.launch-btn {
   margin-top: 3%;
   padding-right: 1%;
   padding-left: 1%;
@@ -282,11 +293,11 @@ watch(battleName, () => {
   right: 5%;
 }
 
-.launch-btn:hover{
+.launch-btn:hover {
   background-color: rgb(154, 143, 143);
   outline: none;
 }
-.launch-btn:focus{
+.launch-btn:focus {
   outline: none;
 }
 

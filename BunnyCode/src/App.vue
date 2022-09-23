@@ -44,7 +44,7 @@
         aria-hidden="false"
       >
         <div class="modal-dialog" role="document">
-          <div class="modal-content">
+          <div id="battle-modal" class="modal-content">
             <div class="modal-header text-center">
               <h4 class="modal-title w-100 font-weight-bold">BATTLE BOOM !!</h4>
               <button
@@ -83,11 +83,12 @@ import SearchComponent from "./components/SearchComponent.vue";
 import { ref, onMounted, onUnmounted, watch } from "vue";
 import axios from "axios";
 import io from "socket.io-client";
-import NotificationView from "./views/NotificationView.vue";
+// import NotificationView from "./views/NotificationView.vue";
 import { createToaster } from "@meforma/vue-toaster";
 // import BattleLaunchComponent from "./components/BattleLaunchComponent.vue";
 import { Modal } from "bootstrap";
-import BattleLaunchComponent from "./components/BattleLaunchComponent.vue";
+// import BattleLaunchComponent from "./components/BattleLaunchComponent.vue";
+import Swal from "sweetalert2";
 
 let myModal;
 const modalObject = ref(null);
@@ -133,7 +134,6 @@ const toaster = createToaster({
   duration: 10000,
   maxToasts: 1,
   onClick: () => {
-    alert("接受挑戰");
     modalBattleName.value = battleName.value;
     modalBattleLevel.value = battleLevel.value;
     modalFirstUserID.value = firstUserID.value;
@@ -189,7 +189,11 @@ function initiateSocket() {
     );
   });
   socket.value.socketOn("battleFailed", (msg) => {
-    alert(msg);
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: msg,
+    });
   });
   socket.value.socketOn("battleCreated", (emitObject) => {
     router.push({
@@ -198,8 +202,7 @@ function initiateSocket() {
     });
   });
   socket.value.socketOn("disconnect", (reason) => {
-    console.log(`Disconnecting with reason: ${reason}`);
-    alert("disconnected");
+    Swal.fire("The Internet?", "That thing is still around?", "question");
     router.push("/login");
   });
 }
@@ -285,7 +288,7 @@ nav a:first-of-type {
 }
 
 header + body {
-  padding-top: 50px;
+  padding-top: 60px;
 }
 
 #battle-invitation {
@@ -299,5 +302,9 @@ header + body {
 
 .confirm-btn {
   margin: 5%;
+}
+
+#battle-modal{
+  color:black;
 }
 </style>
