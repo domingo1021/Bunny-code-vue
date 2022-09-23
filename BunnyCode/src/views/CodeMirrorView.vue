@@ -3,6 +3,7 @@ import Socket from "../socket";
 import CodeMirrorComponent from "../components/CodeMirrorComponent.vue";
 import TerminalComponent from "../components/TerminalComponent.vue";
 import { ref, onMounted, watch, onBeforeUnmount } from "vue";
+import Swal from "sweetalert2";
 // import { Vue3ToggleButton } from "vue3-toggle-button";
 // import "@/../node_modules/vue3-toggle-button/dist/style.css";
 // TODO: 如果是本人進入頁面（認為想要 edit）, 則建立 Socket, 並更動 edit 狀態，
@@ -81,9 +82,22 @@ function updateParentVersionFile(emitObject) {
 }
 
 function changeEdit() {
-  props.socket.socketEmit("changeEdit", {
-    projectID: props.projectID,
-    versionID: props.version.versionID,
+  Swal.fire({
+    title: "Do you want to forcely edit ?",
+    text: "You may lose some codes on another existing workspace window.",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#3085d6",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Yes, edit !",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      props.socket.socketEmit("changeEdit", {
+        projectID: props.projectID,
+        versionID: props.version.versionID,
+      });
+      Swal.fire("Force edit success !", "Happy coding !", "success");
+    }
   });
 }
 
@@ -197,7 +211,7 @@ onBeforeUnmount(() => {
           @pushSaveRecords="pushSaveRecords"
           @updateVersionFile="updateParentVersionFile"
         />
-        <div id="terminal-header" style="background-color: rgb(36,36,36);">
+        <div id="terminal-header" style="background-color: rgb(36, 36, 36)">
           <div>&nbsp;</div>
           <div id="terminal-title">Terminal</div>
         </div>
@@ -269,7 +283,7 @@ a {
   color: rgb(255, 255, 255);
 }
 
-#edit-btn{
+#edit-btn {
   position: absolute;
   padding: 0.3% 1% 0.3% 1%;
   border-radius: 5px;
@@ -280,7 +294,7 @@ a {
   border-radius: 5px;
 }
 
-#terminal-header{
+#terminal-header {
   z-index: 99;
   position: relative;
   margin-top: 5%;
@@ -288,11 +302,11 @@ a {
   height: 50px;
 }
 
-#terminal-title{
+#terminal-title {
   position: absolute;
   background-color: #555;
   right: 2%;
-  top:20%;
+  top: 20%;
   display: inline-block;
   padding: 0.5% 1% 0.5% 1%;
   border-radius: 10px;

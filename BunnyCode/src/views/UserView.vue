@@ -51,7 +51,7 @@ function renderPath(index) {
 
 async function searchUserProject() {
   const userProjectsInfo = await axios.get(
-    `${localhostServer}/api/1.0/user/${props.pageUserID}/project?keyword=${userKeyword.value}`
+    `${productionServer}/api/1.0/user/${props.pageUserID}/project?keyword=${userKeyword.value}`
   );
   projectsDisplayed.value = userProjectsInfo.data.data;
 }
@@ -133,7 +133,7 @@ async function getUserProject() {
       method: "get",
       // url: productionServer + `/api/1.0/user/${route.params.userID}/project`,
       url:
-        localhostServer +
+        productionServer +
         `/api/1.0/user/${route.params.pageUserID}/project?paging=${
           currentPage.value - 1
         }`,
@@ -170,7 +170,7 @@ watch(
 
 onBeforeMount(async () => {
   const userDetail = await axios.get(
-    `${localhostServer}/api/1.0/user/${props.pageUserID}/detail`
+    `${productionServer}/api/1.0/user/${props.pageUserID}/detail`
   );
   userInfo.value = userDetail.data.data;
   console.log("User Info: ", userInfo.value);
