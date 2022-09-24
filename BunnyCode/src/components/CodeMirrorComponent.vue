@@ -14,10 +14,13 @@ import {
 } from "vue";
 import { Modal } from "bootstrap";
 import Swal from "sweetalert2";
+import Socket from "../socket";
+import router from "../router";
 
 // TODO: check user agent for keyword.
 
 const props = defineProps({
+  socket: Socket,
   projectUserID: Number,
   userID: Number,
   projectID: Number,
@@ -451,7 +454,12 @@ async function saveFileRecord() {
   emit("updateVersionFile", {
     fileURL: response.data.data,
   });
-  myModal.hide();
+  hideSaveModal();
+  Swal.fire(
+    "Save code success !",
+    "Let's replay the codes to see your amazing contribution !",
+    "success"
+  );
 }
 
 async function runCode() {
@@ -772,6 +780,7 @@ async function initSaveRecords() {
 }
 
 async function initCodeMirror() {
+  await nextTick();
   const fileUrlContent = await axios.get(props.info.fileURL);
   if (props.info.fileContent === "") {
     emit("updateCurrCodes", {
@@ -829,8 +838,7 @@ async function initCodeMirror() {
       CodeMirror.commands[commandKey] = commands[commandKey];
       return;
     }
-    CodeMirror.commands[commandKey] = () => {
-  };
+    CodeMirror.commands[commandKey] = () => {};
   });
   editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
     value: props.info.fileContent,
@@ -876,9 +884,6 @@ function userClick() {
 let modalSave;
 const modalSaveObject = ref(null);
 
-// let modalIntro;
-// const modalIntroObject = ref(null);
-
 function showSaveModal() {
   if (props.readOnly) {
     return;
@@ -890,26 +895,24 @@ function hideSaveModal() {
   modalSave.hide();
 }
 
-// function showIntroModal() {
-//   modalIntro.show();
-// }
-
-// function hideIntroModal() {
-//   modalIntro.hide();
-// }
-
 onBeforeMount(async () => {
   await initCodeMirror();
 });
 
 onMounted(() => {
   modalSave = new Modal(modalSaveObject.value, {});
-  // modalIntro = new Modal(modalIntroObject.value, {});
-  // showIntroModal();
 });
 
 onBeforeUnmount(() => {
   keepPlay = false;
+  if (!props.socket) {
+    return;
+  }
+  if (!props.readOnly || props.authorization) {
+    props.socket.socketEmit("unEdit", {
+      versionID: props.info.versionID,
+    });
+  }
 });
 </script>
 
