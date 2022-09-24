@@ -102,6 +102,7 @@ function changeEdit() {
 }
 
 function socketInit() {
+  console.log("Socket initing...", `${props.recordInfo.length}`);
   props.socket.socketOn("statusChecked", (responseObject) => {
     if (props.recordInfo.length !== 0) {
       responseObject.readOnly = true;
@@ -119,6 +120,11 @@ function socketInit() {
       projectID: props.projectID,
       versionID: props.version.versionID,
     });
+  } else {
+    emit("changeUserStatus", {
+      readOnly: true,
+      authorization: props.authorization,
+    });
   }
 }
 
@@ -130,6 +136,10 @@ watch(
     }
   }
 );
+
+// watch(props.version.versionID, ()=>{
+//   console.log("Version change: !!!", props.version.versionID);
+// })
 
 onMounted(() => {
   // check whether version is editing with version.versionID
@@ -201,6 +211,7 @@ onBeforeUnmount(() => {
           :readOnly="props.readOnly"
           :projectID="props.projectID"
           :authorization="props.authorization"
+          :socket="props.socket"
           @updateCurrCodes="updateCurrCodes"
           @updateCurrIndex="updateCurrIndex"
           @updateCurrLine="updateCurrLine"
