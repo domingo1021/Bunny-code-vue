@@ -55,7 +55,7 @@
         <div
           class="version-list"
           v-for="(version, index) in projectDetail?.version"
-          @click="updateTargetVersion(index)"
+          @click="updatePreviewVersion(index)"
           :key="index"
         >
           第 {{ version.versionNumber }} 版 &nbsp; {{ version.versionName }}
@@ -90,9 +90,10 @@
     <div id="main-content-2" v-else-if="targetFunction === 'Version'">
       <div v-if="Object.keys(projectDetail).length !== 0">
         <FolderController
-          :targetVersionIndex="targetVersionIndex"
-          :version="projectDetail.version[targetVersionIndex]"
+          :targetVersionIndex="previewVersionIndex"
+          :version="projectDetail.version[previewVersionIndex]"
           @updateTarget="updateTarget"
+          @syncVersion="syncVersion"
         />
       </div>
     </div>
@@ -247,6 +248,7 @@ const props = defineProps({
 let modalIntro;
 const modalIntroObject = ref(null);
 const targetVersionIndex = ref(0);
+const previewVersionIndex = ref(0);
 if (props.versionNumber !== "") {
   targetVersionIndex.value = Number(props.versionNumber) - 1;
 }
@@ -286,6 +288,15 @@ function updateTargetVersion(versionIndex) {
   console.log("updateTargetVersion:", versionIndex);
   targetVersionIndex.value = versionIndex;
 }
+
+function updatePreviewVersion(versionIndex) {
+  console.log("updatePreviewVersion:", versionIndex);
+  previewVersionIndex.value = versionIndex;
+}
+function syncVersion() {
+  targetVersionIndex.value = previewVersionIndex.value;
+}
+
 
 function pushVersionObject(versionObject) {
   projectDetail.value.version.push(versionObject);
