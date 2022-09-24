@@ -214,9 +214,7 @@ onBeforeUnmount(() => {
         @keyup.enter="searchUserProject"
         style="display: flex !important"
       >
-        <!-- <div style="display: block;"> -->
         <input id="search-input-area" type="text" v-model="userKeyword" />
-        <!-- </div> -->
         <div id="new-project" v-if="userAuth === CLIENT_CATEGORY.self">
           <button
             id="new-project-btn"
@@ -395,7 +393,7 @@ onBeforeUnmount(() => {
           </div>
         </div>
       </div>
-      <div id="project-card-long">
+      <div id="project-card-long" v-if="projectsDisplayed.length !== 0">
         <div
           clsss="card"
           v-for="(project, index) in projectsDisplayed"
@@ -447,6 +445,9 @@ onBeforeUnmount(() => {
           </div>
           <!-- </div> -->
         </div>
+      </div>
+      <div id="project-card-long" v-if="projectsDisplayed.length === 0">
+        <div id="no-projects">No more projects ...</div>
       </div>
       <div id="page-render" style="display: flex; justify-content: center">
         <button
@@ -693,5 +694,12 @@ onBeforeUnmount(() => {
 
 .new-project-label {
   margin-left: 5px;
+}
+
+#no-projects{
+  text-align: center;
+  font-size: 2rem;
+  color: rgb(148, 147, 147);
+  margin: 25px 0px 50px 0px;
 }
 </style>
