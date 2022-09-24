@@ -25,9 +25,7 @@
     />
     <div id="battle-introduce-word" class="intro-bar">
       <div>Improve coding speed & quality</div>
-      <div>while</div>
-      <div><strong>coding battle</strong></div>
-      <!-- <div><strong>pair programming.</strong></div> -->
+      <div>while <strong>battling</strong> !</div>
       <div class="learn-more">+ &nbsp; Learn more</div>
     </div>
   </div>
@@ -35,6 +33,12 @@
 
 <script setup>
 import { onMounted, ref } from "vue";
+import Socket from "../socket";
+
+const props = defineProps({
+  userID: Number,
+  socket: Socket,
+});
 const emits = defineEmits(["setUserID"]);
 const helloContent = ref("");
 const pendingContent = ref([
