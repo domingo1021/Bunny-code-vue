@@ -136,6 +136,7 @@ async function runCode(battlerNumber) {
   props.socket.socketEmit("compile", {
     battlerNumber: battlerNumber,
     battleID: props.battleID,
+    questionName: questionName.value,
     codes: compiledCode.value,
   });
 }
