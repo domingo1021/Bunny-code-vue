@@ -228,7 +228,7 @@ onBeforeUnmount(() => {
         </div>
         <TerminalComponent
           :terminalResult="terminalResult"
-          style="top: 400px"
+          style="top: 430px"
         />
       </div>
     </div>

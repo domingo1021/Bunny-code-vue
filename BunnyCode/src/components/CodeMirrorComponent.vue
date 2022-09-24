@@ -56,6 +56,8 @@ let baseLine;
 let baseIndex;
 let redo = [];
 let undo = [];
+let playSpeed = ref([0.25, 0.5, 0.75, 1, 1.25, 1.5, 2]);
+let speedIndex = ref(2);
 
 function updateContent(e) {
   console.log(props.info.line, props.info.index);
@@ -500,6 +502,19 @@ function clickPlay() {
   }
 }
 
+function playFaster() {
+  if (speedIndex.value < 6) {
+    speedIndex.value += 1;
+    console.log("speed: ", playSpeed.value[speedIndex.value]);
+  }
+}
+function playSlower() {
+  if (speedIndex.value > 0) {
+    speedIndex.value -= 1;
+    console.log("speed: ", playSpeed.value[speedIndex.value]);
+  }
+}
+
 async function playback() {
   // setValue 所有上一個版本的 Code 作為初始值
   clickPlay();
@@ -547,7 +562,7 @@ async function playback() {
           baseContent = props.info.fileContent;
           playIndex += 1;
           return resolve();
-        }, props.info.timeBetween[i]);
+        }, props.info.timeBetween[i] / playSpeed.value[speedIndex.value]);
       });
     }
   }
@@ -924,41 +939,6 @@ onBeforeUnmount(() => {
     <button class="tool-btn">
       <img src="@/assets/redo.png" alt="redo" width="20" height="20" />
     </button>
-    <button
-      class="tool-btn"
-      @click="playback"
-      v-if="props.readOnly && props.info.timeBetween.length !== 0"
-    >
-      <div v-if="!keepPlay" id="play">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
-          fill="currentColor"
-          class="bi bi-play"
-          viewBox="0 0 16 16"
-          style="top: -1px"
-        >
-          <path
-            d="M10.804 8 5 4.633v6.734L10.804 8zm.792-.696a.802.802 0 0 1 0 1.392l-6.363 3.692C4.713 12.69 4 12.345 4 11.692V4.308c0-.653.713-.998 1.233-.696l6.363 3.692z"
-          />
-        </svg>
-      </div>
-      <div v-else-if="keepPlay" id="stop-play">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
-          fill="currentColor"
-          class="bi bi-pause-fill"
-          viewBox="0 0 16 16"
-        >
-          <path
-            d="M5.5 3.5A1.5 1.5 0 0 1 7 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5zm5 0A1.5 1.5 0 0 1 12 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5z"
-          />
-        </svg>
-      </div>
-    </button>
   </div>
   <!-- <div id="tool-bar" v-else-if="!props.readOnly">
     <div class="tool-btn" style="height: 20px !important">&nbsp;</div>
@@ -1011,6 +991,140 @@ onBeforeUnmount(() => {
       </div>
     </div>
   </div>
+  <div id="play-bar">
+    <div v-if="speedIndex > 0">
+      <button
+        class="tool-btn play-btn"
+        @click="playSlower"
+        v-if="props.readOnly && props.info.timeBetween.length !== 0"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          fill="currentColor"
+          class="bi bi-rewind"
+          viewBox="0 0 16 16"
+        >
+          <path
+            d="M9.196 8 15 4.633v6.734L9.196 8Zm-.792-.696a.802.802 0 0 0 0 1.392l6.363 3.692c.52.302 1.233-.043 1.233-.696V4.308c0-.653-.713-.998-1.233-.696L8.404 7.304Z"
+          />
+          <path
+            d="M1.196 8 7 4.633v6.734L1.196 8Zm-.792-.696a.802.802 0 0 0 0 1.392l6.363 3.692c.52.302 1.233-.043 1.233-.696V4.308c0-.653-.713-.998-1.233-.696L.404 7.304Z"
+          />
+        </svg>
+      </button>
+    </div>
+    <div v-else>
+      <button
+        class="tool-btn play-btn"
+        @click="playSlower"
+        v-if="props.readOnly && props.info.timeBetween.length !== 0"
+        disabled
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          fill="currentColor"
+          class="bi bi-rewind"
+          viewBox="0 0 16 16"
+        >
+          <path
+            d="M9.196 8 15 4.633v6.734L9.196 8Zm-.792-.696a.802.802 0 0 0 0 1.392l6.363 3.692c.52.302 1.233-.043 1.233-.696V4.308c0-.653-.713-.998-1.233-.696L8.404 7.304Z"
+          />
+          <path
+            d="M1.196 8 7 4.633v6.734L1.196 8Zm-.792-.696a.802.802 0 0 0 0 1.392l6.363 3.692c.52.302 1.233-.043 1.233-.696V4.308c0-.653-.713-.998-1.233-.696L.404 7.304Z"
+          />
+        </svg>
+      </button>
+    </div>
+    <button
+      class="tool-btn play-btn"
+      @click="playback"
+      v-if="props.readOnly && props.info.timeBetween.length !== 0"
+    >
+      <div id="play-speed">x{{playSpeed[speedIndex]}}</div>
+      <div v-if="!keepPlay" id="play">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          fill="currentColor"
+          class="bi bi-play"
+          viewBox="0 0 16 16"
+          style="top: -1px"
+        >
+          <path
+            d="M10.804 8 5 4.633v6.734L10.804 8zm.792-.696a.802.802 0 0 1 0 1.392l-6.363 3.692C4.713 12.69 4 12.345 4 11.692V4.308c0-.653.713-.998 1.233-.696l6.363 3.692z"
+          />
+        </svg>
+      </div>
+      <div v-else-if="keepPlay" id="stop-play">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          fill="currentColor"
+          class="bi bi-pause-fill"
+          viewBox="0 0 16 16"
+        >
+          <path
+            d="M5.5 3.5A1.5 1.5 0 0 1 7 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5zm5 0A1.5 1.5 0 0 1 12 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5z"
+          />
+        </svg>
+      </div>
+    </button>
+    <div v-if="speedIndex < 6">
+      <button
+        class="tool-btn play-btn"
+        @click="playFaster"
+        v-if="props.readOnly && props.info.timeBetween.length !== 0"
+        style="margin-left: 5px"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          fill="currentColor"
+          class="bi bi-fast-forward"
+          viewBox="0 0 16 16"
+        >
+          <path
+            d="M6.804 8 1 4.633v6.734L6.804 8Zm.792-.696a.802.802 0 0 1 0 1.392l-6.363 3.692C.713 12.69 0 12.345 0 11.692V4.308c0-.653.713-.998 1.233-.696l6.363 3.692Z"
+          />
+          <path
+            d="M14.804 8 9 4.633v6.734L14.804 8Zm.792-.696a.802.802 0 0 1 0 1.392l-6.363 3.692C8.713 12.69 8 12.345 8 11.692V4.308c0-.653.713-.998 1.233-.696l6.363 3.692Z"
+          />
+        </svg>
+      </button>
+    </div>
+    <div v-else>
+      <button
+        class="tool-btn play-btn"
+        @click="playFaster"
+        v-if="props.readOnly && props.info.timeBetween.length !== 0"
+        style="margin-left: 5px"
+        disabled
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          fill="currentColor"
+          class="bi bi-fast-forward"
+          viewBox="0 0 16 16"
+        >
+          <path
+            d="M6.804 8 1 4.633v6.734L6.804 8Zm.792-.696a.802.802 0 0 1 0 1.392l-6.363 3.692C.713 12.69 0 12.345 0 11.692V4.308c0-.653.713-.998 1.233-.696l6.363 3.692Z"
+          />
+          <path
+            d="M14.804 8 9 4.633v6.734L14.804 8Zm.792-.696a.802.802 0 0 1 0 1.392l-6.363 3.692C8.713 12.69 8 12.345 8 11.692V4.308c0-.653.713-.998 1.233-.696l6.363 3.692Z"
+          />
+        </svg>
+      </button>
+    </div>
+  </div>
   <div id="run-btn" class="tool-btn" v-if="props.userID === projectUserID">
     <button id="terminal-btn" @click="runCode">Run code</button>
   </div>
@@ -1049,6 +1163,17 @@ onBeforeUnmount(() => {
   display: flex;
 }
 
+#play-bar {
+  padding-top: 0.5%;
+  display: flex;
+  width: 100%;
+  justify-content: center;
+}
+
+.play-btn {
+  margin: 2px 5px 0px 5px;
+}
+
 #terminal-btn {
   border-radius: 5px;
 }
@@ -1066,5 +1191,17 @@ onBeforeUnmount(() => {
 }
 button:hover {
   background-color: rgb(180, 180, 180);
+}
+
+#play-speed{
+  position: absolute;
+  font-weight: bold;
+  left: 90px;
+  bottom: -3px;
+  font-size: 1rem;
+  color:aliceblue;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
 }
 </style>
