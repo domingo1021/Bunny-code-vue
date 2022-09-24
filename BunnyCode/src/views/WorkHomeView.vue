@@ -10,20 +10,7 @@ const projectsDisplayed = ref([]);
 const localhostServer = "http://localhost:3000";
 const productionServer = "https://domingoos.store";
 const emits = defineEmits(["setUserID"]);
-const topThreeProejct = [
-  {
-    projectName: "hello",
-    watchCount: 0,
-  },
-  {
-    projectName: "hello2",
-    watchCount: 0,
-  },
-  {
-    projectName: "hello2",
-    watchCount: 0,
-  },
-];
+const topThreeProejct = ref();
 const projectPageArray = ref([]);
 
 // function renderPath(index) {
@@ -74,6 +61,11 @@ async function queryProjects() {
     console.log("push");
     projectPageArray.value.push(i);
   }
+  let topThreeResponse = await axios.get(
+    `${productionServer}/api/1.0/project/top`
+  );
+  console.log(topThreeResponse.data.data);
+  topThreeProejct.value = topThreeResponse.data.data;
   if (projectsDisplayed.value.projects.length === 0) {
     console.log("search 1");
     searchProjectPage(1);
