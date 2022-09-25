@@ -168,8 +168,8 @@ axios({
 function initiateSocket() {
   jwt = localStorage.getItem('jwt');
   socket.value = new Socket(
-    // io(productionSocket, {
-      io(localhostServer, {
+    io(productionSocket, {
+      // io(localhostServer, {
       auth: (cb) => {
         cb({ token: `Bearer ${jwt}` });
       },
