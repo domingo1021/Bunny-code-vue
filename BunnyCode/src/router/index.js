@@ -21,14 +21,8 @@ const router = createRouter({
       component: () => import("../views/BattleHomeView.vue"),
     },
     {
-      path: "/code-mirror/:projectName",
-      name: "code-mirror",
-      component: () => import("../views/WorkSpace.vue"),
-      props: true,
-    },
-    {
-      path: "/code-mirror/:projectName/version/:versionName",
-      name: "code-mirror-version",
+      path: "/workspace/:projectName/:versionNumber?",
+      name: "workspace",
       component: () => import("../views/WorkSpace.vue"),
       props: true,
     },
@@ -47,7 +41,7 @@ const router = createRouter({
       props: true,
     },
     {
-      path: "/user/:userID",
+      path: "/user/:pageUserID",
       name: "user",
       component: () => import("../views/UserView.vue"),
       props: true,
@@ -116,7 +110,7 @@ router.beforeEach(async (to, from, next) => {
     if (isLogin) {
       return next({
         name: "user",
-        params: { userID: userID },
+        params: { pageUserID: userID },
       });
     } else {
       return next();

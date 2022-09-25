@@ -131,14 +131,15 @@ onBeforeUnmount(() => {
   background-color: rgb(63, 61, 72);
 }
 #winner-profile {
-  margin-top: 3%;
-  left: -30vw;
+  margin-top: 1%;
+  left: -27vw;
 }
 #winner-editor{
   position: absolute;
   top: 0%;
   right: 5%;
   width: 600px;
+  margin-top: 2%;
   /* padding: 5; */
 }
 </style>

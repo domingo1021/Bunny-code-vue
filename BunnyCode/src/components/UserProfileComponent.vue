@@ -5,15 +5,15 @@
       <div>{{ userInfo.userLevel }}</div>
     </div>
     <img id="user-picture" :src="userInfo.picture" alt="User picture" />
-    <div id="user-name">{{ userInfo.userName }}</div>
+    <div id="user-name" @click="goProfile">{{ userInfo.userName }}</div>
     <div id="user-profile">
       <div>
         {{ userInfo.profile }}
       </div>
     </div>
-    <div>
-      <button @click="goProfile">Contact</button>
-    </div>
+    <!-- <div> -->
+      <!-- <button @click="goProfile">Contact</button> -->
+    <!-- </div> -->
   </div>
 </template>
 
@@ -27,17 +27,21 @@ const props = defineProps({
 const router = useRouter();
 
 function goProfile() {
-  router.push({ name: "user", params: { userID: props.userInfo.userID } });
+  router.push({ name: "user", params: { pageUserID: props.userInfo.userID } });
 }
 </script>
 
 <style scoped>
 #user-card {
   background-color: rgb(31, 31, 31);
+  margin-bottom: 5%;
 }
 #user-name {
   color: rgb(222, 222, 222);
   font-size: 2rem;
+}
+#user-name:hover {
+  cursor: pointer;
 }
 #user-level {
   z-index: 99;
@@ -46,7 +50,7 @@ function goProfile() {
   display: flex;
   color: rgb(249, 247, 247);
   top: 10px;
-  left: 200px;
+  right: 20px;
   width: 90px;
   border-radius: 10px;
   justify-content: center;
@@ -60,7 +64,7 @@ function goProfile() {
 }
 .card {
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
-  max-width: 300px;
+  max-width: 500px;
   margin: auto;
   text-align: center;
 }

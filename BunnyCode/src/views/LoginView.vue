@@ -169,7 +169,7 @@ async function signUp() {
   const userID = signUpResponse.data.data.user.id;
   emits("setUserID", userID);
   localStorage.setItem("jwt", signUpResponse.data.data.access_token);
-  router.push({ name: "user", params: { userID: userID } });
+  router.push({ name: "user", params: { pageUserID: userID } });
 }
 
 async function login() {
@@ -199,7 +199,7 @@ async function login() {
   const userID = loginResopnse.data.data.user.id;
   emits("setUserID", userID);
   localStorage.setItem("jwt", loginResopnse.data.data.access_token);
-  router.push({ name: "user", params: { userID: userID } });
+  router.push({ name: "user", params: { pageUserID: userID } });
 }
 
 onBeforeMount(() => {

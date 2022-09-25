@@ -4,58 +4,35 @@
       <div class="flex-container">
         <div class="flex-container-2">
           <!-- <div>Bunny code</div> -->
-          <RouterLink
-            to="/"
-            class="nav-item link left-item"
-            @click="updateView('home')"
-            >
+          <RouterLink to="/" class="nav-item link left-item">
             <img
               src="@/assets/logo4.png"
               alt="login-icon"
-              style="width: 30px; margin-bottom: 5px"
+              style="width: 2.25rem; margin-bottom: 5px"
             />
-            </RouterLink
-          >
-          <RouterLink
-            to="/workspace"
-            class="nav-item link left-item"
-            @click="updateView('code')"
-          >
+          </RouterLink>
+          <RouterLink to="/workspace" class="nav-item link left-item">
             Workspace
           </RouterLink>
-          <RouterLink
-            to="/battle"
-            class="nav-item link left-item"
-            @click="updateView('battle')"
+          <RouterLink to="/battle" class="nav-item link left-item"
             >Battle valleys</RouterLink
           >
         </div>
         <div class="right-flex">
-          <RouterLink
-            class="nav-item link"
-            to="/login"
-            @click="updateView('user')"
-          >
+          <RouterLink class="nav-item link" to="/login">
             <img
               src="@/assets/login.png"
               alt="login-icon"
               style="width: 35px; margin-bottom: 5px"
             />
           </RouterLink>
-          <!-- <NotificationView :socket="socket" /> -->
-          <!-- <div class="nav-item">個人資訊</div> -->
           <SearchComponent :socket="socket" />
         </div>
       </div>
     </nav>
   </header>
   <body>
-    <RouterView
-      :userID="userID"
-      :socket="socket"
-      :key="view"
-      @setUserID="setUserID"
-    />
+    <RouterView :userID="userID" :socket="socket" @setUserID="setUserID" />
     <div id="battle-invitation">
       <div
         class="modal fade"
@@ -67,7 +44,7 @@
         aria-hidden="false"
       >
         <div class="modal-dialog" role="document">
-          <div class="modal-content">
+          <div id="battle-modal" class="modal-content">
             <div class="modal-header text-center">
               <h4 class="modal-title w-100 font-weight-bold">BATTLE BOOM !!</h4>
               <button
@@ -106,18 +83,19 @@ import SearchComponent from "./components/SearchComponent.vue";
 import { ref, onMounted, onUnmounted, watch } from "vue";
 import axios from "axios";
 import io from "socket.io-client";
-import NotificationView from "./views/NotificationView.vue";
+// import NotificationView from "./views/NotificationView.vue";
 import { createToaster } from "@meforma/vue-toaster";
 // import BattleLaunchComponent from "./components/BattleLaunchComponent.vue";
 import { Modal } from "bootstrap";
-import BattleLaunchComponent from "./components/BattleLaunchComponent.vue";
+// import BattleLaunchComponent from "./components/BattleLaunchComponent.vue";
+import Swal from "sweetalert2";
 
 let myModal;
 const modalObject = ref(null);
 const localhostServer = "http://localhost:3000";
 const productionServer = "https://domingoos.store";
 const productionSocket = "wss://domingoos.store";
-const jwt = localStorage.getItem("jwt");
+let jwt = localStorage.getItem("jwt");
 const isLogin = ref(false);
 const userID = ref(-1);
 let socket = ref();
@@ -156,7 +134,6 @@ const toaster = createToaster({
   duration: 10000,
   maxToasts: 1,
   onClick: () => {
-    alert("接受挑戰");
     modalBattleName.value = battleName.value;
     modalBattleLevel.value = battleLevel.value;
     modalFirstUserID.value = firstUserID.value;
@@ -189,6 +166,7 @@ axios({
   });
 
 function initiateSocket() {
+  jwt = localStorage.getItem('jwt');
   socket.value = new Socket(
     io(productionSocket, {
       // io(localhostServer, {
@@ -212,7 +190,11 @@ function initiateSocket() {
     );
   });
   socket.value.socketOn("battleFailed", (msg) => {
-    alert(msg);
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: msg,
+    });
   });
   socket.value.socketOn("battleCreated", (emitObject) => {
     router.push({
@@ -221,15 +203,14 @@ function initiateSocket() {
     });
   });
   socket.value.socketOn("disconnect", (reason) => {
-    console.log(`Disconnecting with reason: ${reason}`);
-    alert("disconnected");
+    Swal.fire("The Internet?", "That thing is still around?", "question");
     router.push("/login");
   });
 }
 
-async function updateView(viewPage) {
-  view.value = viewPage;
-}
+// async function updateView(viewPage) {
+//   view.value = viewPage;
+// }
 
 function acceptBattle() {
   if (socket.value) {
@@ -254,18 +235,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* nav a.router-link-exact-active {
-  color: var(--color-text);
-} */
-/* nav a.router-link-exact-active:hover {
-  background-color: transparent;
-}
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-} */
-
 .link {
   color: rgb(255, 255, 255);
 }
@@ -277,10 +246,11 @@ nav a:first-of-type {
 #top-navbar {
   top: 0;
   left: 0;
+  font-size: 1.5rem;
   position: fixed;
-  z-index: 99;
+  z-index: 100;
   width: 100vw;
-  height: 50px;
+  height: 60px;
   background-color: #161b22;
   /* border-bottom: 40px solid #2c2c2c; */
 }
@@ -319,7 +289,7 @@ nav a:first-of-type {
 }
 
 header + body {
-  padding-top: 50px;
+  padding-top: 60px;
 }
 
 #battle-invitation {
@@ -333,5 +303,9 @@ header + body {
 
 .confirm-btn {
   margin: 5%;
+}
+
+#battle-modal{
+  color:black;
 }
 </style>

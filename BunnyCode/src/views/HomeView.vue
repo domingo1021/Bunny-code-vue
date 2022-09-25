@@ -1,11 +1,44 @@
 <template>
   <div id="hello-window">
-    <div id="hello-content">{{helloContent}}</div>
+    <div id="hello-content">{{ helloContent }}</div>
+  </div>
+  <div id="workspace-introduce">
+    <img
+      src="@/assets/pair_programming.png"
+      width="500"
+      height="500"
+      alt="work-space-introduction"
+    />
+    <div id="workspace-introduce-word" class="intro-bar">
+      <div><strong>Mentor</strong> your coding journey</div>
+      <div>just like</div>
+      <div><strong>pair programming.</strong></div>
+      <div class="learn-more">+ &nbsp; Learn more</div>
+    </div>
+  </div>
+  <div id="battle-introduce">
+    <img
+      src="@/assets/battling1.png"
+      width="500"
+      height="500"
+      alt="work-space-introduction"
+    />
+    <div id="battle-introduce-word" class="intro-bar">
+      <div>Improve coding speed & quality</div>
+      <div>while <strong>battling</strong> !</div>
+      <div class="learn-more">+ &nbsp; Learn more</div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { onMounted, ref } from "vue";
+import Socket from "../socket";
+
+const props = defineProps({
+  userID: Number,
+  socket: Socket,
+});
 const emits = defineEmits(["setUserID"]);
 const helloContent = ref("");
 const pendingContent = ref([
@@ -191,21 +224,21 @@ onMounted(() => {
 </script>
 
 <style scoped>
-#hello-window{
+#hello-window {
   font-size: 4rem;
   height: 120px;
   text-align: center;
-  margin-top: 150px;
+  margin-top: 100px;
   color: azure;
   background: none;
 }
 
-#hello-logo{
+#hello-logo {
   transition: 0.5s ease-in-out;
   transform: translateY(-180px);
 }
 
-#hello-content{
+#hello-content {
   top: 35px;
   text-shadow: 2px 2px #847e7e;
   font-weight: bold;
@@ -220,4 +253,38 @@ onMounted(() => {
   font-size: 2rem;
   height: 100px;
 }
+
+#workspace-introduce {
+  display: flex;
+  margin: 130px 2% 0% 5%;
+}
+
+#workspace-introduce-word {
+  width: 500px;
+  align-self: center;
+  margin-left: 100px;
+  font-size: 2.5rem;
+}
+
+.learn-more{
+  margin-top: 5%;
+  margin-left: 3%;
+  font-size: 1.25rem;
+}
+
+.learn-more:hover{
+  cursor: pointer;
+}
+
+#battle-introduce{
+  display:flex;
+  margin: 100px 2% 5% 5%;
+}
+
+#battle-introduce-word{
+  align-self: center;
+  margin-left: 100px;
+  font-size: 2.5rem;
+}
+
 </style>

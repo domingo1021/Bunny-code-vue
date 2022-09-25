@@ -11,7 +11,7 @@
         <div>{{ file.fileName }}</div>
       </div>
     </div>
-    <div style="width: 100%">
+    <div style="width: 100%; background-color: rgb(36, 36, 36)">
       <textarea
         name=""
         :value="text"
@@ -19,16 +19,20 @@
         cols="20"
         rows="10"
       ></textarea>
-      <button @click="intoFolder">進入檔案</button>
+      <div style="display: flex; width: 100%; justify-content: right">
+        <button @click="intoFolder" style="margin-right: 5%; border-radius: 5px;">
+          Go to version
+        </button>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { onBeforeMount, ref, watch } from "vue";
+import { nextTick, onBeforeMount, ref, watch } from "vue";
 import * as CodeMirror from "codemirror";
 import "codemirror/lib/codemirror.css";
-import "codemirror/theme/night.css"
+import "codemirror/theme/night.css";
 import "codemirror/theme/material-darker.css";
 import "codemirror/mode/javascript/javascript.js";
 import axios from "axios";
@@ -38,7 +42,7 @@ const props = defineProps({
   version: Object,
 });
 
-const emit = defineEmits(["updateTarget", "setUserID"]);
+const emit = defineEmits(["updateTarget", "setUserID", "syncVersion"]);
 
 //TODO: set text default value = "";
 const text = ref("123");
@@ -46,18 +50,13 @@ const text = ref("123");
 let editor = null;
 
 async function initVersionContent() {
-  console.log("all files: ", props.version.files);
-  console.log(props.version.files[0].fileURL);
   const fileContent = await axios.get(props.version.files[0].fileURL);
   text.value = fileContent.data;
-  console.log(text.value);
   const editors = Array.from(document.getElementsByClassName("CodeMirror"));
-  console.log(editors.length);
   editors.forEach((element) => {
     console.log("removeing...");
     element.remove();
   });
-  console.log(document.getElementById("version"));
   editor = CodeMirror.fromTextArea(document.getElementById("version"), {
     value: text.value,
     lineNumbers: true,
@@ -74,7 +73,9 @@ async function initVersionContent() {
   editor.getDoc().setValue(text.value);
 }
 
-function intoFolder(){
+async function intoFolder() {
+  emit("syncVersion");
+  await nextTick();
   emit("updateTarget", "Folder");
 }
 

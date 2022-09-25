@@ -1,11 +1,21 @@
 <script setup>
 import axios from "axios";
-import { nextTick, onBeforeUnmount, onMounted, onUpdated, ref } from "vue";
+import {
+  nextTick,
+  onBeforeMount,
+  onBeforeUnmount,
+  onMounted,
+  onUpdated,
+  ref,
+  watch,
+} from "vue";
 import { useRouter, useRoute } from "vue-router";
-import ProjectCardComponent from "../components/ProjectCardComponent.vue";
+import UserProfileComponent from "../components/UserProfileComponent.vue";
+import Swal from "sweetalert2";
 
 const props = defineProps({
   socket: Object,
+  pageUserID: String,
   userID: Number,
 });
 const emits = defineEmits(["setUserID"]);
@@ -22,6 +32,12 @@ const versionName = ref("");
 const fileName = ref("");
 const projectPublic = ref(1);
 const buttonClickable = ref(false);
+const userInfo = ref({});
+const userKeyword = ref("");
+const currentPage = ref(1);
+if (+route.query.paging) {
+  currentPage.value = +route.query.paging;
+}
 
 const CLIENT_CATEGORY = {
   visitor: 0,
@@ -30,7 +46,37 @@ const CLIENT_CATEGORY = {
 };
 
 function renderPath(index) {
-  router.push(`/code-mirror/${projectsDisplayed.value[index].projectName}`);
+  router.push(`/workspace/${projectsDisplayed.value[index].projectName}`);
+}
+
+async function searchUserProject() {
+  const userProjectsInfo = await axios.get(
+    `${productionServer}/api/1.0/user/${props.pageUserID}/project?keyword=${userKeyword.value}`
+  );
+  projectsDisplayed.value = userProjectsInfo.data.data;
+}
+
+function prevPage() {
+  router.push({
+    name: "user",
+    params: {
+      pageUserID: props.pageUserID,
+    },
+    query: {
+      paging: `${currentPage.value - 1}`,
+    },
+  });
+}
+async function nextPage() {
+  router.push({
+    name: "user",
+    params: {
+      pageUserID: props.pageUserID,
+    },
+    query: {
+      paging: `${currentPage.value + 1}`,
+    },
+  });
 }
 
 async function createProject() {
@@ -57,11 +103,13 @@ async function createProject() {
     });
   } catch (error) {
     console.log(error);
-    alert(error.response.data.msg);
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: error.response.data.msg,
+    });
   }
-  console.log(responseProjects);
   if (responseProjects) {
-    alert(JSON.stringify(responseProjects.data.data));
     projectsDisplayed.value.unshift({
       projectID: responseProjects.data.data.projectID,
       projectName: projectName.value,
@@ -79,11 +127,23 @@ async function createProject() {
   fileName.value = "";
 }
 
-function initSocket() {
-  if (props.socket) {
-    props.socket.socketOn("responseUsers", (responseObject) => {
-      console.log("hello: ", responseObject);
+async function getUserProject() {
+  try {
+    let responseProjects = await axios({
+      method: "get",
+      // url: productionServer + `/api/1.0/user/${route.params.userID}/project`,
+      url:
+        productionServer +
+        `/api/1.0/user/${route.params.pageUserID}/project?paging=${
+          currentPage.value - 1
+        }`,
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
     });
+    projectsDisplayed.value = responseProjects.data.data;
+  } catch (error) {
+    projectsDisplayed.value = [];
   }
 }
 
@@ -100,23 +160,31 @@ onUpdated(() => {
   }
 });
 
+watch(
+  () => route.query.paging,
+  async () => {
+    currentPage.value = +route.query.paging;
+    await getUserProject();
+  }
+);
+
+onBeforeMount(async () => {
+  const userDetail = await axios.get(
+    `${productionServer}/api/1.0/user/${props.pageUserID}/detail`
+  );
+  userInfo.value = userDetail.data.data;
+  console.log("User Info: ", userInfo.value);
+});
+
 onMounted(async () => {
   // onBeforeMount(async () => {
   await nextTick();
-  let responseProjects = await axios({
-    method: "get",
-    url: productionServer + `/api/1.0/user/${route.params.userID}/project`,
-    headers: {
-      Authorization: `Bearer ${jwt}`,
-    },
-  });
-  console.log(props.userID);
-  console.log(responseProjects.data.data);
-  projectsDisplayed.value = responseProjects.data.data;
+  await getUserProject();
+  console.log("All project item: ", projectsDisplayed.value);
   try {
     const authResponse = await axios({
       method: "get",
-      url: productionServer + `/api/1.0/user/${route.params.userID}/auth`,
+      url: productionServer + `/api/1.0/user/${route.params.pageUserID}/auth`,
       headers: {
         Authorization: `Bearer ${jwt}`,
       },
@@ -125,200 +193,327 @@ onMounted(async () => {
   } catch (error) {
     userAuth.value = 0;
   }
-  console.log(projectsDisplayed.value);
-  console.log("User auth value: ", userAuth.value);
-  if (props.socket) {
-    initSocket();
-  }
+  // if (props.socket) {
+  //   initSocket();
+  // }
 });
 
 onBeforeUnmount(() => {
-  props.socket.socketOff("responseUsers");
+  // props.socket.socketOff("responseUsers");
 });
 </script>
 
 <template>
-  <div id="create-project" v-if="userAuth === CLIENT_CATEGORY.self">
-    <button
-      type="button"
-      class="btn btn-primary"
-      data-bs-toggle="modal"
-      data-bs-target="#exampleModal"
-    >
-      Create Project
-    </button>
-    <div
-      class="modal fade"
-      id="exampleModal"
-      tabindex="-1"
-      role="dialog"
-      aria-labelledby="myModalLabel"
-      aria-hidden="true"
-    >
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header text-center">
-            <h4 class="modal-title w-100 font-weight-bold">Create Project</h4>
-            <button
-              type="button"
-              class="close btn btn-indigo"
-              data-bs-dismiss="modal"
-              data-dismiss="modal"
-              aria-label="Close"
+  <main style="display: flex">
+    <div id="user-profile-component">
+      <UserProfileComponent :userInfo="userInfo" />
+    </div>
+    <div id="user-project-detail">
+      <div
+        id="search-project-area"
+        @keyup.enter="searchUserProject"
+        style="display: flex !important"
+      >
+        <input id="search-input-area" type="text" v-model="userKeyword" />
+        <div id="new-project" v-if="userAuth === CLIENT_CATEGORY.self">
+          <button
+            id="new-project-btn"
+            type="button"
+            data-bs-toggle="modal"
+            data-bs-target="#exampleModal"
+          >
+            <svg
+              aria-hidden="true"
+              height="20"
+              viewBox="0 0 16 16"
+              version="1.1"
+              width="20"
+              data-view-component="true"
+              class="octicon octicon-repo"
+              style="
+                filter: invert(98%) sepia(4%) saturate(737%) hue-rotate(258deg)
+                  brightness(117%) contrast(100%);
+              "
             >
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <div class="modal-body mx-3">
-            <div class="md-form mb-4" style="display: flex">
-              <!-- <i class="fas fa-user prefix grey-text"></i> -->
-              <label
-                class="label-header"
-                data-error="wrong"
-                data-success="right"
-                for="form3"
-                >Project name</label
-              >
-              <input
-                type="text"
-                id="form3"
-                class="form-control validate"
-                v-model="projectName"
-              />
+              <path
+                fill-rule="evenodd"
+                d="M2 2.5A2.5 2.5 0 014.5 0h8.75a.75.75 0 01.75.75v12.5a.75.75 0 01-.75.75h-2.5a.75.75 0 110-1.5h1.75v-2h-8a1 1 0 00-.714 1.7.75.75 0 01-1.072 1.05A2.495 2.495 0 012 11.5v-9zm10.5-1V9h-8c-.356 0-.694.074-1 .208V2.5a1 1 0 011-1h8zM5 12.25v3.25a.25.25 0 00.4.2l1.45-1.087a.25.25 0 01.3 0L8.6 15.7a.25.25 0 00.4-.2v-3.25a.25.25 0 00-.25-.25h-3.5a.25.25 0 00-.25.25z"
+              ></path>
+            </svg>
+            <div style="margin-left: 5%; font-weight: bold; margin-bottom: 2px">
+              New
             </div>
-            <div class="warning" v-if="projectName.length > 29">
-              Project name length too long.
-            </div>
-            <!-- projectName, projectDescription, isPublic, userID, versionName, fileName -->
-            <div class="md-form mb-4" style="display: flex">
-              <i class="fas fa-envelope prefix grey-text"></i>
-              <label
-                class="label-header"
-                data-error="wrong"
-                data-success="right"
-                for="form2"
-                >Project description</label
-              >
-              <input
-                type="email"
-                id="form2"
-                class="form-control validate"
-                v-model="projectDescription"
-              />
-            </div>
-            <div class="warning" v-if="projectDescription.length > 49">
-              Project description length too long.
-            </div>
-            <div class="md-form mb-4" style="display: flex">
-              <i class="fas fa-envelope prefix grey-text"></i>
-              <div style="margin-right: 15px">
-                <input
-                  type="radio"
-                  id="Public"
-                  name="drone"
-                  value="1"
-                  v-model="projectPublic"
-                />
-                <label for="huey">Public</label>
+          </button>
+          <div
+            class="modal fade"
+            id="exampleModal"
+            tabindex="-1"
+            role="dialog"
+            aria-labelledby="myModalLabel"
+            aria-hidden="true"
+          >
+            <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                <div class="modal-header text-center">
+                  <h4 class="modal-title w-100 font-weight-bold">
+                    Create Project
+                  </h4>
+                  <button
+                    type="button"
+                    class="close btn btn-indigo"
+                    data-bs-dismiss="modal"
+                    data-dismiss="modal"
+                    aria-label="Close"
+                  >
+                    <span
+                      aria-hidden="true"
+                      style="position: absolute; top: -5px; right: 30px"
+                      >&times;</span
+                    >
+                  </button>
+                </div>
+                <div class="modal-body mx-3">
+                  <div class="md-form mb-4" style="display: flex">
+                    <label
+                      class="label-header"
+                      data-error="wrong"
+                      data-success="right"
+                      for="form3"
+                      >Project name</label
+                    >
+                    <input
+                      type="text"
+                      id="form3"
+                      class="form-control validate"
+                      v-model="projectName"
+                    />
+                  </div>
+                  <div class="warning" v-if="projectName.length > 29">
+                    Project name length too long.
+                  </div>
+                  <div class="md-form mb-4" style="display: flex">
+                    <i class="fas fa-envelope prefix grey-text"></i>
+                    <label
+                      class="label-header"
+                      data-error="wrong"
+                      data-success="right"
+                      for="form2"
+                      >Project description</label
+                    >
+                    <input
+                      type="email"
+                      id="form2"
+                      class="form-control validate"
+                      v-model="projectDescription"
+                    />
+                  </div>
+                  <div class="warning" v-if="projectDescription.length > 49">
+                    Project description length too long.
+                  </div>
+                  <div class="md-form mb-4" style="display: flex">
+                    <i class="fas fa-envelope prefix grey-text"></i>
+                    <div style="margin-right: 15px">
+                      <input
+                        type="radio"
+                        id="Public"
+                        name="drone"
+                        value="1"
+                        v-model="projectPublic"
+                      />
+                      <label class="new-project-label" for="huey">Public</label>
+                    </div>
+                    <div>
+                      <input
+                        type="radio"
+                        id="Private"
+                        name="drone"
+                        value="0"
+                        v-model="projectPublic"
+                      />
+                      <label class="new-project-label" for="Private"
+                        >Private</label
+                      >
+                    </div>
+                  </div>
+                  <div class="md-form mb-4" style="display: flex">
+                    <i class="fas fa-envelope prefix grey-text"></i>
+                    <label
+                      class="label-header"
+                      data-error="wrong"
+                      data-success="right"
+                      for="form2"
+                      >Version name</label
+                    >
+                    <input
+                      type="email"
+                      id="form2"
+                      class="form-control validate"
+                      v-model="versionName"
+                    />
+                  </div>
+                  <div class="warning" v-if="versionName.length > 29">
+                    Version name length too long.
+                  </div>
+                  <div class="md-form mb-4" style="display: flex">
+                    <i class="fas fa-envelope prefix grey-text"></i>
+                    <label
+                      class="label-header"
+                      data-error="wrong"
+                      data-success="right"
+                      for="form2"
+                      >File name</label
+                    >
+                    <input
+                      type="email"
+                      id="form2"
+                      class="form-control validate"
+                      v-model="fileName"
+                    />
+                  </div>
+                  <div class="warning" v-if="fileName.length > 29">
+                    File name length too long.
+                  </div>
+                </div>
+                <div class="modal-footer d-flex justify-content-center">
+                  <button
+                    id="valid-btn"
+                    class="btn btn-indigo"
+                    data-bs-dismiss="modal"
+                    @click="createProject"
+                    v-if="buttonClickable"
+                  >
+                    Submit <i class="fas fa-paper-plane-o ml-1"></i>
+                  </button>
+                  <button id="invalid-btn" class="btn btn-indigo" v-else>
+                    Submit
+                  </button>
+                </div>
               </div>
-              <div>
-                <input
-                  type="radio"
-                  id="Private"
-                  name="drone"
-                  value="0"
-                  v-model="projectPublic"
-                />
-                <label for="Private">Private</label>
-              </div>
             </div>
-            <div class="md-form mb-4" style="display: flex">
-              <i class="fas fa-envelope prefix grey-text"></i>
-              <label
-                class="label-header"
-                data-error="wrong"
-                data-success="right"
-                for="form2"
-                >Version name</label
-              >
-              <input
-                type="email"
-                id="form2"
-                class="form-control validate"
-                v-model="versionName"
-              />
-            </div>
-            <div class="warning" v-if="versionName.length > 29">
-              Version name length too long.
-            </div>
-            <div class="md-form mb-4" style="display: flex">
-              <i class="fas fa-envelope prefix grey-text"></i>
-              <label
-                class="label-header"
-                data-error="wrong"
-                data-success="right"
-                for="form2"
-                >File name</label
-              >
-              <input
-                type="email"
-                id="form2"
-                class="form-control validate"
-                v-model="fileName"
-              />
-            </div>
-            <div class="warning" v-if="fileName.length > 29">
-              File name length too long.
-            </div>
-          </div>
-          <div class="modal-footer d-flex justify-content-center">
-            <button
-              id="valid-btn"
-              class="btn btn-indigo"
-              data-bs-dismiss="modal"
-              @click="createProject"
-              v-if="buttonClickable"
-            >
-              Submit <i class="fas fa-paper-plane-o ml-1"></i>
-            </button>
-            <button id="invalid-btn" class="btn btn-indigo" v-else>
-              Submit
-            </button>
           </div>
         </div>
       </div>
-    </div>
-  </div>
-  <main>
-    <div id="project-content">
-      <div id="flex-box">
+      <div id="project-card-long" v-if="projectsDisplayed.length !== 0">
         <div
-          clsss="flex-item"
+          clsss="card"
           v-for="(project, index) in projectsDisplayed"
           :key="index"
-          @click="renderPath(index)"
         >
-          <ProjectCardComponent :projectObject="project" />
+          <div class="card-body project-card-detail">
+            <h5 class="card-title" style="display: flex">
+              <div id="project-title" @click="renderPath(index)">
+                {{ project.projectName }}
+              </div>
+              <div
+                id="project-status"
+                style="
+                  margin-left: 3%;
+                  padding: 0% 1.5% 0% 1.5%;
+                  border: 0.5px solid rgb(100, 100, 100);
+                  border-radius: 20px;
+                "
+              >
+                <span v-if="project.isPublic" class="project-status-span"
+                  >Public</span
+                >
+                <span v-else class="project-status-span">Private</span>
+              </div>
+            </h5>
+            <p id="project-description" class="card-text">
+              {{ project.projectDescription }}
+            </p>
+            <div style="display: flex">
+              <svg
+                id="watch-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                fill="currentColor"
+                class="bi bi-eye-fill"
+                viewBox="0 0 16 16"
+              >
+                <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z" />
+                <path
+                  d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"
+                />
+              </svg>
+              <div style="margin-left: 10px; bottom: 2px">
+                {{ project.watchCount }}
+              </div>
+            </div>
+            <!-- <a href="#" class="btn btn-primary">Go somewhere</a> -->
+          </div>
+          <!-- </div> -->
         </div>
+      </div>
+      <div id="project-card-long" v-if="projectsDisplayed.length === 0">
+        <div id="no-projects">No more projects ...</div>
+      </div>
+      <div id="page-render" style="display: flex; justify-content: center">
+        <button
+          id="page-previous-btn"
+          class="user-page-btn"
+          type="button"
+          @click="prevPage()"
+          v-if="currentPage > 1"
+        >
+          previous
+        </button>
+        <button
+          id="page-previous-btn"
+          class="user-page-btn"
+          type="button"
+          style="color: rgb(100, 100, 100)"
+          v-else
+        >
+          previous
+        </button>
+        <button
+          id="page-next-btn"
+          class="user-page-btn"
+          type="button"
+          @click="nextPage()"
+          v-if="projectsDisplayed.length === 6"
+        >
+          next
+        </button>
+        <button
+          id="page-next-btn"
+          class="user-page-btn"
+          type="button"
+          style="color: rgb(100, 100, 100)"
+          v-else
+        >
+          next
+        </button>
       </div>
     </div>
   </main>
 </template>
 
 <style scoped>
-#project-content {
-  text-align: center;
-  margin-left: 10%;
-  margin-right: 10%;
+#user-profile-component {
+  display: inline-block !important;
+  margin: 8% 3% 0% 3%;
+  height: 30%;
+  width: 40%;
 }
-#flex-box {
-  display: flex;
-  margin: auto;
-  /* justify-content: center; */
-  /* align-self: center; */
-  flex-wrap: wrap;
-  flex-direction: row;
-  max-width: 1200px;
+#user-project-detail {
+  margin: 5% 10% 5% 5%;
+  width: 90%;
+}
+
+#project-card-long {
+  width: 100%;
+}
+.project-card-detail {
+  /* background-color: rgb(35, 35, 35); */
+  /* border-bottom: 1px solid rgb(189, 189, 189); */
+  margin: 3% 0% 2% 0%;
+  padding: 4% 2% 2% 2%;
+
+  border-top: 1px solid rgba(189, 189, 189, 0.5);
+  /* border-bottom: 1px solid rgba(189, 189, 189, 0.5); */
 }
 
 #valid-btn {
@@ -331,13 +526,6 @@ onBeforeUnmount(() => {
   color: azure;
 }
 
-.flex-item {
-  background-color: rgb(161, 180, 201);
-  flex-grow: 1;
-  flex-basis: 40%;
-  height: 30%;
-  padding-top: 10px;
-}
 .label-header {
   width: 200px;
   top: 5px;
@@ -348,8 +536,98 @@ onBeforeUnmount(() => {
   color: rgb(255, 100, 100);
 }
 
-.battle-title {
-  width: 150px;
+#search-project-area {
+  display: flex;
+  height: 60px;
+}
+
+#search-input-area {
+  border: 0.5px solid rgb(98, 100, 123);
+  color: rgb(255, 255, 255);
+  background-color: #161b22;
+  width: 50%;
+  padding: 2%;
+  padding-left: 4%;
+  margin-bottom: 2%;
+  border-radius: 10px;
+  font-size: 1rem;
+}
+
+#search-input-area:focus {
+  outline: none;
+  background: none;
+}
+
+#new-project {
+  display: flex;
+  width: 35%;
+  height: 40px;
+  margin-left: 3%;
+  color: rgb(36, 34, 34);
+}
+
+#new-project-btn {
+  font-size: 1.25rem;
+  font-weight: bold;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  text-align: center;
+  align-items: center;
+  border-radius: 10px;
+  width: 40%;
+  color: #f1f1f1;
+  background-color: #30813b;
+  border: 0px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+#new-project-btn:hover {
+  background-color: #389645;
+}
+
+#project-title {
+  color: #58a6ff;
+  font-size: 1.8rem;
+  font-weight: bold;
+  /* text-decoration: underline; */
+  bottom: 4px;
+  padding-bottom: 2px;
+  border-bottom: 2px solid #58a6ff;
+}
+
+#project-title:hover {
+  cursor: pointer;
+}
+
+#project-status {
+  display: flex;
+}
+
+#watch-icon {
+  filter: invert(20%) sepia(93%) saturate(1847%) hue-rotate(196deg)
+    brightness(105%) contrast(101%);
+}
+
+.project-status-span {
+  align-self: center;
+  color: rgb(173, 173, 173);
+  font-size: 1rem;
+  text-align: center;
+  font-weight: bold;
+  width: 50px;
+  margin-left: 3%;
+}
+
+#project-description {
+  margin-top: 1%;
+  font-size: 1.25rem;
+  color: rgb(150, 150, 150);
+}
+
+#exampleModal {
+  margin-top: 5%;
 }
 
 /* The search field */
@@ -394,5 +672,34 @@ onBeforeUnmount(() => {
 /* Change color of dropdown links on hover */
 .dropdown-content a:hover {
   background-color: #f1f1f1;
+}
+
+#page-render {
+  font-size: 1.5rem;
+  margin: -5px 0px 30px 0px;
+}
+
+.user-page-btn {
+  cursor: pointer;
+  color: rgb(255, 255, 255);
+  background: none;
+  border: 0px;
+  margin-right: 3%;
+}
+
+.user-page-btn:hover {
+  border: 1px solid #ddd;
+  border-radius: 10px;
+}
+
+.new-project-label {
+  margin-left: 5px;
+}
+
+#no-projects{
+  text-align: center;
+  font-size: 2rem;
+  color: rgb(148, 147, 147);
+  margin: 25px 0px 50px 0px;
 }
 </style>
