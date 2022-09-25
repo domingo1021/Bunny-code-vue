@@ -3,7 +3,6 @@ import { onBeforeMount, onBeforeUnmount, ref } from "vue";
 import axios from "axios";
 import Markdown from "vue3-markdown-it";
 import BattleSpaceComponent from "../components/BattleSpaceComponent.vue";
-import TerminalComponent from "../components/TerminalComponent.vue";
 import "highlight.js/styles/monokai.css";
 import Socket from "../socket";
 import Swal from "sweetalert2";
@@ -103,12 +102,9 @@ function updateCurrLine(emitObject) {
 }
 
 function pushCodeRecords(emitObject) {
-  // console.log(battleInfo.value, emitObject.battlerNumber);
   battleInfo.value[emitObject.battlerNumber].codeRecords.push(
     emitObject.newRecords
   );
-  // emit to socket.
-  // console.log(battleInfo.value[emitObject.battlerNumber].codeRecords);
 }
 
 function pushTerminal(battlerNumber, result) {
@@ -342,8 +338,8 @@ onBeforeUnmount(() => {
       </div>
       <div id="terminal-2" style="color: azure">
         <div
-          id="terminal-header"
-          class="terminal-content"
+          id="battle-terminal-header"
+          class="battle-terminal-content"
           style="text-align: center"
         >
           <div class="test-case content-detail">
@@ -357,8 +353,8 @@ onBeforeUnmount(() => {
           </div>
         </div>
         <div
-          id="terminal-body"
-          class="terminal-content"
+          id="battl-eterminal-body"
+          class="battle-terminal-content"
           v-for="(test, testIndex) in info.testCases"
           :key="testIndex"
         >
@@ -378,7 +374,7 @@ onBeforeUnmount(() => {
 </template>
 
 <style>
-.terminal-content {
+.battle-terminal-content {
   padding: 5px 5px 5px 5px;
   margin: 0px 0px 0px 0px;
   border-bottom: 1px solid rgb(190, 190, 190);
@@ -387,16 +383,16 @@ onBeforeUnmount(() => {
 .content-detail {
   border-right: 0.5px solid rgb(190, 190, 190);
 }
-#terminal-header {
+#battle-terminal-header {
   display: flex;
 }
-#terminal-body {
+#battl-eterminal-body {
   display: flex;
 }
-#terminal-body:nth-child(odd) {
+#battl-eterminal-body:nth-child(odd) {
   background-color: rgb(37, 36, 36);
 }
-#terminal-body:nth-child(even) {
+#battl-eterminal-body:nth-child(even) {
   background-color: rgb(66, 66, 66);
 }
 .test-case {
