@@ -19,11 +19,11 @@
           >
         </div>
         <div class="right-flex">
-          <RouterLink class="nav-item link" to="/login">
+          <RouterLink class="nav-item link" to="/login" style="margin-left: 4%">
             <img
               src="@/assets/login.png"
               alt="login-icon"
-              style="width: 35px; margin-bottom: 5px"
+              style="width: 38px; margin-bottom: 5px"
             />
           </RouterLink>
           <SearchComponent :socket="socket" />
@@ -168,8 +168,8 @@ axios({
 function initiateSocket() {
   jwt = localStorage.getItem('jwt');
   socket.value = new Socket(
-    io(productionSocket, {
-      // io(localhostServer, {
+    // io(productionSocket, {
+      io(localhostServer, {
       auth: (cb) => {
         cb({ token: `Bearer ${jwt}` });
       },

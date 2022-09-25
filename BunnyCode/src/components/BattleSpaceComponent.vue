@@ -1,5 +1,8 @@
 <template>
-  <div style="margin: 0% 0% 1% 1%">Challenger #{{ info.battlerNumber + 1 }}: &nbsp; <strong>{{ info.userName }}</strong></div>
+  <div style="margin: 0% 0% 1% 1%">
+    Challenger #{{ info.battlerNumber + 1 }}: &nbsp;
+    <strong>{{ info.userName }}</strong>
+  </div>
   <div @input="updateContent" @keyup="checkEventUp">
     <textarea
       :value="props.info.fileContent"
@@ -17,7 +20,7 @@ import * as CodeMirror from "codemirror";
 import "codemirror/lib/codemirror.css";
 import "codemirror/theme/dracula.css";
 import "codemirror/mode/javascript/javascript.js";
-import { nextTick, onUpdated, ref } from "vue";
+import { nextTick, onUpdated, ref, watch } from "vue";
 
 const props = defineProps({
   id: String,
@@ -417,6 +420,15 @@ function triggerEvent(recordObject) {
     });
   }
 }
+
+watch(
+  () => props.info.fileContent,
+  (now, prev) => {
+    if (prev === "") {
+      editor.getDoc().setValue(now);
+    }
+  }
+);
 
 onUpdated(async () => {
   if (!mirrorCreated.value) {

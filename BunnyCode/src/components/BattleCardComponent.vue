@@ -42,13 +42,11 @@ defineProps({
 
 <style scoped>
 .card {
-  background-color: #21262d;
-  border: 0.3px solid #85888b;
+  background: none;
   height: 100%;
 }
 .card:hover {
   cursor: pointer;
-  background-color: rgb(69, 75, 103);
 }
 .name {
   margin-top: 10px;

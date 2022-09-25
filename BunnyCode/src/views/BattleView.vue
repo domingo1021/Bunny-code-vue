@@ -191,6 +191,12 @@ onBeforeMount(async () => {
         return info.userID !== responseObject.userID;
       });
     }
+    console.log("URL: ", responseObject.battleResponse.baseURL);
+    const baseContent = await axios.get(responseObject.battleResponse.baseURL);
+    battleInfo.value.forEach((info) => {
+      info.fileContent = baseContent.data;
+      console.log(info.fileContent);
+    });
     const question = await axios.get(questionURL.value);
     questionContent.value = question.data;
     if (ready.value[0] && ready.value[1]) {

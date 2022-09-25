@@ -92,7 +92,7 @@ defineExpose({
   <main>
     <div id="project-content">
       <div class="projects-title">Top three projects</div>
-      <div id="top-three" class="projects-display">
+      <div id="top-three" class="projects-display" style="padding-bottom: 0%">
         <div
           clsss="flex-item"
           style="margin: 1%"
@@ -100,6 +100,13 @@ defineExpose({
           :key="index"
         >
           <ProjectCardComponent :projectObject="project" />
+        </div>
+        <div style="display: flex; padding-top: 3%; padding-bottom: 1%">
+          <div id="did-you-know">DID YOU KNOW: &nbsp;</div>
+          <div>
+            User can create their <strong>awesome project</strong> on their user
+            page !
+          </div>
         </div>
       </div>
       <div class="projects-title">Project you may like</div>
@@ -153,6 +160,13 @@ defineExpose({
   font-size: 2rem;
   width: 100vw;
   text-align: left;
+}
+#did-you-know {
+  /* display:inline; */
+  font-weight: bold;
+  color: rgb(192, 124, 219);
+  font-size: 1.25rem;
+  bottom: 6px;
 }
 
 .projects-display {
