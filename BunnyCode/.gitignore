@@ -28,3 +28,7 @@ coverage
 *.sw?
 
 .vscode
+
+CRUD_template.js
+
+Archive
