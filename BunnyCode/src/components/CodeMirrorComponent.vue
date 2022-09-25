@@ -57,7 +57,7 @@ let baseIndex;
 let redo = [];
 let undo = [];
 let playSpeed = ref([0.25, 0.5, 0.75, 1, 1.25, 1.5, 2]);
-let speedIndex = ref(2);
+let speedIndex = ref(3);
 
 function updateContent(e) {
   console.log(props.info.line, props.info.index);
