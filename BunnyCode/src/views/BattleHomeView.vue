@@ -3,7 +3,7 @@
     <div id="user-battle-detail">
       <div
         id="search-battle-area"
-        @keyup.enter="searchBattle"
+        @keyup.enter="searchBattle(1)"
         style="display: flex !important"
       >
         <input
@@ -344,7 +344,16 @@ function inviteBattle() {
   //TODO: set 20 秒鐘 unclickable, 限制使用者頻繁送出請求
 }
 
-async function searchBattle() {
+async function searchBattle(searchPage) {
+  console.log(searchPage);
+  if (searchPage !== undefined) {
+    router.push({
+      name: "battle_home",
+      query: {
+        paging: `${searchPage}`,
+      },
+    });
+  }
   const battleResponse = await axios.get(
     `${productionServer}/api/1.0/battle?keyword=${battleKeyword.value}&status=${
       currentStatus.value
@@ -400,6 +409,7 @@ watch(battleName, () => {
 watch(
   () => route.query.paging,
   async () => {
+    console.log( "Paging: ", route.query.paging );
     currentPage.value = +route.query.paging;
     await searchBattle();
   }
