@@ -1,5 +1,5 @@
 <template>
-  <div>挑戰者 {{ info.battlerNumber + 1 }} 號: {{ info.userName }}</div>
+  <div style="margin: 0% 0% 1% 1%">Challenger #{{ info.battlerNumber + 1 }}: &nbsp; <strong>{{ info.userName }}</strong></div>
   <div @input="updateContent" @keyup="checkEventUp">
     <textarea
       :value="props.info.fileContent"

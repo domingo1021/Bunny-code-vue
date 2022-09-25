@@ -95,7 +95,7 @@ const modalObject = ref(null);
 const localhostServer = "http://localhost:3000";
 const productionServer = "https://domingoos.store";
 const productionSocket = "wss://domingoos.store";
-const jwt = localStorage.getItem("jwt");
+let jwt = localStorage.getItem("jwt");
 const isLogin = ref(false);
 const userID = ref(-1);
 let socket = ref();
@@ -166,6 +166,7 @@ axios({
   });
 
 function initiateSocket() {
+  jwt = localStorage.getItem('jwt');
   socket.value = new Socket(
     io(productionSocket, {
       // io(localhostServer, {

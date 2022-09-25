@@ -371,7 +371,7 @@ function renderPath(index) {
   if (currentStatus.value === "finished") {
     router.push({
       name: "battle_review",
-      params: { battleID: finishBattles.value[index].battleID },
+      params: { battleID: battleDisplayed.value[index].battleID },
     });
   } else {
     router.push({

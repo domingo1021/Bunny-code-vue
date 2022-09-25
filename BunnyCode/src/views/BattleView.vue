@@ -46,6 +46,7 @@ const battleInfo = ref([
     codeRecords: [],
     timeBetween: [],
     terminalResult: [],
+    testCases: [],
   },
   {
     battlerNumber: 1,
@@ -57,8 +58,14 @@ const battleInfo = ref([
     codeRecords: [],
     timeBetween: [],
     terminalResult: [],
+    testCases: [],
   },
 ]);
+
+const testCase_title = {
+  "Test case": "Expected answer",
+  "Compile result": "Compiler result",
+};
 const compiledCode = ref("");
 
 const atAlt = ref(false);
@@ -106,6 +113,11 @@ function pushCodeRecords(emitObject) {
 
 function pushTerminal(battlerNumber, result) {
   battleInfo.value[battlerNumber].terminalResult.push(result);
+}
+
+function pushTestCase(battlerNumber, testCases) {
+  console.log("testCases: ", testCases);
+  battleInfo.value[battlerNumber].testCases = testCases;
 }
 
 function updateAllRecords(emitObject) {
@@ -208,6 +220,7 @@ onBeforeMount(async () => {
   props.socket.socketOn("compileDone", (responseObject) => {
     console.log("responseObject: ", responseObject);
     pushTerminal(responseObject.battlerNumber, responseObject.compilerResult);
+    pushTestCase(responseObject.battlerNumber, responseObject.testCase);
   });
 
   props.socket.socketOn("userReady", (emitObject) => {
@@ -260,13 +273,14 @@ onBeforeMount(async () => {
       });
     }
     battleOver.value = true;
-    Swal.fire({
-      position: "top-end",
-      icon: "success",
-      title: "Winner code uploaded successfully.",
-      showConfirmButton: false,
-      timer: 1500,
-    });
+    setTimeout(() => {
+      Swal.fire({
+        icon: "success",
+        title: "Winner code uploaded successfully.",
+        showConfirmButton: false,
+        timer: 1500,
+      });
+    }, 4000);
   });
 });
 
@@ -309,15 +323,15 @@ onBeforeUnmount(() => {
             type="button"
             @click="setReady(index)"
           >
-            準備開始
+            Click to ready
           </button>
           <div v-else-if="!ready[index] && readOnlies[index]">
-            挑戰者準備中..
+            Waiting for user ready...
           </div>
-          <div v-else>{{ battleInfo[index].userName }} 已經準備好了！</div>
+          <div v-else>{{ battleInfo[index].userName }} Ready !</div>
         </div>
         <div v-else-if="start">
-          <div>遊戲開始！</div>
+          <div style="margin-top:5px">Game start !</div>
         </div>
         <button
           v-if="!readOnlies[index] && start && !battleOver"
@@ -326,20 +340,89 @@ onBeforeUnmount(() => {
           Run code
         </button>
       </div>
-      <TerminalComponent id="terminal" :terminalResult="info.terminalResult" />
+      <div id="terminal-2" style="color: azure">
+        <div
+          id="terminal-header"
+          class="terminal-content"
+          style="text-align: center"
+        >
+          <div class="test-case content-detail">
+            {{ Object.keys(testCase_title)[0] }}
+          </div>
+          <div class="expect-answer content-detail">
+            {{ Object.values(testCase_title)[0] }}
+          </div>
+          <div class="compile-result">
+            {{ testCase_title["Compile result"] }}
+          </div>
+        </div>
+        <div
+          id="terminal-body"
+          class="terminal-content"
+          v-for="(test, testIndex) in info.testCases"
+          :key="testIndex"
+        >
+          <div class="test-case content-detail return-value">
+            {{ Object.keys(test)[0] }}
+          </div>
+          <div class="expect-answer content-detail return-value">
+            {{ Object.values(test)[0] }}
+          </div>
+          <div class="compile-result return-value">
+            {{ test["Compile result"] }}
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <style>
+.terminal-content {
+  padding: 5px 5px 5px 5px;
+  margin: 0px 0px 0px 0px;
+  border-bottom: 1px solid rgb(190, 190, 190);
+  
+}
+.content-detail {
+  border-right: 0.5px solid rgb(190, 190, 190);
+}
+#terminal-header {
+  display: flex;
+}
+#terminal-body {
+  display: flex;
+}
+#terminal-body:nth-child(odd) {
+  background-color: rgb(37, 36, 36);
+}
+#terminal-body:nth-child(even) {
+  background-color: rgb(66, 66, 66);
+}
+.test-case {
+  width: 50%;
+}
+.expect-answer {
+  width: 25%;
+}
+.compile-result {
+  width: 25%;
+}
+.return-value {
+  padding-left: 10px;
+}
+
 #mark-down {
+  padding: 1% 5% 1% 5%;
   padding-left: 5%;
   padding-right: 5%;
+  margin:2% 5% 0% 5%;
   margin-left: 5%;
   margin-right: 5%;
   background-color: rgb(63, 61, 72);
 }
 #battle-main-board {
+  margin-top: 1%;
   width: 100%;
   height: 200px;
   display: flex;
@@ -352,7 +435,14 @@ onBeforeUnmount(() => {
   height: 200px;
   align-self: center;
 }
-#terminal {
-  top: 350px;
+#terminal-2 {
+  background-color: rgb(36, 36, 36);
+  color: white;
+  position: absolute;
+  bottom: 0px;
+  width: 100%;
+  height: 180px;
+  overflow-y: auto;
+  top: 380px;
 }
 </style>
