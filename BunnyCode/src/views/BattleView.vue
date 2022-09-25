@@ -318,24 +318,29 @@ onBeforeUnmount(() => {
         @updateAllRecords="updateAllRecords"
         @updateTimeBetween="updateTimeBetween"
       />
-      <div style="display: flex">
+      <div style="display: flex; margin-top: 1%">
         <div v-if="!start">
           <button
             v-if="!ready[index] && !readOnlies[index]"
             type="button"
             @click="setReady(index)"
+            style="margin-top: 3%"
           >
             Click to ready
           </button>
-          <div v-else-if="!ready[index] && readOnlies[index]">
+          <div
+            v-else-if="!ready[index] && readOnlies[index]"
+            style="margin-top: 3%"
+          >
             Waiting for user ready...
           </div>
-          <div v-else>{{ battleInfo[index].userName }} Ready !</div>
+          <div v-else style="margin-top: 3%">{{ battleInfo[index].userName }} Ready !</div>
         </div>
         <div v-else-if="start">
-          <div style="margin-top:5px">Battle start !</div>
+          <div style="margin-top: 3%">Battle start !</div>
         </div>
         <button
+          id="run-btn"
           v-if="!readOnlies[index] && start && !battleOver"
           @click="runCode(index)"
         >
@@ -384,10 +389,13 @@ onBeforeUnmount(() => {
   padding: 5px 5px 5px 5px;
   margin: 0px 0px 0px 0px;
   border-bottom: 1px solid rgb(190, 190, 190);
-  
 }
 .content-detail {
   border-right: 0.5px solid rgb(190, 190, 190);
+}
+#run-btn {
+  border-radius: 8px;
+  margin-left: 2%;
 }
 #battle-terminal-header {
   display: flex;
@@ -418,7 +426,7 @@ onBeforeUnmount(() => {
   padding: 1% 5% 1% 5%;
   padding-left: 5%;
   padding-right: 5%;
-  margin:2% 5% 0% 5%;
+  margin: 2% 5% 0% 5%;
   margin-left: 5%;
   margin-right: 5%;
   background-color: rgb(63, 61, 72);

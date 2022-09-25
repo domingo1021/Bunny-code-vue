@@ -85,6 +85,7 @@
                       data-error="wrong"
                       data-success="right"
                       for="form3"
+                      style="top: 5px; font-size: 1rem"
                       >Battle name</label
                     >
                     <input
@@ -119,7 +120,7 @@
                       />
                       <label for="middle">Medium</label>
                     </div>
-                    <div>
+                    <div style="margin-left: 12px">
                       <input
                         type="radio"
                         id="hard"
@@ -243,6 +244,44 @@
         </div>
       </div>
     </div>
+    <div id="page-render" style="display: flex; justify-content: center">
+      <button
+        id="page-previous-btn"
+        class="user-page-btn"
+        type="button"
+        @click="prevPage()"
+        v-if="currentPage > 1"
+      >
+        previous
+      </button>
+      <button
+        id="page-previous-btn"
+        class="user-page-btn"
+        type="button"
+        style="color: rgb(100, 100, 100)"
+        v-else
+      >
+        previous
+      </button>
+      <button
+        id="page-next-btn"
+        class="user-page-btn"
+        type="button"
+        @click="nextPage()"
+        v-if="battleDisplayed.length === 6"
+      >
+        next
+      </button>
+      <button
+        id="page-next-btn"
+        class="user-page-btn"
+        type="button"
+        style="color: rgb(100, 100, 100)"
+        v-else
+      >
+        next
+      </button>
+    </div>
   </main>
 </template>
 
@@ -303,20 +342,6 @@ function inviteBattle() {
       });
     });
   //TODO: set 20 秒鐘 unclickable, 限制使用者頻繁送出請求
-}
-
-function goBattle(status, index) {
-  if (status === "finished") {
-    router.push({
-      name: "battle_review",
-      params: { battleID: finishBattles.value[index].battleID },
-    });
-  } else if (status === "still") {
-    router.push({
-      name: "battle",
-      params: { battleID: stillBattles.value[index].battleID },
-    });
-  }
 }
 
 async function searchBattle() {
@@ -382,6 +407,10 @@ watch(
 </script>
 
 <style scoped>
+label {
+  margin-left: 5px;
+  bottom: 2px;
+}
 .flex-box {
   display: flex;
   flex-direction: row;
@@ -420,7 +449,6 @@ watch(
 
 .label-header {
   width: 200px;
-  top: 5px;
 }
 
 #battleModal {
@@ -685,7 +713,7 @@ select:focus {
   justify-content: center;
   /* padding-left:30px */
 }
-.name{
+.name {
   margin-top: 5%;
   text-align: center;
   font-size: 1.5rem;

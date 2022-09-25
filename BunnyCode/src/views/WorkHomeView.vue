@@ -104,7 +104,7 @@ defineExpose({
         <div style="display: flex; padding-top: 3%; padding-bottom: 1%">
           <div id="did-you-know">DID YOU KNOW: &nbsp;</div>
           <div>
-            User can create their <strong>awesome project</strong> on their user
+            Users can create their <strong>awesome project</strong> on their user
             page !
           </div>
         </div>
