@@ -211,7 +211,6 @@ onBeforeMount(() => {
 
 <style scoped>
 body {
-  background-image: url("@/assets/login.jpg");
   background-size: cover;
   background-attachment: fixed;
   background-position-x: center;
@@ -225,7 +224,6 @@ body {
   align-items: center;
   min-height: 100vh;
   height: 100vh;
-  background-image: url("@/assets/login.jpg");
   background-size: cover;
   background-attachment: fixed;
   background-position-x: center;

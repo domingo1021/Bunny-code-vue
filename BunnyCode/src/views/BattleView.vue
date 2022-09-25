@@ -331,7 +331,7 @@ onBeforeUnmount(() => {
           <div v-else>{{ battleInfo[index].userName }} Ready !</div>
         </div>
         <div v-else-if="start">
-          <div style="margin-top:5px">Game start !</div>
+          <div style="margin-top:5px">Battle start !</div>
         </div>
         <button
           v-if="!readOnlies[index] && start && !battleOver"
