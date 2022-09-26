@@ -78,7 +78,7 @@
 
 <script setup>
 import Socket from "./socket";
-import { RouterLink, RouterView, useRouter } from "vue-router";
+import { RouterLink, RouterView, useRouter, useRoute } from "vue-router";
 import SearchComponent from "./components/SearchComponent.vue";
 import { ref, onMounted, onUnmounted, watch } from "vue";
 import axios from "axios";
@@ -101,6 +101,7 @@ const userID = ref(-1);
 let socket = ref();
 const view = ref("home");
 const router = useRouter();
+const route = useRoute();
 const battleName = ref();
 const battleLevel = ref();
 const firstUserID = ref();
@@ -144,7 +145,9 @@ const toaster = createToaster({
 });
 
 watch(userID, () => {
-  initiateSocket();
+  if (route.name === "login") {
+    initiateSocket();
+  }
 });
 
 axios({
@@ -166,7 +169,7 @@ axios({
   });
 
 function initiateSocket() {
-  jwt = localStorage.getItem('jwt');
+  jwt = localStorage.getItem("jwt");
   socket.value = new Socket(
     io(productionSocket, {
       // io(localhostServer, {
@@ -305,7 +308,7 @@ header + body {
   margin: 5%;
 }
 
-#battle-modal{
-  color:black;
+#battle-modal {
+  color: black;
 }
 </style>
