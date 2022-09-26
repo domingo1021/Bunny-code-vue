@@ -42,6 +42,7 @@ const battleInfo = ref([
     fileContent: "",
     line: 0,
     index: 0,
+    compileRunning: false,
     codeRecords: [],
     timeBetween: [],
     terminalResult: [],
@@ -54,6 +55,7 @@ const battleInfo = ref([
     fileContent: "",
     line: 0,
     index: 0,
+    compileRunning: false,
     codeRecords: [],
     timeBetween: [],
     terminalResult: [],
@@ -70,15 +72,6 @@ const compiledCode = ref("");
 const atAlt = ref(false);
 const atCtl = ref(false);
 const childEditor = ref([]);
-// const localhostServer = "http://localhost:3000";
-// const productionServer = "wss://domingoos.store";
-
-// const socket = io(productionServer, {
-//   auth: (cb) => {
-//     cb({ token: `Bearer ${localStorage.getItem("jwt")}` });
-//   },
-//   path: "/api/socket/",
-// });
 
 //emit function
 function updateCurrCodes(emitObject) {
@@ -139,8 +132,8 @@ function setReady(index) {
 }
 
 async function runCode(battlerNumber) {
-  console.log(battlerNumber);
   compiledCode.value = battleInfo.value[battlerNumber].fileContent;
+  battleInfo.value[battlerNumber].compileRunning = true;
   props.socket.socketEmit("compile", {
     battlerNumber: battlerNumber,
     battleID: props.battleID,
@@ -221,6 +214,7 @@ onBeforeMount(async () => {
 
   props.socket.socketOn("compileDone", (responseObject) => {
     console.log("responseObject: ", responseObject);
+    battleInfo.value[responseObject.battlerNumber].compileRunning = false;
     pushTerminal(responseObject.battlerNumber, responseObject.compilerResult);
     pushTestCase(responseObject.battlerNumber, responseObject.testCase);
   });
@@ -325,7 +319,7 @@ onBeforeUnmount(() => {
             class="run-btn"
             type="button"
             @click="setReady(index)"
-            style="margin-top: 3%; width: 140px;"
+            style="margin-top: 3%; width: 140px"
           >
             Click to ready
           </button>
@@ -335,17 +329,37 @@ onBeforeUnmount(() => {
           >
             Waiting for user ready...
           </div>
-          <div v-else style="margin-top: 3%">{{ battleInfo[index].userName }} Ready !</div>
+          <div v-else style="margin-top: 3%">
+            {{ battleInfo[index].userName }} Ready !
+          </div>
         </div>
         <div v-else-if="start">
           <div style="margin-top: 3%">Battle start !</div>
         </div>
         <button
           class="run-btn"
-          v-if="!readOnlies[index] && start && !battleOver"
+          v-if="
+            !readOnlies[index] && start && !battleOver && !info.compileRunning
+          "
           @click="runCode(index)"
         >
           Run code
+        </button>
+        <button
+          class="run-btn"
+          style="background-color: azure"
+          v-else-if="
+            !readOnlies[index] && start && !battleOver && info.compileRunning
+          "
+          disabled
+        >
+          <div
+            class="spinner-border text-success"
+            role="status"
+            style="height: 16px; width: 16px"
+          >
+            <span class="visually-hidden">Loading...</span>
+          </div>
         </button>
       </div>
       <div id="terminal-2" style="color: azure">
@@ -395,6 +409,7 @@ onBeforeUnmount(() => {
   border-right: 0.5px solid rgb(190, 190, 190);
 }
 .run-btn {
+  width: 90px;
   border-radius: 8px;
   margin-left: 2%;
 }

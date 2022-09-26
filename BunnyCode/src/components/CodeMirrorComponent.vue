@@ -54,6 +54,7 @@ let keepPlay = ref(false);
 let baseContent;
 let baseLine;
 let baseIndex;
+let codeRunning = ref(false);
 let redo = [];
 let undo = [];
 let playSpeed = ref([0.25, 0.5, 0.75, 1, 1.25, 1.5, 2]);
@@ -474,6 +475,7 @@ async function runCode() {
     });
     return;
   }
+  codeRunning.value = true;
   let result;
   try {
     const compilerResult = await axios.post(
@@ -485,7 +487,9 @@ async function runCode() {
       }
     );
     result = compilerResult.data.split("\n");
+    codeRunning.value = false;
   } catch (error) {
+    codeRunning.value = false;
     return;
   }
   emit("pushTerminal", {
@@ -1044,7 +1048,7 @@ onBeforeUnmount(() => {
       @click="playback"
       v-if="props.readOnly && props.info.timeBetween.length !== 0"
     >
-      <div id="play-speed">x{{playSpeed[speedIndex]}}</div>
+      <div id="play-speed">x{{ playSpeed[speedIndex] }}</div>
       <div v-if="!keepPlay" id="play">
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -1126,7 +1130,24 @@ onBeforeUnmount(() => {
     </div>
   </div>
   <div id="run-btn" class="tool-btn" v-if="props.userID === projectUserID">
-    <button id="terminal-btn" @click="runCode">Run code</button>
+    <button v-if="!codeRunning" id="terminal-btn" @click="runCode">
+      Run code
+    </button>
+    <button
+      v-else
+      id="terminal-btn"
+      @click="runCode"
+      style="background-color: azure"
+      disabled
+    >
+      <div
+        class="spinner-border text-success"
+        role="status"
+        style="height: 16px; width: 16px"
+      >
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </button>
   </div>
 </template>
 
@@ -1148,7 +1169,7 @@ onBeforeUnmount(() => {
 #save-alert {
   left: 100px;
   background-color: aliceblue;
-  color:black;
+  color: black;
   position: absolute;
   top: 50px;
   height: 500px;
@@ -1195,13 +1216,13 @@ button:hover {
   background-color: rgb(180, 180, 180);
 }
 
-#play-speed{
+#play-speed {
   position: absolute;
   font-weight: bold;
   left: 90px;
   bottom: -3px;
   font-size: 1rem;
-  color:aliceblue;
+  color: aliceblue;
   width: 25px;
   height: 25px;
   border-radius: 50%;
