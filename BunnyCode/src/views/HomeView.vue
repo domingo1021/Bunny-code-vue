@@ -13,7 +13,7 @@
       <div><strong>Mentor</strong> your coding journey</div>
       <div>just like</div>
       <div><strong>pair programming.</strong></div>
-      <div class="learn-more">+ &nbsp; Learn more</div>
+      <div class="learn-more" @click="goWorkspace">+ &nbsp; Learn more</div>
     </div>
   </div>
   <div id="battle-introduce">
@@ -26,21 +26,25 @@
     <div id="battle-introduce-word" class="intro-bar">
       <div>Improve coding speed & quality</div>
       <div>while <strong>battling</strong> !</div>
-      <div class="learn-more">+ &nbsp; Learn more</div>
+      <div class="learn-more" @click="goBattleHome">+ &nbsp; Learn more</div>
     </div>
   </div>
 </template>
 
 <script setup>
 import { onMounted, ref } from "vue";
+// import rout
+import { useRouter } from "vue-router"
 import Socket from "../socket";
 
 const props = defineProps({
   userID: Number,
   socket: Socket,
 });
+
 const emits = defineEmits(["setUserID"]);
 const helloContent = ref("");
+const router = useRouter();
 const pendingContent = ref([
   {
     content: "|",
@@ -213,6 +217,14 @@ function checkAction(index) {
       checkAction(index);
     }, pendingContent.value[index].time);
   }
+}
+
+function goWorkspace(){
+  router.push({name: "workspace_home"})
+}
+
+function goBattleHome(){
+  router.push({name: "battle_home"})
 }
 
 onMounted(() => {

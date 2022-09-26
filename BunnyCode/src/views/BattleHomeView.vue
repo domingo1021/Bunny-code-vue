@@ -222,7 +222,11 @@
                       勝
                     </div>
                   </div>
-                  <img :src="battle.firstUserPicture" alt="picture-1" />
+                  <img
+                    class="battler-image"
+                    :src="battle.firstUserPicture"
+                    alt="picture-1"
+                  />
                   <div class="name">{{ battle.firstUserName }}</div>
                 </div>
                 <div style="align-self: center; font-size: 1.5rem">v.s.</div>
@@ -235,7 +239,11 @@
                       勝
                     </div>
                   </div>
-                  <img :src="battle.secondUserPicture" alt="picture-1" />
+                  <img
+                    class="battler-image"
+                    :src="battle.secondUserPicture"
+                    alt="picture-1"
+                  />
                   <div class="name">{{ battle.secondUserName }}</div>
                 </div>
               </div>
@@ -391,13 +399,15 @@ async function nextPage() {
 }
 
 onBeforeMount(async () => {
-  props.socket.socketOn("inviteFailed", (msg) => {
-    Swal.fire({
-      icon: "error",
-      title: "Oops...",
-      text: msg,
+  if (props.socket) {
+    props.socket.socketOn("inviteFailed", (msg) => {
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: msg,
+      });
     });
-  });
+  }
   await searchBattle();
 });
 
@@ -419,7 +429,9 @@ watch(
 );
 
 onBeforeUnmount(() => {
-  props.socket.socketOff("inviteFailed");
+  if (props.socket) {
+    props.socket.socketOff("inviteFailed");
+  }
 });
 </script>
 
@@ -734,6 +746,11 @@ select:focus {
   margin-top: 5%;
   text-align: center;
   font-size: 1.3rem;
+}
+
+.battler-image {
+  width: 189px;
+  height: 130px;
 }
 
 .first-win {
