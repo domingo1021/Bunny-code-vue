@@ -322,9 +322,10 @@ onBeforeUnmount(() => {
         <div v-if="!start">
           <button
             v-if="!ready[index] && !readOnlies[index]"
+            class="run-btn"
             type="button"
             @click="setReady(index)"
-            style="margin-top: 3%"
+            style="margin-top: 3%; width: 140px;"
           >
             Click to ready
           </button>
@@ -340,7 +341,7 @@ onBeforeUnmount(() => {
           <div style="margin-top: 3%">Battle start !</div>
         </div>
         <button
-          id="run-btn"
+          class="run-btn"
           v-if="!readOnlies[index] && start && !battleOver"
           @click="runCode(index)"
         >
@@ -393,7 +394,7 @@ onBeforeUnmount(() => {
 .content-detail {
   border-right: 0.5px solid rgb(190, 190, 190);
 }
-#run-btn {
+.run-btn {
   border-radius: 8px;
   margin-left: 2%;
 }
