@@ -290,7 +290,6 @@ import { ref, onBeforeMount, watch, onBeforeUnmount } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import axios from "axios";
 import Socket from "../socket";
-import BattleCardComponent from "../components/BattleCardComponent.vue";
 import Swal from "sweetalert2";
 
 const props = defineProps({
@@ -299,13 +298,10 @@ const props = defineProps({
 });
 const emits = defineEmits(["setUserID"]);
 const productionServer = "https://domingoos.store";
-const localhostServer = "http://localhost:3000";
 
 const router = useRouter();
 const route = useRoute();
 // the battles.
-const finishBattles = ref([]);
-const stillBattles = ref([]);
 const battleDisplayed = ref([]);
 
 // search battle
