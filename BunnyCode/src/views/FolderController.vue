@@ -33,7 +33,7 @@ import { nextTick, onBeforeMount, ref, watch } from "vue";
 import * as CodeMirror from "codemirror";
 import "codemirror/lib/codemirror.css";
 import "codemirror/theme/night.css";
-import "codemirror/theme/material-darker.css";
+import "codemirror/theme/dracula.css";
 import "codemirror/mode/javascript/javascript.js";
 import axios from "axios";
 
@@ -67,7 +67,7 @@ async function initVersionContent() {
     indentWithTab: true,
     tabSize: 2,
     autocorrect: true,
-    theme: "material-darker",
+    theme: "dracula",
     mode: "javascript",
   });
   editor.getDoc().setValue(text.value);
