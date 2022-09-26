@@ -187,9 +187,10 @@ function initiateSocket() {
     firstUserName.value = emitObject.firstUserName;
     targetSocketID.value = emitObject.socketID;
     toaster.success(
-      `<div>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!</div>
-        <div>User ${emitObject.firstUserName} launch ${emitObject.name}</div>
-        <div>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!</div>`
+      `
+      <div>&nbsp;</div>
+      <div><strong>User ${emitObject.firstUserName} launch ${emitObject.name}</strong></div>
+        <div>&nbsp;</div>`
     );
   });
   socket.value.socketOn("battleFailed", (msg) => {

@@ -6,6 +6,7 @@ import BattleSpaceComponent from "../components/BattleSpaceComponent.vue";
 import "highlight.js/styles/monokai.css";
 import Socket from "../socket";
 import Swal from "sweetalert2";
+import router from "../router";
 
 const props = defineProps({
   userID: Number,
@@ -248,7 +249,8 @@ onBeforeMount(async () => {
 
   props.socket.socketOn("battleOver", async (responseObject) => {
     Swal.fire(
-      `${responseObject.winnerName} win the game !! ${responseObject.reason}`
+      `<div>${responseObject.winnerName} win the game !!</div> 
+      <div>${responseObject.reason}</div>`
     );
     if (responseObject.winnerID === props.userID) {
       // TODO: upload...
@@ -278,6 +280,22 @@ onBeforeMount(async () => {
       });
     }, 4000);
   });
+
+  props.socket.socketOn("battleTerminate", async (responseObject) => {
+    Swal.fire(
+      `<div>Battle terminated</div><div>${responseObject.reason}</div>`
+    );
+    battleOver.value = true;
+  });
+
+  props.socket.socketOn("battleNotFound", () => {
+    router.push({
+      name: "battle_review",
+      params: {
+        battleID: props.battleID,
+      },
+    });
+  });
 });
 
 onBeforeUnmount(() => {
@@ -289,6 +307,8 @@ onBeforeUnmount(() => {
   props.socket.socketOff("battleStart");
   props.socket.socketOff("readyFailed");
   props.socket.socketOff("battleOver");
+  props.socket.socketOff("battleNotFound");
+  props.socket.socketOff("battleTerminate");
 });
 </script>
 

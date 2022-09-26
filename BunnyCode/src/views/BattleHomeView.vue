@@ -286,7 +286,7 @@
 </template>
 
 <script setup>
-import { ref, onBeforeMount, watch } from "vue";
+import { ref, onBeforeMount, watch, onBeforeUnmount } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import axios from "axios";
 import Socket from "../socket";
@@ -395,6 +395,13 @@ async function nextPage() {
 }
 
 onBeforeMount(async () => {
+  props.socket.socketOn("inviteFailed", (msg) => {
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: msg,
+    });
+  });
   await searchBattle();
 });
 
@@ -409,11 +416,15 @@ watch(battleName, () => {
 watch(
   () => route.query.paging,
   async () => {
-    console.log( "Paging: ", route.query.paging );
+    console.log("Paging: ", route.query.paging);
     currentPage.value = +route.query.paging;
     await searchBattle();
   }
 );
+
+onBeforeUnmount(() => {
+  props.socket.socketOff("inviteFailed");
+});
 </script>
 
 <style scoped>
