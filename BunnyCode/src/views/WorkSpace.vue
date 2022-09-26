@@ -447,7 +447,7 @@ onUnmounted(() => {
 }
 .version-list {
   margin-left: 4%;
-  font-size: 0.75rem;
+  font-size: 1rem;
 }
 .version-list:hover {
   background-color: #555;
@@ -466,11 +466,11 @@ onUnmounted(() => {
 #left-bar {
   padding-left: 2%;
   padding-right: 2%;
-  font-size: 1.1rem;
+  font-size: 1.3rem;
   background-color: #2a2a2a;
 }
 #info-bar {
-  font-size: 1.1rem;
+  font-size: 1.3rem;
   border-left: 1px solid rgb(255, 255, 255);
   padding: 1% 0% 0% 2%;
   width: 250px;
@@ -508,6 +508,7 @@ onUnmounted(() => {
 }
 
 #intro-content {
+  width: 100%;
   padding-bottom: 10%;
   padding-left: 5%;
   padding-right: 5%;

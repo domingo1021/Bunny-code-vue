@@ -647,7 +647,7 @@ select:focus {
 
 #battle-title {
   color: #58a6ff;
-  font-size: 2.2rem;
+  font-size: 1.75rem;
   font-weight: bold;
   /* text-decoration: underline; */
   bottom: 4px;
@@ -685,7 +685,7 @@ select:focus {
 
 #battle-description {
   margin-top: 2%;
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   color: rgb(150, 150, 150);
 }
 
@@ -726,7 +726,7 @@ select:focus {
 .name {
   margin-top: 5%;
   text-align: center;
-  font-size: 1.5rem;
+  font-size: 1.3rem;
 }
 
 .first-win {

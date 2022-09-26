@@ -2,7 +2,7 @@
 import * as CodeMirror from "codemirror";
 import axios from "axios";
 import "codemirror/lib/codemirror.css";
-import "codemirror/theme/material-darker.css";
+import "codemirror/theme/dracula.css";
 import "codemirror/mode/javascript/javascript.js";
 import {
   nextTick,
@@ -869,7 +869,7 @@ async function initCodeMirror() {
     indentWithTab: true,
     tabSize: 2,
     autocorrect: true,
-    theme: "material-darker",
+    theme: "dracula",
     mode: "javascript",
   });
   editor.getDoc().setValue(props.info.fileContent);
@@ -938,10 +938,10 @@ onBeforeUnmount(() => {
 <template>
   <div id="tool-bar">
     <button class="tool-btn">
-      <img src="@/assets/undo.png" alt="uedo" width="20" height="20" />
+      <img src="@/assets/undo.png" alt="uedo" width="25" height="25" />
     </button>
     <button class="tool-btn">
-      <img src="@/assets/redo.png" alt="redo" width="20" height="20" />
+      <img src="@/assets/redo.png" alt="redo" width="25" height="25" />
     </button>
   </div>
   <!-- <div id="tool-bar" v-else-if="!props.readOnly">
@@ -957,7 +957,7 @@ onBeforeUnmount(() => {
         id="editor"
         :value="fileContent"
         cols="30"
-        rows="10"
+        rows="12"
         style="pointer-events: none"
       ></textarea>
     </div>
@@ -1004,8 +1004,8 @@ onBeforeUnmount(() => {
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
+          width="30"
+          height="30"
           fill="currentColor"
           class="bi bi-rewind"
           viewBox="0 0 16 16"
@@ -1028,8 +1028,8 @@ onBeforeUnmount(() => {
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
+          width="30"
+          height="30"
           fill="currentColor"
           class="bi bi-rewind"
           viewBox="0 0 16 16"
@@ -1052,8 +1052,8 @@ onBeforeUnmount(() => {
       <div v-if="!keepPlay" id="play">
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
+          width="30"
+          height="30"
           fill="currentColor"
           class="bi bi-play"
           viewBox="0 0 16 16"
@@ -1067,8 +1067,8 @@ onBeforeUnmount(() => {
       <div v-else-if="keepPlay" id="stop-play">
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
+          width="30"
+          height="30"
           fill="currentColor"
           class="bi bi-pause-fill"
           viewBox="0 0 16 16"
@@ -1088,8 +1088,8 @@ onBeforeUnmount(() => {
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
+          width="30"
+          height="30"
           fill="currentColor"
           class="bi bi-fast-forward"
           viewBox="0 0 16 16"
@@ -1113,8 +1113,8 @@ onBeforeUnmount(() => {
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
+          width="30"
+          height="30"
           fill="currentColor"
           class="bi bi-fast-forward"
           viewBox="0 0 16 16"
@@ -1162,7 +1162,7 @@ onBeforeUnmount(() => {
   margin: 1% 2% 0px 5px;
   top: 1%;
   right: 2%;
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: bold;
 }
 
@@ -1198,10 +1198,12 @@ onBeforeUnmount(() => {
 }
 
 #terminal-btn {
+  font-size: 1.25rem;
   border-radius: 5px;
 }
 
 .tool-btn {
+  
   margin-left: 0.5%;
   border-radius: 5px;
 }
@@ -1219,12 +1221,13 @@ button:hover {
 #play-speed {
   position: absolute;
   font-weight: bold;
-  left: 90px;
-  bottom: -3px;
-  font-size: 1rem;
+  left: 120px;
+  bottom: 5px;
+  font-size: 1.25rem;
   color: aliceblue;
   width: 25px;
   height: 25px;
   border-radius: 50%;
 }
+
 </style>

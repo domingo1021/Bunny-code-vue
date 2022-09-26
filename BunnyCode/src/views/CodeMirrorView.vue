@@ -314,10 +314,11 @@ a {
 }
 
 #terminal-title {
+  font-size: 1.25rem;
   position: absolute;
   background-color: #555;
   right: 2%;
-  top: 20%;
+  top: -10px;
   display: inline-block;
   padding: 0.5% 1% 0.5% 1%;
   border-radius: 10px;

@@ -33,13 +33,14 @@ watch(
   position: absolute;
   bottom: 0px;
   width: 100%;
-  height: 180px;
+  height: 300px;
   overflow-y: auto;
   padding: 1% 0% 0% 2%;
 }
 
 #result-area{
-  margin-top:4%;
+  font-size: 1.25rem;
+  margin-top:5%;
 }
 
 ::-webkit-scrollbar {
