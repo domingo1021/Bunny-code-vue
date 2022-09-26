@@ -971,7 +971,7 @@ onBeforeUnmount(() => {
       <div class="modal-dialog" role="document">
         <div class="modal-content">
           <div class="modal-header text-center">
-            <h4 class="modal-title w-100 font-weight-bold">Create Version</h4>
+            <h4 class="modal-title w-100 font-weight-bold">Project save</h4>
             <button
               type="button"
               class="close btn btn-indigo"
@@ -1148,12 +1148,14 @@ onBeforeUnmount(() => {
 #save-alert {
   left: 100px;
   background-color: aliceblue;
+  color:black;
   position: absolute;
   top: 50px;
   height: 500px;
 }
 
 .confirm-btn {
+  border-radius: 5px;
   margin: 5%;
 }
 
