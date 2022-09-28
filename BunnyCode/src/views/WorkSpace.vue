@@ -224,7 +224,7 @@
 
 <script setup>
 import Socket from "../socket";
-import { useRoute, useRouter } from "vue-router";
+import { onBeforeRouteLeave, useRoute, useRouter } from "vue-router";
 import { onBeforeMount, onMounted, onUnmounted, ref, watch } from "vue";
 import axios from "axios";
 import CodeMirrorView from "./CodeMirrorView.vue";
@@ -296,7 +296,6 @@ function updatePreviewVersion(versionIndex) {
 function syncVersion() {
   targetVersionIndex.value = previewVersionIndex.value;
 }
-
 
 function pushVersionObject(versionObject) {
   projectDetail.value.version.push(versionObject);
@@ -437,6 +436,28 @@ onMounted(() => {
 onUnmounted(() => {
   modalIntro.hide();
 });
+
+//TODO: make sure the user who have edit, have to confirm the leaving action.
+const test = true;
+if (test) {
+  onBeforeRouteLeave((to, from, next) => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        next();
+      } else {
+        next(false);
+      }
+    });
+  });
+}
 </script>
 
 <style scoped>
