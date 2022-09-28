@@ -174,11 +174,11 @@ onBeforeMount(async () => {
     battleInfo.value[0].userID = responseObject.battleResponse.firstUserID;
     battleInfo.value[0].userName = responseObject.battleResponse.firstUserName;
     battleInfo.value[0].fileContent = responseObject.firstUserObject.codes;
-    battleInfo.value[0].chance = responseObject.firstUserObject.chance;
+    battleInfo.value[0].compileChance = responseObject.firstUserObject.chance;
     battleInfo.value[1].userID = responseObject.battleResponse.secondUserID;
     battleInfo.value[1].userName = responseObject.battleResponse.secondUserName;
     battleInfo.value[1].fileContent = responseObject.secondUserObject.codes;
-    battleInfo.value[1].chance = responseObject.secondUserObject.chance;
+    battleInfo.value[1].compileChance = responseObject.secondUserObject.chance;
     questionName.value = responseObject.battleResponse.questionName;
     questionURL.value = responseObject.battleResponse.questionURL;
     userID.value = responseObject.userID;
@@ -193,7 +193,6 @@ onBeforeMount(async () => {
     } else {
       ready.value[1] = true;
     }
-    console.log("User ready status: ", ready.value[0], ready.value[1]);
     if (ready.value[0] && ready.value[1]) {
       start.value = true;
     }
@@ -213,7 +212,7 @@ onBeforeMount(async () => {
     if (ready.value[0] && ready.value[1] && readOnlies.value !== [true, true]) {
       boardContent.value = questionContent.value;
       battleInfo.value.forEach((info, index) => {
-        if (readOnlies[index]) {
+        if (readOnlies.value[index]) {
           return;
         }
         info.fileContent = baseContent.value;
