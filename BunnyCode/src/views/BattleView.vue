@@ -12,6 +12,7 @@ const props = defineProps({
   userID: Number,
   battleID: String,
   socket: Socket,
+  terminateSocket: Function,
 });
 const emits = defineEmits(["setUserID"]);
 

@@ -303,6 +303,7 @@ import Swal from "sweetalert2";
 const props = defineProps({
   userID: Number,
   socket: Socket,
+  terminateSocket: Function,
 });
 const emits = defineEmits(["setUserID"]);
 const productionServer = "https://domingoos.store";

@@ -243,6 +243,7 @@ const props = defineProps({
   socket: Socket,
   projectName: String,
   versionNumber: String,
+  terminateSocket: Function,
 });
 
 let modalIntro;

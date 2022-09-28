@@ -2,7 +2,14 @@
 import { onBeforeMount, onUpdated, ref, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import ProjectCardComponent from "../components/ProjectCardComponent.vue";
+import Socket from "../socket";
 import axios from "axios";
+
+const propes = {
+  socket: Socket,
+  userID: Number,
+  terminateSocket: Function,
+}
 
 const router = useRouter();
 const route = useRoute();

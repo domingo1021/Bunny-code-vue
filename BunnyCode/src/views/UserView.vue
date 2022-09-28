@@ -17,7 +17,9 @@ const props = defineProps({
   socket: Object,
   pageUserID: String,
   userID: Number,
+  terminateSocket: Function,
 });
+
 const emits = defineEmits(["setUserID"]);
 const localhostServer = "http://localhost:3000";
 const productionServer = "https://domingoos.store";
@@ -102,7 +104,6 @@ async function createProject() {
       },
     });
   } catch (error) {
-    console.log(error);
     Swal.fire({
       icon: "error",
       title: "Oops...",
@@ -147,12 +148,18 @@ async function getUserProject() {
   }
 }
 
+function logOut() {
+  localStorage.removeItem("jwt");
+  props.terminateSocket();
+  router.push({ name: "login" });
+}
+
 onUpdated(() => {
   if (
-    projectName.value.length > 29 ||
-    projectDescription.value.length > 49 ||
-    versionName.value.length > 29 ||
-    fileName.value.length > 29
+    projectName.value.length > 19 ||
+    projectDescription.value.length > 29 ||
+    versionName.value.length > 19 ||
+    fileName.value.length > 19
   ) {
     buttonClickable.value = false;
   } else {
@@ -207,6 +214,7 @@ onBeforeUnmount(() => {
   <main style="display: flex">
     <div id="user-profile-component">
       <UserProfileComponent :userInfo="userInfo" />
+      <button style="width: 100%" @click="logOut()">Log out</button>
     </div>
     <div id="user-project-detail">
       <div
@@ -288,7 +296,7 @@ onBeforeUnmount(() => {
                       v-model="projectName"
                     />
                   </div>
-                  <div class="warning" v-if="projectName.length > 29">
+                  <div class="warning" v-if="projectName.length > 20">
                     Project name length too long.
                   </div>
                   <div class="md-form mb-4" style="display: flex">
@@ -307,7 +315,7 @@ onBeforeUnmount(() => {
                       v-model="projectDescription"
                     />
                   </div>
-                  <div class="warning" v-if="projectDescription.length > 49">
+                  <div class="warning" v-if="projectDescription.length > 30">
                     Project description length too long.
                   </div>
                   <div class="md-form mb-4" style="display: flex">
@@ -351,7 +359,7 @@ onBeforeUnmount(() => {
                       v-model="versionName"
                     />
                   </div>
-                  <div class="warning" v-if="versionName.length > 29">
+                  <div class="warning" v-if="versionName.length > 20">
                     Version name length too long.
                   </div>
                   <div class="md-form mb-4" style="display: flex">
@@ -370,7 +378,7 @@ onBeforeUnmount(() => {
                       v-model="fileName"
                     />
                   </div>
-                  <div class="warning" v-if="fileName.length > 29">
+                  <div class="warning" v-if="fileName.length > 20">
                     File name length too long.
                   </div>
                 </div>
@@ -384,7 +392,12 @@ onBeforeUnmount(() => {
                   >
                     Submit <i class="fas fa-paper-plane-o ml-1"></i>
                   </button>
-                  <button id="invalid-btn" class="btn btn-indigo" v-else>
+                  <button
+                    id="invalid-btn"
+                    class="btn btn-indigo"
+                    disabled
+                    v-else
+                  >
                     Submit
                   </button>
                 </div>
@@ -441,9 +454,7 @@ onBeforeUnmount(() => {
                 {{ project.watchCount }}
               </div>
             </div>
-            <!-- <a href="#" class="btn btn-primary">Go somewhere</a> -->
           </div>
-          <!-- </div> -->
         </div>
       </div>
       <div id="project-card-long" v-if="projectsDisplayed.length === 0">
@@ -696,7 +707,7 @@ onBeforeUnmount(() => {
   margin-left: 5px;
 }
 
-#no-projects{
+#no-projects {
   text-align: center;
   font-size: 2rem;
   color: rgb(148, 147, 147);

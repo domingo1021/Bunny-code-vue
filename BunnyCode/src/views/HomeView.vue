@@ -40,6 +40,7 @@ import Socket from "../socket";
 const props = defineProps({
   userID: Number,
   socket: Socket,
+  terminateSocket: Function,
 });
 
 const emits = defineEmits(["setUserID"]);

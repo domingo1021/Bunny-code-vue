@@ -32,7 +32,12 @@
     </nav>
   </header>
   <body>
-    <RouterView :userID="userID" :socket="socket" @setUserID="setUserID" />
+    <RouterView
+      :userID="userID"
+      :socket="socket"
+      :terminateSocket="terminateSocket"
+      @setUserID="setUserID"
+    />
     <div id="battle-invitation">
       <div
         class="modal fade"
@@ -83,11 +88,8 @@ import SearchComponent from "./components/SearchComponent.vue";
 import { ref, onMounted, onUnmounted, watch } from "vue";
 import axios from "axios";
 import io from "socket.io-client";
-// import NotificationView from "./views/NotificationView.vue";
 import { createToaster } from "@meforma/vue-toaster";
-// import BattleLaunchComponent from "./components/BattleLaunchComponent.vue";
 import { Modal } from "bootstrap";
-// import BattleLaunchComponent from "./components/BattleLaunchComponent.vue";
 import Swal from "sweetalert2";
 
 let myModal;
@@ -214,9 +216,11 @@ function initiateSocket() {
   });
 }
 
-// async function updateView(viewPage) {
-//   view.value = viewPage;
-// }
+function terminateSocket() {
+  socket.value.socketDisconnect();
+  userID.value = -1;
+  socket.value = undefined;
+}
 
 function acceptBattle() {
   if (socket.value) {
