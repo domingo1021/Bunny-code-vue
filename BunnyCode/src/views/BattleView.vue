@@ -7,6 +7,7 @@ import "highlight.js/styles/monokai.css";
 import Socket from "../socket";
 import Swal from "sweetalert2";
 import router from "../router";
+import { read } from "@popperjs/core";
 
 const props = defineProps({
   userID: Number,
@@ -26,11 +27,13 @@ const readOnlies = ref([true, true]);
 const ready = ref([false, false]);
 const start = ref(false);
 const battleOver = ref(false);
+const countDown = ref(5);
 const userID = ref(-1);
 const questionName = ref();
 const questionURL = ref();
 const questionContent = ref("");
 const boardContent = ref("");
+const baseContent = ref("");
 //default visitor.
 const authorization = ref(0);
 const message = ref([]);
@@ -80,6 +83,7 @@ function updateCurrCodes(emitObject) {
   if (!start.value) {
     return;
   }
+  console.log(battleInfo.value[emitObject.battlerNumber].fileContent);
   props.socket.socketEmit("newCodes", {
     battleID: props.battleID,
     userID: userID.value,
@@ -132,6 +136,15 @@ function setReady(index) {
   });
 }
 
+function countDownTimer() {
+  if (countDown.value > 0) {
+    setTimeout(() => {
+      countDown.value = countDown.value - 1;
+      countDownTimer();
+    }, 1000);
+  }
+}
+
 async function runCode(battlerNumber) {
   compiledCode.value = battleInfo.value[battlerNumber].fileContent;
   battleInfo.value[battlerNumber].compileRunning = true;
@@ -155,6 +168,7 @@ onBeforeMount(async () => {
     battleID: props.battleID,
   });
   props.socket.socketOn("returnBattler", async (responseObject) => {
+    console.log("response object: ", responseObject);
     battleName.value = responseObject.battleResponse.battleName;
     battleInfo.value[0].userID = responseObject.battleResponse.firstUserID;
     battleInfo.value[0].userName = responseObject.battleResponse.firstUserName;
@@ -185,16 +199,17 @@ onBeforeMount(async () => {
         return info.userID !== responseObject.userID;
       });
     }
-    console.log("URL: ", responseObject.battleResponse.baseURL);
-    const baseContent = await axios.get(responseObject.battleResponse.baseURL);
-    battleInfo.value.forEach((info) => {
-      info.fileContent = baseContent.data;
-      console.log(info.fileContent);
-    });
+    const questionBaseContent = await axios.get(
+      responseObject.battleResponse.baseURL
+    );
+    baseContent.value = questionBaseContent.data;
     const question = await axios.get(questionURL.value);
     questionContent.value = question.data;
     if (ready.value[0] && ready.value[1]) {
       boardContent.value = questionContent.value;
+      battleInfo.value.forEach((info) => {
+        info.fileContent = baseContent.value;
+      });
     }
   });
 
@@ -214,7 +229,6 @@ onBeforeMount(async () => {
   });
 
   props.socket.socketOn("compileDone", (responseObject) => {
-    console.log("responseObject: ", responseObject);
     battleInfo.value[responseObject.battlerNumber].compileRunning = false;
     pushTerminal(responseObject.battlerNumber, responseObject.compilerResult);
     pushTestCase(responseObject.battlerNumber, responseObject.testCase);
@@ -232,7 +246,11 @@ onBeforeMount(async () => {
     boardContent.value = questionContent.value;
     //TODO: 倒數特效
     Swal.fire("5 秒鐘後活動開始");
+    countDownTimer();
     setTimeout(() => {
+      battleInfo.value.forEach((info) => {
+        info.fileContent = baseContent.value;
+      });
       start.value = true;
     }, 5000);
   });
@@ -313,6 +331,12 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
+  <div
+    v-if="ready[0] && ready[1] && countDown > 0 && !start"
+    style="position: absolute; top: 50vh"
+  >
+    {{ countDown }}
+  </div>
   <Markdown id="mark-down" :source="boardContent" />
   <div id="battle-main-board">
     <div class="battle-editor" v-for="(info, index) in battleInfo" :key="index">
@@ -324,6 +348,7 @@ onBeforeUnmount(() => {
         :message="message"
         :readOnly="readOnlies[index]"
         :ref="childEditor"
+        :start="start"
         @updateCurrCodes="updateCurrCodes"
         @updateCurrIndex="updateCurrIndex"
         @updateCurrLine="updateCurrLine"
