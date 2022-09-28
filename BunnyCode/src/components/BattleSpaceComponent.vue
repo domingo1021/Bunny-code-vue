@@ -1,9 +1,17 @@
 <template>
-  <div style="margin: 0% 0% 1% 1%">
-    Challenger #{{ info.battlerNumber + 1 }}: &nbsp;
-    <strong>{{ info.userName }}</strong>
+  <div
+    style="margin: 0% 0% 1% 1%; display: flex; justify-content: space-between"
+  >
+    <div>
+      Challenger #{{ info.battlerNumber + 1 }}: &nbsp;
+      <strong>{{ info.userName }}</strong>
+    </div>
+    <div style="display: flex; margin-right:10px">
+      <div>Chance remains:</div>
+      <div id="remain-time">{{ info.compileChance }}</div>
+    </div>
   </div>
-  <div @input="updateContent" @keyup="checkEventUp">
+  <div @input="updateContent" @keydown="checkEventDown">
     <textarea
       :value="props.info.fileContent"
       :id="`user-${info.userID}-editor`"
@@ -11,16 +19,15 @@
       rows="10"
     ></textarea>
   </div>
-  <!-- <div v-for="(msg, index) in message" :key="index">{{ msg }}</div> -->
 </template>
 
 <script setup>
-// import axios from "axios";
 import * as CodeMirror from "codemirror";
 import "codemirror/lib/codemirror.css";
 import "codemirror/theme/dracula.css";
 import "codemirror/mode/javascript/javascript.js";
-import { nextTick, onUpdated, ref, watch } from "vue";
+import { nextTick, onMounted, onUpdated, ref, watch } from "vue";
+import { Swal } from "sweetalert2/dist/sweetalert2";
 
 const props = defineProps({
   id: String,
@@ -29,6 +36,7 @@ const props = defineProps({
   atCtl: Boolean,
   readOnly: Boolean,
   message: Object,
+  start: Boolean,
 });
 
 const emit = defineEmits([
@@ -44,36 +52,130 @@ const emit = defineEmits([
 let editor = null;
 
 const mirrorCreated = ref(false);
+const autoComplete = ["[", "(", "{", '"', "'"];
 
 function updateContent(e) {
-  console.log(props.info.line, props.info.index);
-  console.log("input: ", e.data);
   if (props.readOnly) {
     editor.getDoc().setValue(props.info.fileContent);
     editor.getDoc().setCursor({ line: props.info.line, ch: props.info.index });
     return;
   }
+  const { line, ch } = editor.getDoc().getCursor();
   let allCode = editor.getDoc().getValue();
-  console.log("Battler number: ", props.info.battlerNumber);
+  if (autoComplete.includes(e.data)) {
+    let anotherPart = "";
+    switch (e.data) {
+      case "(":
+        anotherPart = ")";
+        break;
+      case "[":
+        anotherPart = "]";
+        break;
+      case "{":
+        anotherPart = "}";
+        break;
+      case '"':
+        anotherPart = '"';
+        break;
+      case "'":
+        anotherPart = "'";
+        break;
+    }
+    const splitCodes = allCode.split("\n");
+    let lineCode = splitCodes[line];
+    lineCode = lineCode.substring(0, ch) + anotherPart + lineCode.substring(ch);
+    allCode = splitCodes.reduce((prev, curr, splitLine) => {
+      if (splitLine === splitCodes.length - 1) {
+        if (line === splitLine) {
+          prev += lineCode;
+        } else {
+          prev += curr;
+        }
+      } else {
+        if (line === splitLine) {
+          prev += lineCode + "\n";
+        } else {
+          prev += curr + "\n";
+        }
+      }
+      return prev;
+    }, "");
+    editor.getDoc().setValue(allCode);
+    editor.getDoc().setCursor({ line: line, ch: ch });
+  }
   emit("updateCurrCodes", {
     battlerNumber: props.info.battlerNumber,
     code: allCode,
   });
 }
 
+async function checkEventDown(e) {
+  if (props.readOnly) {
+    editor.getDoc().setValue(props.info.fileContent);
+    editor.getDoc().setCursor({ line: props.info.line, ch: props.info.index });
+    return;
+  }
+  if (e.ctrlKey && e.code === "KeyV") {
+    e.preventDefault();
+    if (!props.readOnly) {
+      Swal.fire({
+        icon: "error",
+        title: "Warning !",
+        text: "Cannot copy & paste during the battle.",
+      });
+    }
+  } else if (e.metaKey && e.code === "KeyV") {
+    e.preventDefault();
+    if (!props.readOnly) {
+      Swal.fire({
+        icon: "error",
+        title: "Warning !",
+        text: "Cannot copy & paste during the battle.",
+      });
+    }
+  } else {
+    let allCode = editor.getDoc().getValue();
+    emit("updateCurrCodes", {
+      battlerNumber: props.info.battlerNumber,
+      code: allCode,
+    });
+  }
+}
+
 watch(
   () => props.info.fileContent,
   (now, prev) => {
     if (prev === "") {
+      if (editor === null) {
+        return;
+      }
+      const splits = now.split("\n");
+      const fileContentLength = splits.length;
       editor.getDoc().setValue(now);
+      editor.getDoc().setCursor({
+        line: fileContentLength - 1,
+        ch: splits[fileContentLength - 1].length,
+      });
     }
   }
 );
 
-onUpdated(async () => {
+watch(
+  () => props.start,
+  async (now, prev) => {
+    await nextTick();
+    if (editor === null) {
+      return;
+    }
+    if (prev === false && now === true) {
+      editor.getDoc().setValue(props.info.fileContent);
+    }
+  }
+);
+
+function initEditor(){
   if (!mirrorCreated.value) {
     let tmpReadOnly = props.readOnly;
-    await nextTick();
     if (tmpReadOnly) {
       tmpReadOnly = "nocursor";
     }
@@ -99,6 +201,26 @@ onUpdated(async () => {
     editor.getDoc().setValue(props.info.fileContent);
     editor.getDoc().setCursor({ line: props.info.line, ch: props.info.index });
   }
-});
+}
 
+// onMounted(async () => {
+//   initEditor();
+// })
+
+onUpdated(async () => {
+  initEditor();
+});
 </script>
+
+<style>
+#remain-time{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  margin-left: 10px; 
+  background-color: rgb(200, 42, 42);
+  width: 20px;
+  height: 20px;
+}
+</style>
