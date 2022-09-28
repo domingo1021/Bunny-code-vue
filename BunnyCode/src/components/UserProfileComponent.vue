@@ -7,13 +7,11 @@
     <img id="user-picture" :src="userInfo.picture" alt="User picture" />
     <div id="user-name" @click="goProfile">{{ userInfo.userName }}</div>
     <div id="user-profile">
-      <div>
+      <div v-if="userInfo.profile !== null">
         {{ userInfo.profile }}
       </div>
+      <div v-else>Hello everyone ~</div>
     </div>
-    <!-- <div> -->
-      <!-- <button @click="goProfile">Contact</button> -->
-    <!-- </div> -->
   </div>
 </template>
 
@@ -43,6 +41,9 @@ function goProfile() {
 #user-name:hover {
   cursor: pointer;
 }
+#user-picture {
+  border-radius: 10px;
+}
 #user-level {
   z-index: 99;
   position: absolute;
@@ -57,9 +58,9 @@ function goProfile() {
 }
 
 #user-profile {
-  margin-left: 5%;
+  font-size: 1rem;
+  text-align: center;
   padding-bottom: 5%;
-  /* background-color: rgb(70, 67, 67); */
   color: rgb(195, 187, 187);
 }
 .card {

@@ -219,7 +219,7 @@
                       class="first-win"
                       v-if="battle.firstUserID === battle.winnerID"
                     >
-                      勝
+                      win
                     </div>
                   </div>
                   <img
@@ -236,7 +236,7 @@
                       class="second-win"
                       v-if="battle.secondUserID === battle.winnerID"
                     >
-                      勝
+                      win
                     </div>
                   </div>
                   <img
@@ -448,6 +448,9 @@ onBeforeUnmount(() => {
 label {
   margin-left: 5px;
   bottom: 2px;
+}
+img{
+  border-radius: 10px;
 }
 .flex-box {
   display: flex;
