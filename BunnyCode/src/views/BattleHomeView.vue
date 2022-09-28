@@ -398,6 +398,14 @@ async function nextPage() {
   });
 }
 
+watch(currentStatus, () => {
+  searchBattle();
+});
+
+watch(searchType, () => {
+  searchBattle();
+})
+
 onBeforeMount(async () => {
   if (props.socket) {
     props.socket.socketOn("inviteFailed", (msg) => {
