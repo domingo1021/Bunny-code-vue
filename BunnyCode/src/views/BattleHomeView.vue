@@ -13,14 +13,14 @@
           v-model="battleKeyword"
         />
         <select name="" id="type-selector" v-model="searchType">
-          <option value="" disabled selected>Search by</option>
-          <option :value="'battle'">Battle name</option>
-          <option :value="'user'">User name</option>
-          <option :value="'question'">Battle question</option>
+          <option value="" disabled selected>Search By</option>
+          <option :value="'battle'">Battle Name</option>
+          <option :value="'user'">User Name</option>
+          <option :value="'question'">Battle Question</option>
         </select>
         <select name="" id="status-selector" v-model="currentStatus">
-          <option value="" disabled selected>Battle status</option>
-          <option :value="'still'">Still battling</option>
+          <option value="" disabled selected>Battle Status</option>
+          <option :value="'still'">Still Battling</option>
           <option :value="'finished'">Finished</option>
         </select>
         <div id="new-battle" v-if="props.userID !== -1 && props.socket">
@@ -404,7 +404,7 @@ watch(currentStatus, () => {
 
 watch(searchType, () => {
   searchBattle();
-})
+});
 
 onBeforeMount(async () => {
   if (props.socket) {
