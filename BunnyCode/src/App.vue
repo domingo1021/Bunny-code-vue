@@ -180,7 +180,9 @@ function initiateSocket() {
     })
   );
   socket.value.socketOn("userInvite", (emitObject) => {
-    console.log("invite user: ", emitObject);
+    if (route.name === "battle") {
+      return;
+    }
     battleName.value = emitObject.name;
     battleLevel.value = battleLevelConfig[emitObject.level];
     firstUserID.value = emitObject.firstUserID;
