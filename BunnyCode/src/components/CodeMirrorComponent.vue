@@ -30,6 +30,7 @@ const props = defineProps({
   atCtl: Boolean,
   readOnly: Boolean,
   authorization: Boolean,
+  changeEdit: Function,
 });
 
 const emit = defineEmits([
@@ -61,7 +62,7 @@ let speedIndex = ref(3);
 
 function updateContent(e) {
   console.log(props.info.line, props.info.index);
-  console.log("input: ", e.data);
+  console.log("input: ", e.data, e.metaKey);
   if (props.readOnly) {
     editor.getDoc().setValue(props.info.fileContent);
     editor.getDoc().setCursor({ line: props.info.line, ch: props.info.index });
@@ -206,6 +207,153 @@ async function checkEventUp(e) {
       fileNumber: props.info.fileNumber,
       index: currentCursor.ch,
     });
+  } else if (e.shiftKey && e.altKey && e.keyCode === 40) {
+    const { line } = editor.getDoc().getCursor();
+    const splitContents = props.info.fileContent.split("\n");
+    const lineContent = splitContents[line];
+    const allCodes = splitContents.reduce((prev, curr, lineIndex) => {
+      if (lineIndex === line) {
+        if (lineIndex !== splitContents.length - 1) {
+          prev = prev + curr + "\n" + curr + "\n";
+        } else {
+          prev = prev + curr + "\n" + curr;
+        }
+      } else if (lineIndex !== splitContents.length - 1) {
+        prev = prev + curr + "\n";
+      } else {
+        prev = prev + curr;
+      }
+      return prev;
+    }, "");
+    editor.getDoc().setValue(allCodes);
+    emit("updateCurrCodes", {
+      fileNumber: props.info.fileNumber,
+      code: allCodes,
+    });
+    emit("pushCodeRecords", {
+      fileNumber: props.info.fileNumber,
+      newRecords: {
+        action: "CopyLine",
+        line: props.info.line,
+        index: props.info.index,
+        code: "",
+        timestamp: Date.now().toString() + "000000",
+      },
+    });
+    emit("updateCurrLine", {
+      fileNumber: props.info.fileNumber,
+      line: line + 1,
+    });
+    emit("updateCurrIndex", {
+      fileNumber: props.info.fileNumber,
+      index: lineContent.length,
+    });
+    console.log("allCodes: ", allCodes);
+    editor.getDoc().setCursor({ line: props.info.line, ch: props.info.index });
+  } else if (e.metaKey && e.key === "x") {
+    console.log("delete a line !");
+    e.preventDefault();
+    const splitContents = editor.getDoc().getValue().split("\n");
+    if (props.info.fileContent === "") {
+      return;
+    }
+    if (splitContents.length === 1) {
+      emit("updateCurrCodes", {
+        fileNumber: props.info.fileNumber,
+        code: "",
+      });
+      emit("pushCodeRecords", {
+        fileNumber: props.info.fileNumber,
+        newRecords: {
+          action: "DeleteLine",
+          line: props.info.line,
+          index: props.info.index,
+          code: "",
+          timestamp: Date.now().toString() + "000000",
+        },
+      });
+      emit("updateCurrLine", {
+        fileNumber: props.info.fileNumber,
+        line: 0,
+      });
+      emit("updateCurrIndex", {
+        fileNumber: props.info.fileNumber,
+        index: 0,
+      });
+      editor.getDoc().setValue("");
+      editor.getDoc().setCursor({ line: 0, ch: 0 });
+      return;
+    }
+    const { line } = editor.getDoc().getCursor();
+    const allCodes = splitContents.reduce((prev, curr, lineIndex) => {
+      if (lineIndex === line) {
+        return prev;
+      }
+      if (lineIndex !== splitContents.length - 1) {
+        if (
+          line === splitContents.length - 1 &&
+          lineIndex === splitContents.length - 2
+        ) {
+          prev = prev + curr;
+        } else {
+          prev = prev + curr + "\n";
+        }
+      } else {
+        prev = prev + curr;
+      }
+      return prev;
+    }, "");
+    console.log("all codes: ", allCodes);
+    if (line === splitContents.length - 1) {
+      // 代表在最後一行刪除整行
+      emit("updateCurrCodes", {
+        fileNumber: props.info.fileNumber,
+        code: allCodes,
+      });
+      emit("pushCodeRecords", {
+        fileNumber: props.info.fileNumber,
+        newRecords: {
+          action: "DeleteLine",
+          line: props.info.line,
+          index: props.info.index,
+          code: "",
+          timestamp: Date.now().toString() + "000000",
+        },
+      });
+      emit("updateCurrLine", {
+        fileNumber: props.info.fileNumber,
+        line: line - 1,
+      });
+      emit("updateCurrIndex", {
+        fileNumber: props.info.fileNumber,
+        index: splitContents[line - 1].length,
+      });
+      editor.getDoc().setValue(allCodes);
+      editor
+        .getDoc()
+        .setCursor({ line: line - 1, ch: splitContents[line - 1].length });
+      return;
+    }
+    emit("updateCurrCodes", {
+      fileNumber: props.info.fileNumber,
+      code: allCodes,
+    });
+    emit("pushCodeRecords", {
+      fileNumber: props.info.fileNumber,
+      newRecords: {
+        action: "DeleteLine",
+        line: props.info.line,
+        index: props.info.index,
+        code: "",
+        timestamp: Date.now().toString() + "000000",
+      },
+    });
+    emit("updateCurrIndex", {
+      fileNumber: props.info.fileNumber,
+      index: 0,
+    });
+    editor.getDoc().setValue(allCodes);
+    editor.getDoc().setCursor({ line: line, ch: 0 });
   } else if (
     e.keyCode === 40 ||
     e.keyCode === 38 ||
@@ -702,7 +850,8 @@ function triggerEvent(recordObject) {
     action === "up" ||
     action === "down" ||
     action === "front" ||
-    action === "end"
+    action === "end" ||
+    action === "click"
   ) {
     emit("updateCurrLine", {
       fileNumber: props.info.fileNumber,
@@ -748,6 +897,123 @@ function triggerEvent(recordObject) {
       code: allCode,
     });
     editor.getDoc().setCursor({ line: props.info.line, ch: props.info.index });
+  } else if (action === "DeleteLine") {
+    const splitContents = editor.getDoc().getValue().split("\n");
+    if (props.info.fileContent === "") {
+      return;
+    }
+    if (splitContents.length === 1) {
+      emit("updateCurrCodes", {
+        fileNumber: props.info.fileNumber,
+        code: "",
+      });
+      emit("updateCurrLine", {
+        fileNumber: props.info.fileNumber,
+        line: 0,
+      });
+      emit("updateCurrIndex", {
+        fileNumber: props.info.fileNumber,
+        index: 0,
+      });
+      editor.getDoc().setValue("");
+      editor.getDoc().setCursor({ line: 0, ch: 0 });
+      return;
+    }
+    const { line } = editor.getDoc().getCursor();
+    const allCodes = splitContents.reduce((prev, curr, lineIndex) => {
+      if (lineIndex === line) {
+        return prev;
+      }
+      if (lineIndex !== splitContents.length - 1) {
+        if (
+          line === splitContents.length - 1 &&
+          lineIndex === splitContents.length - 2
+        ) {
+          prev = prev + curr;
+        } else {
+          prev = prev + curr + "\n";
+        }
+      } else {
+        prev = prev + curr;
+      }
+      return prev;
+    }, "");
+    console.log("all codes: ", allCodes);
+    if (line === splitContents.length - 1) {
+      // 代表在最後一行刪除整行
+      emit("updateCurrCodes", {
+        fileNumber: props.info.fileNumber,
+        code: allCodes,
+      });
+      emit("updateCurrLine", {
+        fileNumber: props.info.fileNumber,
+        line: line - 1,
+      });
+      emit("updateCurrIndex", {
+        fileNumber: props.info.fileNumber,
+        index: splitContents[line - 1].length,
+      });
+      editor.getDoc().setValue(allCodes);
+      editor
+        .getDoc()
+        .setCursor({ line: line - 1, ch: splitContents[line - 1].length });
+      return;
+    }
+    emit("updateCurrCodes", {
+      fileNumber: props.info.fileNumber,
+      code: allCodes,
+    });
+    emit("pushCodeRecords", {
+      fileNumber: props.info.fileNumber,
+      newRecords: {
+        action: "DeleteLine",
+        line: props.info.line,
+        index: props.info.index,
+        code: "",
+        timestamp: Date.now().toString() + "000000",
+      },
+    });
+    emit("updateCurrIndex", {
+      fileNumber: props.info.fileNumber,
+      index: 0,
+    });
+    editor.getDoc().setValue(allCodes);
+    editor.getDoc().setCursor({ line: line, ch: 0 });
+  } else if (action === "CopyLine") {
+    console.log("Copy Line!");
+    const { line } = editor.getDoc().getCursor();
+    const splitContents = props.info.fileContent.split("\n");
+    const lineContent = splitContents[line];
+    console.log("Line content: ", lineContent);
+    const allCodes = splitContents.reduce((prev, curr, lineIndex) => {
+      if (lineIndex === line) {
+        if (lineIndex !== splitContents.length - 1) {
+          prev = prev + curr + "\n" + curr + "\n";
+        } else {
+          prev = prev + curr + "\n" + curr;
+        }
+      } else if (lineIndex !== splitContents.length - 1) {
+        prev = prev + curr + "\n";
+      } else {
+        prev = prev + curr;
+      }
+      return prev;
+    }, "");
+    editor.getDoc().setValue(allCodes);
+    emit("updateCurrCodes", {
+      fileNumber: props.info.fileNumber,
+      code: allCodes,
+    });
+    emit("updateCurrLine", {
+      fileNumber: props.info.fileNumber,
+      line: line + 1,
+    });
+    emit("updateCurrIndex", {
+      fileNumber: props.info.fileNumber,
+      index: lineContent.length,
+    });
+    console.log("allCodes: ", allCodes);
+    editor.getDoc().setCursor({ line: props.info.line, ch: props.info.index });
   } else {
     editor.getDoc().setValue(props.info.fileContent);
     editor.getDoc().setCursor({ line: props.info.line, ch: props.info.index });
@@ -764,7 +1030,6 @@ async function initSaveRecords() {
     console.log("start time: ", props.records[0].startTime);
     console.log(`stopTime: ${props.records[0].endTime}`);
     recordResponse = await axios.post(
-      // `http://localhost:3000/api/1.0/history/${props.projectID}`,
       `https://domingoos.store/api/1.0/history/${props.projectID}`,
       {
         versionID: props.info.versionID,
@@ -896,7 +1161,29 @@ watch(
 );
 
 function userClick() {
-  editor.getDoc().setCursor({ line: props.info.line, ch: props.info.index });
+  if (!props.readOnly) {
+    const { line, ch } = editor.getDoc().getCursor();
+    emit("updateCurrLine", {
+      fileNumber: props.info.fileNumber,
+      line,
+    });
+    emit("updateCurrIndex", {
+      fileNumber: props.info.fileNumber,
+      index: ch,
+    });
+    emit("pushCodeRecords", {
+      fileNumber: props.info.fileNumber,
+      newRecords: {
+        action: "click",
+        line: line,
+        index: ch,
+        code: "",
+        timestamp: Date.now().toString() + "000000",
+      },
+    });
+  } else {
+    editor.getDoc().setCursor({ line: props.info.line, ch: props.info.index });
+  }
 }
 
 let modalSave;
@@ -936,12 +1223,57 @@ onBeforeUnmount(() => {
 
 <template>
   <div id="tool-bar">
-    <button class="tool-btn">
+    <button
+      v-if="!readOnly"
+      class="tool-btn"
+      @click="showSaveModal"
+      style="margin-left: 1%"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="20"
+        height="20"
+        fill="currentColor"
+        class="bi bi-save"
+        viewBox="0 0 16 16"
+      >
+        <path
+          d="M2 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H9.5a1 1 0 0 0-1 1v7.293l2.646-2.647a.5.5 0 0 1 .708.708l-3.5 3.5a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L7.5 9.293V2a2 2 0 0 1 2-2H14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h2.5a.5.5 0 0 1 0 1H2z"
+        />
+      </svg>
+    </button>
+    <!-- <button class="tool-btn">
       <img src="@/assets/undo.png" alt="uedo" width="25" height="25" />
     </button>
     <button class="tool-btn">
       <img src="@/assets/redo.png" alt="redo" width="25" height="25" />
-    </button>
+    </button> -->
+    <div
+      v-if="
+        props.authorization &&
+        props.socket !== undefined &&
+        props.records.length === 0
+      "
+    >
+      <button id="tool-btn" @click="props.changeEdit" v-if="props.readOnly">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          fill="currentColor"
+          class="bi bi-pencil-square"
+          viewBox="0 0 16 16"
+        >
+          <path
+            d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"
+          />
+          <path
+            fill-rule="evenodd"
+            d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"
+          />
+        </svg>
+      </button>
+    </div>
   </div>
   <!-- <div id="tool-bar" v-else-if="!props.readOnly">
     <div class="tool-btn" style="height: 20px !important">&nbsp;</div>
@@ -1129,7 +1461,12 @@ onBeforeUnmount(() => {
     </div>
   </div>
   <div id="run-btn" class="tool-btn" v-if="props.userID === projectUserID">
-    <button v-if="!codeRunning" id="terminal-btn" @click="runCode">
+    <button
+      v-if="!codeRunning"
+      id="terminal-btn"
+      @click="runCode"
+      style="margin-top: 5px"
+    >
       Run code
     </button>
     <button
@@ -1202,7 +1539,6 @@ onBeforeUnmount(() => {
 }
 
 .tool-btn {
-  
   margin-left: 0.5%;
   border-radius: 5px;
 }
@@ -1210,7 +1546,7 @@ onBeforeUnmount(() => {
 #run-btn {
   z-index: 100;
   position: absolute;
-  bottom: 2%;
+  bottom: 0%;
   left: 1%;
 }
 button:hover {
@@ -1228,5 +1564,4 @@ button:hover {
   height: 25px;
   border-radius: 50%;
 }
-
 </style>

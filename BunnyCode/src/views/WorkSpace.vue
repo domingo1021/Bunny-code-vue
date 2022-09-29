@@ -58,7 +58,10 @@
           @click="updatePreviewVersion(index)"
           :key="index"
         >
-          第 {{ version.versionNumber }} 版 &nbsp; {{ version.versionName }}
+          <div style="width: 35%">N.O.{{ version.versionNumber }} &nbsp;</div>
+          <div style="width: 65%">
+            {{ version.versionName }}
+          </div>
         </div>
       </div>
     </div>
@@ -77,6 +80,7 @@
             :version="projectDetail?.version[targetVersionIndex]"
             :recordInfo="projectDetail?.version[targetVersionIndex]?.records"
             :folderInfo="projectDetail?.version[targetVersionIndex]?.files"
+            :setEditStatus="setEditStatus"
             @changeUserStatus="changeUserStatus"
             @pushSaveRecordsRoot="pushSaveRecordsRoot"
             @updateParentVersionFile="updateParentVersionFile"
@@ -107,13 +111,9 @@
       role="dialog"
       aria-labelledby="myModalLabel"
       aria-hidden="false"
+      style="overflow-y: scroll"
     >
-      <div
-        id="intro-board"
-        class="modal-dialog"
-        role="document"
-        style="overflow-y: auto"
-      >
+      <div id="intro-board" class="modal-dialog" role="document">
         <div id="intro-content" class="modal-content">
           <div
             id="intro-header"
@@ -182,20 +182,20 @@
             <div class="shortcut-detail-1">Save coding record</div>
             <div class="shortcut-detail-2">⌘ + s</div>
           </div>
-          <div class="shortcut">
+          <!-- <div class="shortcut">
             <div class="shortcut-detail-1">
               Restart and initiate from base content
             </div>
             <div class="shortcut-detail-2">⌘ + i</div>
-          </div>
-          <div class="shortcut">
+          </div> -->
+          <!-- <div class="shortcut">
             <div class="shortcut-detail-1">Undo</div>
             <div class="shortcut-detail-2">⌘ + z</div>
           </div>
           <div class="shortcut">
             <div class="shortcut-detail-1">Redo</div>
             <div class="shortcut-detail-2">⇧ + ⌘ + z</div>
-          </div>
+          </div> -->
           <div class="shortcut">
             <div class="shortcut-detail-1">Remove current line</div>
             <div class="shortcut-detail-2">⌘ + x</div>
@@ -245,7 +245,7 @@ const props = defineProps({
   versionNumber: String,
   terminateSocket: Function,
 });
-
+const editing = ref(0);
 let modalIntro;
 const modalIntroObject = ref(null);
 const targetVersionIndex = ref(0);
@@ -260,8 +260,6 @@ const emits = defineEmits(["setUserID"]);
 const router = useRouter();
 
 const prevIntroStatus = localStorage.getItem("stopIntro");
-
-console.log(prevIntroStatus);
 
 const stopIntro = ref(true);
 
@@ -279,6 +277,10 @@ watch(stopIntro, () => {
     localStorage.setItem("stopIntro", "0");
   }
 });
+
+function setEditStatus(status){
+  editing.value = status;
+}
 
 function updateTarget(target) {
   // 跳到 File or 跳到 version.
@@ -315,6 +317,7 @@ function pushSaveRecordsRoot(emitObject) {
     emitObject.newSaveRecords
   );
   readOnly.value = true;
+  editing.value = 0;
 }
 
 function updateParentVersionFile(emitObject) {
@@ -438,18 +441,16 @@ onUnmounted(() => {
   modalIntro.hide();
 });
 
-//TODO: make sure the user who have edit, have to confirm the leaving action.
-const test = true;
-if (test) {
+if (!editing.value && props.socket !== undefined) {
   onBeforeRouteLeave((to, from, next) => {
     Swal.fire({
-      title: "Are you sure?",
-      text: "You won't be able to revert this!",
+      title: "Make sure you have save the latest version !",
+      text: "You won't be able to revert this !",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#3085d6",
       cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, delete it!",
+      confirmButtonText: "Yes, leave workspace",
     }).then((result) => {
       if (result.isConfirmed) {
         next();
@@ -468,6 +469,7 @@ if (test) {
   cursor: pointer;
 }
 .version-list {
+  display: flex;
   margin-left: 4%;
   font-size: 1rem;
 }
@@ -486,6 +488,8 @@ if (test) {
 }
 
 #left-bar {
+  display: flex;
+  flex-direction: column;
   padding-left: 2%;
   padding-right: 2%;
   font-size: 1.3rem;
@@ -510,7 +514,7 @@ if (test) {
 
 #intro-board {
   height: 60vh;
-  top: 10%;
+  top: 5%;
 }
 
 #intro-header {
@@ -582,23 +586,17 @@ if (test) {
 
 ::-webkit-scrollbar {
   width: 10px;
-  /* height: 10%; */
 }
 
 ::-webkit-scrollbar-track {
-  /* margin-top: 50px;
-  margin-bottom: 100px; */
-  /* background: #f1f1f1;  */
 }
 
 ::-webkit-scrollbar-thumb {
   background: rgb(94, 94, 94, 0.7);
-  /* height: 10%; */
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
-  /* height: 10%; */
 }
 ::-webkit-scrollbar-button {
   height: 10px;
