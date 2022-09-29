@@ -265,17 +265,6 @@ a {
   color: rgb(255, 255, 255);
 }
 
-#edit-btn {
-  position: absolute;
-  padding: 0.3% 1% 0.3% 1%;
-  border-radius: 5px;
-  z-index: 98;
-  margin: 5px 5px 0px 5px;
-  top: 5%;
-  right: 2%;
-  border-radius: 5px;
-}
-
 #terminal-header {
   z-index: 99;
   position: relative;
