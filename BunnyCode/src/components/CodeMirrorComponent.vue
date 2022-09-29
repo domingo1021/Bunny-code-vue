@@ -667,6 +667,8 @@ function playSlower() {
     console.log("speed: ", playSpeed.value[speedIndex.value]);
   }
 }
+let processing = 0;
+let waiting = [];
 
 async function playback() {
   // setValue 所有上一個版本的 Code 作為初始值
@@ -685,9 +687,7 @@ async function playback() {
       index: baseIndex,
     });
   }
-  // console.log("all records: ", props.info.codeRecords);
   editor.getDoc().setValue(baseContent);
-  // editor.getDoc().setCursor({ line: props.info.line, ch: props.info.index });
   editor.options.readOnly = false;
   editor.options.cursorHeight = 0.85;
   editor.focus();
@@ -699,24 +699,29 @@ async function playback() {
       editor.execCommand("goLineEnd");
       return;
     } else {
-      console.log("in");
-      await new Promise((resolve, reject) => {
-        setTimeout(() => {
-          if (!keepPlay.value) {
-            editor.options.readOnly = props.readOnly;
-            editor.options.cursorHeight = 0;
-            editor.execCommand("goLineEnd");
+      try {
+        await new Promise((resolve, reject) => {
+          let myTimeout = setTimeout(() => {
+            if (!keepPlay.value) {
+              editor.options.readOnly = props.readOnly;
+              editor.options.cursorHeight = 0;
+              editor.execCommand("goLineEnd");
+              clearTimeout(myTimeout);
+              return reject();
+            }
+            console.log("My speed: ", playSpeed.value[speedIndex.value]);
+            const currObject = props.info.codeRecords[playIndex];
+            currObject.line = Number(currObject.line);
+            currObject.index = Number(currObject.index);
+            playIndex += 1;
+            triggerEvent(currObject);
+            baseContent = props.info.fileContent;
             return resolve();
-          }
-          const currObject = props.info.codeRecords[i];
-          currObject.line = Number(currObject.line);
-          currObject.index = Number(currObject.index);
-          triggerEvent(currObject);
-          baseContent = props.info.fileContent;
-          playIndex += 1;
-          return resolve();
-        }, props.info.timeBetween[i] / playSpeed.value[speedIndex.value]);
-      });
+          }, props.info.timeBetween[playIndex] / playSpeed.value[speedIndex.value]);
+        });
+      } catch (error) {
+        return;
+      }
     }
   }
   playIndex = 0;
@@ -1186,8 +1191,29 @@ function userClick() {
   }
 }
 
+const prevIntroStatus = localStorage.getItem("stopIntro");
+
+const stopIntro = ref(true);
+
+if (prevIntroStatus === "0" || prevIntroStatus === null) {
+  stopIntro.value = false;
+} else {
+  stopIntro.value = true;
+}
+
+watch(stopIntro, () => {
+  console.log("stopIntro changed. ");
+  if (stopIntro.value) {
+    localStorage.setItem("stopIntro", "1");
+  } else {
+    localStorage.setItem("stopIntro", "0");
+  }
+});
+
 let modalSave;
 const modalSaveObject = ref(null);
+let modalIntro;
+const modalIntroObject = ref(null);
 
 function showSaveModal() {
   if (props.readOnly) {
@@ -1200,12 +1226,24 @@ function hideSaveModal() {
   modalSave.hide();
 }
 
+function showIntroModal() {
+  modalIntro.show();
+}
+
+function hideIntroModal() {
+  modalIntro.hide();
+}
+
 onBeforeMount(async () => {
   await initCodeMirror();
 });
 
 onMounted(() => {
   modalSave = new Modal(modalSaveObject.value, {});
+  modalIntro = new Modal(modalIntroObject.value, {});
+  if (!stopIntro.value) {
+    showIntroModal();
+  }
 });
 
 onBeforeUnmount(() => {
@@ -1242,6 +1280,13 @@ onBeforeUnmount(() => {
         />
       </svg>
     </button>
+    <button
+      id="tool-btn"
+      style="margin-left: 1%; width: 35px; border-radius: 5px"
+      @click="showIntroModal"
+    >
+      <div style="font-size: 1.25rem; font-weight: bold">?</div>
+    </button>
     <!-- <button class="tool-btn">
       <img src="@/assets/undo.png" alt="uedo" width="25" height="25" />
     </button>
@@ -1273,6 +1318,124 @@ onBeforeUnmount(() => {
           />
         </svg>
       </button>
+    </div>
+  </div>
+  <div id="intro-alert">
+    <div
+      class="modal fade"
+      id="introModal"
+      ref="modalIntroObject"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="myModalLabel"
+      aria-hidden="false"
+      style="overflow-y: scroll"
+    >
+      <div id="intro-board" class="modal-dialog" role="document">
+        <div id="intro-content" class="modal-content">
+          <div
+            id="intro-header"
+            class="modal-header text-center"
+            style="justify-content: right"
+          >
+            <button
+              id="intro-close-btn"
+              type="button"
+              class="close btn btn-indigo"
+              data-bs-dismiss="modal"
+              data-dismiss="modal"
+              aria-label="Close"
+              @click="hideIntroModal"
+            >
+              <span aria-hidden="true">&times;</span>
+            </button>
+            <div></div>
+          </div>
+          <div id="command-header">
+            <div class="shortcut-detail-1">Command</div>
+            <div class="shortcut-detail-2" style="left: -2%">Shortcut</div>
+          </div>
+
+          <div class="shortcut">
+            <div class="shortcut-detail-1">Cursor left</div>
+            <div class="shortcut-detail-2">←</div>
+          </div>
+          <div class="shortcut">
+            <div class="shortcut-detail-1">Cursor right</div>
+            <div class="shortcut-detail-2">→</div>
+          </div>
+          <div class="shortcut">
+            <div class="shortcut-detail-1">Cursor Up</div>
+            <div class="shortcut-detail-2">↑</div>
+          </div>
+          <div class="shortcut">
+            <div class="shortcut-detail-1">Cursor Down</div>
+            <div class="shortcut-detail-2">↓</div>
+          </div>
+          <div class="shortcut">
+            <div class="shortcut-detail-1">Move a word left</div>
+            <div class="shortcut-detail-2">⌥ + ←</div>
+          </div>
+          <div class="shortcut">
+            <div class="shortcut-detail-1">Move a word Right</div>
+            <div class="shortcut-detail-2">⌥ + →</div>
+          </div>
+          <div class="shortcut">
+            <div class="shortcut-detail-1">To line start</div>
+            <div class="shortcut-detail-2">⌃ + a</div>
+          </div>
+          <div class="shortcut">
+            <div class="shortcut-detail-1">To line end</div>
+            <div class="shortcut-detail-2">⌃ + e</div>
+          </div>
+          <div class="shortcut">
+            <div class="shortcut-detail-1">New Line</div>
+            <div class="shortcut-detail-2">Enter</div>
+          </div>
+          <div class="shortcut">
+            <div class="shortcut-detail-1">Delete left</div>
+            <div class="shortcut-detail-2">Backspace</div>
+          </div>
+          <div class="shortcut">
+            <div class="shortcut-detail-1">Save coding record</div>
+            <div class="shortcut-detail-2">⌘ + s</div>
+          </div>
+          <!-- <div class="shortcut">
+            <div class="shortcut-detail-1">
+              Restart and initiate from base content
+            </div>
+            <div class="shortcut-detail-2">⌘ + i</div>
+          </div> -->
+          <!-- <div class="shortcut">
+            <div class="shortcut-detail-1">Undo</div>
+            <div class="shortcut-detail-2">⌘ + z</div>
+          </div>
+          <div class="shortcut">
+            <div class="shortcut-detail-1">Redo</div>
+            <div class="shortcut-detail-2">⇧ + ⌘ + z</div>
+          </div> -->
+          <div class="shortcut">
+            <div class="shortcut-detail-1">Remove current line</div>
+            <div class="shortcut-detail-2">⌘ + x</div>
+          </div>
+          <div class="shortcut">
+            <div class="shortcut-detail-1">Copy a line down</div>
+            <div class="shortcut-detail-2">⇧ + ⌥ + ↓</div>
+          </div>
+          <div style="display: flex; justify-content: left; margin-top: 5%">
+            <div>
+              <input
+                type="checkbox"
+                v-model="stopIntro"
+                name=""
+                id="intro-notify"
+              />
+            </div>
+            <label style="margin-left: 2%">Stop notification </label>
+            <div>&nbsp;</div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
   <!-- <div id="tool-bar" v-else-if="!props.readOnly">
@@ -1563,5 +1726,95 @@ button:hover {
   width: 25px;
   height: 25px;
   border-radius: 50%;
+}
+
+#intro-board {
+  height: 60vh;
+  top: 5%;
+}
+
+#intro-header {
+  height: 1%;
+  border: 0px;
+  padding-bottom: 0%;
+}
+
+#command-header {
+  font-size: 0.9rem;
+  font-weight: bold;
+  display: flex;
+  border-bottom: 1.5px solid rgb(74, 74, 74);
+  padding-left: 4%;
+  padding-bottom: 2%;
+  border-bottom: 2px solid rgb(20, 20, 20);
+}
+
+#intro-content {
+  width: 100%;
+  padding-bottom: 10%;
+  padding-left: 5%;
+  padding-right: 5%;
+  background-color: rgb(41, 41, 41);
+}
+
+.shortcut-detail-1 {
+  /* text-align: left; */
+  width: 75%;
+}
+
+.shortcut-detail-2 {
+  width: 50%;
+}
+
+#intro-close-btn {
+  margin-right: -2%;
+  color: azure;
+}
+
+#intro-notify {
+  height: 20px;
+  width: 20px;
+}
+
+.shortcut {
+  display: flex;
+  justify-content: left;
+  padding-left: 5%;
+  padding-right: 2%;
+  padding-top: 0.5%;
+  padding-bottom: 0.5%;
+  font-size: 0.75rem;
+}
+
+.shortcut:nth-child(even) {
+  background-color: rgb(41, 41, 41);
+}
+.shortcut:nth-child(odd) {
+  background-color: rgb(87, 87, 87);
+}
+
+.confirm-btn {
+  background-color: rgb(205, 204, 203);
+  color: azure;
+  border-radius: 10px;
+  margin: 5%;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgb(94, 94, 94, 0.7);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+::-webkit-scrollbar-button {
+  height: 10px;
 }
 </style>
