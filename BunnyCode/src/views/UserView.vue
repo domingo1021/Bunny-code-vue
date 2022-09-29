@@ -296,7 +296,7 @@ onBeforeUnmount(() => {
                       v-model="projectName"
                     />
                   </div>
-                  <div class="warning" v-if="projectName.length > 20">
+                  <div class="warning" v-if="projectName.length > 19">
                     Project name length too long.
                   </div>
                   <div class="md-form mb-4" style="display: flex">
@@ -315,7 +315,7 @@ onBeforeUnmount(() => {
                       v-model="projectDescription"
                     />
                   </div>
-                  <div class="warning" v-if="projectDescription.length > 30">
+                  <div class="warning" v-if="projectDescription.length > 29">
                     Project description length too long.
                   </div>
                   <div class="md-form mb-4" style="display: flex">
@@ -359,7 +359,7 @@ onBeforeUnmount(() => {
                       v-model="versionName"
                     />
                   </div>
-                  <div class="warning" v-if="versionName.length > 20">
+                  <div class="warning" v-if="versionName.length > 19">
                     Version name length too long.
                   </div>
                   <div class="md-form mb-4" style="display: flex">
@@ -378,7 +378,7 @@ onBeforeUnmount(() => {
                       v-model="fileName"
                     />
                   </div>
-                  <div class="warning" v-if="fileName.length > 20">
+                  <div class="warning" v-if="fileName.length > 19">
                     File name length too long.
                   </div>
                 </div>
