@@ -15,7 +15,6 @@ import {
 import { Modal } from "bootstrap";
 import Swal from "sweetalert2";
 import Socket from "../socket";
-import router from "../router";
 
 // TODO: check user agent for keyword.
 
@@ -48,7 +47,7 @@ const emit = defineEmits([
 let editor = null;
 
 const fileContent = ref(props.info.fileContent);
-const autoComplete = ["(", "[", "{", '"'];
+const autoComplete = ["(", "[", "{", '"', "'"];
 let playIndex = 0;
 let keepPlay = ref(false);
 let baseContent;
@@ -86,6 +85,8 @@ function updateContent(e) {
       case '"':
         anotherPart = '"';
         break;
+      case "'":
+        anotherPart = "'";
     }
     const splitCodes = allCode.split("\n");
     let lineCode = splitCodes[props.info.line];
@@ -582,11 +583,9 @@ function triggerEvent(recordObject) {
   const action = recordObject.action;
   if (action === "create") {
     if (recordObject.code === '""') {
-      console.log("triggered !");
       recordObject.code = '"';
     }
     if (recordObject.code === '""""') {
-      console.log("double triggered !");
       recordObject.code = '""';
     }
     const prevCodes = editor.getDoc().getValue();
