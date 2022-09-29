@@ -95,8 +95,8 @@
                       v-model="battleName"
                     />
                   </div>
-                  <div class="warning" v-if="battleName.length > 29">
-                    battle name length too long.
+                  <div class="warning">
+                    {{ battleMsg }}
                   </div>
                   <div class="md-form mb-4" style="display: flex">
                     <i class="fas fa-envelope prefix grey-text"></i>
@@ -140,9 +140,9 @@
                     @click="inviteBattle"
                     v-if="buttonClickable"
                   >
-                    Submit <i class="fas fa-paper-plane-o ml-1"></i>
+                    Submit
                   </button>
-                  <button id="invalid-btn" class="btn btn-indigo" v-else>
+                  <button v-else id="invalid-btn" class="btn btn-indigo">
                     Submit
                   </button>
                 </div>
@@ -312,6 +312,7 @@ const router = useRouter();
 const route = useRoute();
 // the battles.
 const battleDisplayed = ref([]);
+const battleMsg = ref("");
 
 // search battle
 const battleKeyword = ref("");
@@ -346,7 +347,6 @@ function inviteBattle() {
         text: error.response.data.msg,
       });
     });
-  //TODO: set 20 秒鐘 unclickable, 限制使用者頻繁送出請求
 }
 
 async function searchBattle(searchPage) {
@@ -390,6 +390,7 @@ function prevPage() {
     },
   });
 }
+
 async function nextPage() {
   router.push({
     name: "battle_home",
@@ -407,23 +408,15 @@ watch(searchType, () => {
   searchBattle();
 });
 
-onBeforeMount(async () => {
-  if (props.socket) {
-    props.socket.socketOn("inviteFailed", (msg) => {
-      Swal.fire({
-        icon: "error",
-        title: "Oops...",
-        text: msg,
-      });
-    });
-  }
-  await searchBattle();
-});
-
 watch(battleName, () => {
-  if (battleName.value.length > 29 || battleName.value.length === 0) {
+  if (battleName.value.length > 19 || battleName.value.length === 0) {
+    battleMsg.value = "Battle name should be between 1 ~ 20 characters.";
+    buttonClickable.value = false;
+  } else if (battleName.value.includes(" ")) {
+    battleMsg.value = "Battle name should not include spaces."
     buttonClickable.value = false;
   } else {
+    battleMsg.value = "";
     buttonClickable.value = true;
   }
 });
@@ -437,6 +430,19 @@ watch(
   }
 );
 
+onBeforeMount(async () => {
+  if (props.socket) {
+    props.socket.socketOn("inviteFailed", (msg) => {
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: msg,
+      });
+    });
+  }
+  await searchBattle();
+});
+
 onBeforeUnmount(() => {
   if (props.socket) {
     props.socket.socketOff("inviteFailed");
@@ -449,7 +455,7 @@ label {
   margin-left: 5px;
   bottom: 2px;
 }
-img{
+img {
   border-radius: 10px;
 }
 .flex-box {
