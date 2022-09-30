@@ -101,7 +101,6 @@ router.beforeEach(async (to, from, next) => {
       const authResponse = await axios({
         method: "get",
         url: productionServer + "/api/1.0/user/auth",
-        // url: localhostServer + "/api/1.0/user/auth",
         headers: {
           Authorization: `Bearer ${jwt}`,
         },

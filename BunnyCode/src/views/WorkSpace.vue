@@ -1,7 +1,7 @@
 <template>
   <div style="display: flex; height: 100vh">
     <div id="left-bar" >
-      <div style="width: 80%;">
+      <div style="width: 110%;">
         <div
           id="folder-control"
           class="workspace-func"
@@ -288,10 +288,6 @@ onMounted(() => {
     }
   }, 5000);
   console.log("Mounted: ", route.fullPath);
-  modalIntro = new Modal(modalIntroObject.value, {});
-  if (!stopIntro.value) {
-    showIntroModal();
-  }
 });
 
 watch(editing, () => {
@@ -304,7 +300,6 @@ onUnmounted(() => {
     props.socket !== undefined,
     editing.value === 1 && props.socket !== undefined
   );
-  modalIntro.hide();
 });
 
 onBeforeRouteLeave((to, from, next) => {

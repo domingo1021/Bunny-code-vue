@@ -68,16 +68,6 @@ const pendingContent = ref([
     time: "500",
   },
   {
-    content: "|",
-    action: "replace",
-    time: "500",
-  },
-  {
-    content: " ",
-    action: "replace",
-    time: "500",
-  },
-  {
     content: "W",
     action: "create",
     time: "400",
