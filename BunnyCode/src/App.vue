@@ -327,6 +327,7 @@ header + body {
 }
 
 .confirm-btn {
+  border-radius: 10px;
   margin: 5%;
 }
 
