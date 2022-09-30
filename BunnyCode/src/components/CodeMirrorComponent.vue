@@ -1256,6 +1256,7 @@ onBeforeUnmount(() => {
       versionID: props.info.versionID,
     });
   }
+  modalIntro.hide();
 });
 </script>
 
