@@ -1659,7 +1659,7 @@ onBeforeUnmount(() => {
       </button>
     </div>
   </div>
-  <div id="run-btn" class="tool-btn" v-if="props.userID === projectUserID">
+  <div id="run-btn" class="tool-btn">
     <button
       v-if="!codeRunning"
       id="terminal-btn"

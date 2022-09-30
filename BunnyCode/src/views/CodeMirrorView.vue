@@ -4,7 +4,6 @@ import CodeMirrorComponent from "../components/CodeMirrorComponent.vue";
 import TerminalComponent from "../components/TerminalComponent.vue";
 import { ref, onMounted, watch, onBeforeUnmount } from "vue";
 import Swal from "sweetalert2";
-// TODO: 如果是本人進入頁面（認為想要 edit）, 則建立 Socket, 並更動 edit 狀態，
 
 const props = defineProps({
   socket: Socket,
