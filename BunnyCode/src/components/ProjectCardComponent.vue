@@ -12,7 +12,7 @@
           </div>
         </div>
       </h5>
-      <h6 id="sub-data" class="card-subtitle mb-2 text-muted">
+      <h6 id="sub-data" class="card-subtitle mb-2">
         Star: {{ projectObject.starCount }} Watch:
         {{ projectObject.watchCount }}
       </h6>
@@ -85,6 +85,7 @@ function goWorkspace() {
 }
 
 #sub-data{
+  color:rgb(181, 180, 180);
   margin-top: 5%;
 }
 
