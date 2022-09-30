@@ -635,6 +635,7 @@ async function runCode() {
         fileName: props.info.fileName,
       }
     );
+    console.log("Compile result: ", compilerResult);
     result = compilerResult.data.split("\n");
     codeRunning.value = false;
   } catch (error) {
@@ -943,7 +944,6 @@ function triggerEvent(recordObject) {
       }
       return prev;
     }, "");
-    console.log("all codes: ", allCodes);
     if (line === splitContents.length - 1) {
       // 代表在最後一行刪除整行
       emit("updateCurrCodes", {
@@ -1439,9 +1439,6 @@ onBeforeUnmount(() => {
       </div>
     </div>
   </div>
-  <!-- <div id="tool-bar" v-else-if="!props.readOnly">
-    <div class="tool-btn" style="height: 20px !important">&nbsp;</div>
-  </div> -->
   <div @input="updateContent" @keydown="checkEventUp">
     <div v-if="props.readOnly" @click="userClick">
       <div id="read-only-tag">Read only</div>
@@ -1491,11 +1488,11 @@ onBeforeUnmount(() => {
     </div>
   </div>
   <div id="play-bar">
-    <div v-if="speedIndex > 0">
+    <div v-if="props.readOnly" style="display: flex">
       <button
         class="tool-btn play-btn"
         @click="playSlower"
-        v-if="props.readOnly && props.info.timeBetween.length !== 0"
+        v-if="speedIndex > 0 && props.info.timeBetween.length !== 0"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -1513,12 +1510,10 @@ onBeforeUnmount(() => {
           />
         </svg>
       </button>
-    </div>
-    <div v-else>
       <button
         class="tool-btn play-btn"
-        @click="playSlower"
-        v-if="props.readOnly && props.info.timeBetween.length !== 0"
+        v-if="speedIndex <= 0 || props.info.timeBetween.length === 0"
+        style="background-color: white"
         disabled
       >
         <svg
@@ -1537,48 +1532,83 @@ onBeforeUnmount(() => {
           />
         </svg>
       </button>
-    </div>
-    <button
-      class="tool-btn play-btn"
-      @click="playback"
-      v-if="props.readOnly && props.info.timeBetween.length !== 0"
-    >
-      <div id="play-speed">x{{ playSpeed[speedIndex] }}</div>
-      <div v-if="!keepPlay" id="play">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="30"
-          height="30"
-          fill="currentColor"
-          class="bi bi-play"
-          viewBox="0 0 16 16"
-          style="top: -1px"
-        >
-          <path
-            d="M10.804 8 5 4.633v6.734L10.804 8zm.792-.696a.802.802 0 0 1 0 1.392l-6.363 3.692C4.713 12.69 4 12.345 4 11.692V4.308c0-.653.713-.998 1.233-.696l6.363 3.692z"
-          />
-        </svg>
-      </div>
-      <div v-else-if="keepPlay" id="stop-play">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="30"
-          height="30"
-          fill="currentColor"
-          class="bi bi-pause-fill"
-          viewBox="0 0 16 16"
-        >
-          <path
-            d="M5.5 3.5A1.5 1.5 0 0 1 7 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5zm5 0A1.5 1.5 0 0 1 12 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5z"
-          />
-        </svg>
-      </div>
-    </button>
-    <div v-if="speedIndex < 6">
+      <button
+        class="tool-btn play-btn"
+        @click="playback"
+        v-if="props.info.timeBetween.length !== 0"
+      >
+        <div id="play-speed">x{{ playSpeed[speedIndex] }}</div>
+        <div v-if="!keepPlay" id="play">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="30"
+            height="30"
+            fill="currentColor"
+            class="bi bi-play"
+            viewBox="0 0 16 16"
+            style="top: -1px"
+          >
+            <path
+              d="M10.804 8 5 4.633v6.734L10.804 8zm.792-.696a.802.802 0 0 1 0 1.392l-6.363 3.692C4.713 12.69 4 12.345 4 11.692V4.308c0-.653.713-.998 1.233-.696l6.363 3.692z"
+            />
+          </svg>
+        </div>
+        <div v-else-if="keepPlay" id="stop-play">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="30"
+            height="30"
+            fill="currentColor"
+            class="bi bi-pause-fill"
+            viewBox="0 0 16 16"
+          >
+            <path
+              d="M5.5 3.5A1.5 1.5 0 0 1 7 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5zm5 0A1.5 1.5 0 0 1 12 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5z"
+            />
+          </svg>
+        </div>
+      </button>
+      <button
+        class="tool-btn play-btn"
+        v-else
+        style="background-color: white"
+        disabled
+      >
+        <div id="play-speed">x{{ playSpeed[speedIndex] }}</div>
+        <div v-if="!keepPlay" id="play">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="30"
+            height="30"
+            fill="currentColor"
+            class="bi bi-play"
+            viewBox="0 0 16 16"
+            style="top: -1px"
+          >
+            <path
+              d="M10.804 8 5 4.633v6.734L10.804 8zm.792-.696a.802.802 0 0 1 0 1.392l-6.363 3.692C4.713 12.69 4 12.345 4 11.692V4.308c0-.653.713-.998 1.233-.696l6.363 3.692z"
+            />
+          </svg>
+        </div>
+        <div v-else-if="keepPlay" id="stop-play">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="30"
+            height="30"
+            fill="currentColor"
+            class="bi bi-pause-fill"
+            viewBox="0 0 16 16"
+          >
+            <path
+              d="M5.5 3.5A1.5 1.5 0 0 1 7 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5zm5 0A1.5 1.5 0 0 1 12 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5z"
+            />
+          </svg>
+        </div>
+      </button>
       <button
         class="tool-btn play-btn"
         @click="playFaster"
-        v-if="props.readOnly && props.info.timeBetween.length !== 0"
+        v-if="speedIndex < 6 && props.info.timeBetween.length !== 0"
         style="margin-left: 5px"
       >
         <svg
@@ -1597,13 +1627,11 @@ onBeforeUnmount(() => {
           />
         </svg>
       </button>
-    </div>
-    <div v-else>
       <button
         class="tool-btn play-btn"
         @click="playFaster"
-        v-if="props.readOnly && props.info.timeBetween.length !== 0"
-        style="margin-left: 5px"
+        v-else
+        style="margin-left: 5px; background-color: white;"
         disabled
       >
         <svg
