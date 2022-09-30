@@ -1,4 +1,5 @@
 <script setup>
+import { onBeforeRouteLeave } from "vue-router";
 import { onBeforeMount, onBeforeUnmount, ref } from "vue";
 import axios from "axios";
 import Markdown from "vue3-markdown-it";
@@ -339,6 +340,29 @@ onBeforeMount(async () => {
   });
 });
 
+onBeforeRouteLeave((to, from, next) => {
+  const readOnly = readOnlies.value[0] && readOnlies.value[1];
+  if (start.value === true && !readOnly && props.socket !== undefined) {
+    Swal.fire({
+      title: "Leaving battle will make you lose the game !",
+      text: "You won't be able to revert this !",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, leave the battle",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        next();
+      } else {
+        next(false);
+      }
+    });
+  } else {
+    next();
+  }
+});
+
 onBeforeUnmount(() => {
   props.socket.socketOff("returnBattler");
   props.socket.socketOff("in");
@@ -470,7 +494,7 @@ onBeforeUnmount(() => {
           </div>
         </button>
       </div>
-      <div id="terminal-2" style="color: azure; max-width: 100%;">
+      <div id="terminal-2" style="color: azure; max-width: 100%">
         <div
           id="battle-terminal-header"
           class="battle-terminal-content"
@@ -498,7 +522,7 @@ onBeforeUnmount(() => {
           <div class="expect-answer content-detail return-value">
             {{ Object.values(test)[0] }}
           </div>
-          <div class="compile-result return-value" >
+          <div class="compile-result return-value">
             {{ test["Compile result"] }}
           </div>
         </div>
