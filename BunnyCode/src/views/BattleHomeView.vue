@@ -365,6 +365,7 @@ async function searchBattle(searchPage) {
     }&type=${searchType.value}&paging=${currentPage.value - 1}`
   );
   battleDisplayed.value = battleResponse.data.data;
+  battleKeyword.value = "";
   console.log("Search response: ", battleDisplayed.value);
 }
 
@@ -424,7 +425,6 @@ watch(battleName, () => {
 watch(
   () => route.query.paging,
   async () => {
-    console.log("Paging: ", route.query.paging);
     currentPage.value = +route.query.paging;
     await searchBattle();
   }
