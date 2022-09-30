@@ -3,7 +3,6 @@
     <nav id="top-navbar">
       <div class="flex-container">
         <div class="flex-container-2">
-          <!-- <div>Bunny code</div> -->
           <RouterLink to="/" class="nav-item link left-item">
             <img
               src="@/assets/logo4.png"
@@ -19,13 +18,25 @@
           >
         </div>
         <div class="right-flex">
-          <RouterLink class="nav-item link" to="/login" style="margin-left: 4%">
+          <RouterLink
+            v-if="userID !== -1"
+            class="link"
+            :to="{ name: 'user', params: { pageUserID: `${userID}` } }"
+            style="margin: 0px 2px 5px 2px"
+          >
             <img
               src="@/assets/login.png"
               alt="login-icon"
-              style="width: 38px; margin-bottom: 5px"
+              style="width: 38px"
             />
           </RouterLink>
+          <RouterLink
+            v-else
+            class="link"
+            to="/login"
+            style="margin: 0px 2px 5px 2px"
+            >Login</RouterLink
+          >
           <SearchComponent :socket="socket" />
         </div>
       </div>
@@ -251,6 +262,10 @@ onUnmounted(() => {
 
 nav a:first-of-type {
   border: 0;
+}
+
+nav a.router-link-exact-active {
+  color: rgb(211, 162, 250);
 }
 
 #top-navbar {
