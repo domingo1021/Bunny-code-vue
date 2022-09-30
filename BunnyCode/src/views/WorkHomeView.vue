@@ -25,14 +25,14 @@ function updateProjects(emitObject) {
   console.log(projectsDisplayed.value);
 }
 
-function searchProjectPage(pageing) {
+function searchProjectPage(paging) {
   if (keywords.value) {
     router.push({
       path: "/workspace",
-      query: { keywords: `${keywords.value}`, paging: `${pageing}` },
+      query: { keywords: `${keywords.value}`, paging: `${paging}` },
     });
   } else {
-    router.push({ path: "/workspace", query: { paging: `${pageing}` } });
+    router.push({ path: "/workspace", query: { paging: `${paging}` } });
   }
 }
 
@@ -43,6 +43,7 @@ async function queryProjects() {
     paging = 0;
   }
   let responseProjects;
+  console.log("keyword: ", keywords.value);
   if (keywords.value) {
     responseProjects = await axios.get(
       productionServer +
@@ -117,7 +118,7 @@ defineExpose({
         </div>
       </div>
       <div style="display: flex">
-        <div v-if="keywords !== undefined" class="projects-title">
+        <div v-if="keywords" class="projects-title">
           Search keywords: &nbsp;{{ keywords }}
         </div>
         <div v-else class="projects-title">Project you may like</div>
