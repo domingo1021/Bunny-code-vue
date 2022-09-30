@@ -8,6 +8,7 @@ import Swal from "sweetalert2";
 
 const props = defineProps({
   socket: Socket,
+  projectName: String,
   projectUserID: Number,
   userID: Number,
   projectID: Number,
@@ -56,7 +57,7 @@ function pushCodeRecords(emitObject) {
 }
 
 function pushTerminal(emitObject) {
-  terminalResult.value.push(...emitObject.result);
+  terminalResult.value.push(emitObject.result);
 }
 
 function updateAllRecords(emitObject) {
@@ -199,6 +200,7 @@ onBeforeUnmount(() => {
         </div>
         <TerminalComponent
           :terminalResult="terminalResult"
+          :projectName="props.projectName"
           style="top: 430px"
         />
       </div>

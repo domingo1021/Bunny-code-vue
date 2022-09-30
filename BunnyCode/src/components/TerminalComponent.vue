@@ -1,6 +1,7 @@
 <script setup>
 import { nextTick, ref, watch } from "vue";
 const props = defineProps({
+  projectName: String,
   terminalResult: Array,
 });
 
@@ -18,7 +19,10 @@ watch(
   <div id="terminal" ref="terminalScroll">
     <div id="result-area">
       <div v-for="(result, index) in terminalResult" :key="index">
-        <div>
+        <div style="display: flex">
+          Bunny-Code&nbsp;/&nbsp;{{ projectName }}&nbsp; % &nbsp;
+        </div>
+        <div style="white-space: pre-line">
           {{ result }}
         </div>
       </div>
@@ -38,8 +42,8 @@ watch(
   padding: 1% 0% 0% 2%;
 }
 
-#result-area{
-  height:80%;
+#result-area {
+  height: 80%;
   font-size: 1.25rem;
   margin-top: 8%;
 }

@@ -636,7 +636,7 @@ async function runCode() {
       }
     );
     console.log("Compile result: ", compilerResult);
-    result = compilerResult.data.split("\n");
+    result = compilerResult.data;
     codeRunning.value = false;
   } catch (error) {
     codeRunning.value = false;

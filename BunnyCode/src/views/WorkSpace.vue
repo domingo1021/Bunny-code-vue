@@ -74,6 +74,7 @@
         <div v-if="projectDetail.version.length !== 0">
           <CodeMirrorView
             v-if="Object.keys(projectDetail).length !== 0"
+            :projectName="props.projectName"
             :projectUserID="projectDetail.userID"
             :userID="props.userID"
             :socket="props.socket"
