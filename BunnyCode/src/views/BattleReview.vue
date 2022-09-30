@@ -11,10 +11,10 @@
           :id="`battle-editor`"
           cols="30"
           rows="10"
+          hidden
         ></textarea>
       </div>
     </div>
- 
   </div>
 </template>
 
@@ -119,11 +119,8 @@ onBeforeUnmount(() => {
 
 <style scoped>
 #mark-down {
-  padding-top: 3vh;
-  padding-left: 5%;
-  padding-right: 5%;
-  margin-left: 5%;
-  margin-right: 5%;
+  padding: 3vh 5% 0% 5%;
+  margin: 3% 5% 0% 5%;
   font-size: 0.8rem;
   min-height: 100px;
   overflow: hidden;
@@ -135,11 +132,11 @@ onBeforeUnmount(() => {
   margin-top: 1%;
   left: -27vw;
 }
-#winner-editor{
+#winner-editor {
   position: absolute;
   top: 0%;
   right: 5%;
-  width: 600px;
+  width: 700px;
   margin-top: 2%;
   /* padding: 5; */
 }

@@ -193,7 +193,7 @@ onBeforeUnmount(() => {
           @pushSaveRecords="pushSaveRecords"
           @updateVersionFile="updateParentVersionFile"
         />
-        <div id="terminal-header" style="background-color: rgb(36, 36, 36)">
+        <div id="terminal-header" style="background-color: rgb(36, 36, 36); margin-top:10px">
           <div>&nbsp;</div>
           <div id="terminal-title">Terminal</div>
         </div>
@@ -266,11 +266,13 @@ a {
 }
 
 #terminal-header {
-  z-index: 99;
+  z-index: 98;
   position: relative;
-  margin-top: 5%;
+  padding-top: 3%;
+  padding-bottom: 2%;
   background-color: rgb(36, 36, 36);
-  height: 50px;
+  height: 80px;
+  margin-bottom: 2%;
 }
 
 #terminal-title {
@@ -278,7 +280,7 @@ a {
   position: absolute;
   background-color: #555;
   right: 2%;
-  top: 10px;
+  top: 20px;
   display: inline-block;
   padding: 0.5% 1% 0.5% 1%;
   border-radius: 10px;

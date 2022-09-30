@@ -211,20 +211,6 @@ onBeforeMount(async () => {
     baseContent.value = questionBaseContent.data;
     const question = await axios.get(questionURL.value);
     questionContent.value = question.data;
-    if (ready.value[0] && ready.value[1] && readOnlies.value !== [true, true]) {
-      boardContent.value = questionContent.value;
-      battleInfo.value.forEach((info, index) => {
-        if (readOnlies.value[index]) {
-          return;
-        }
-        info.fileContent = baseContent.value;
-        props.socket.socketEmit("newCodes", {
-          battleID: props.battleID,
-          userID: userID.value,
-          newCodes: info.fileContent,
-        });
-      });
-    }
   });
 
   props.socket.socketOn("in", (msg) => {
@@ -266,6 +252,19 @@ onBeforeMount(async () => {
         info.fileContent = baseContent.value;
       });
       start.value = true;
+      if (start.value && readOnlies.value !== [true, true]) {
+        for (let i = 0; i < readOnlies.value.length; i++) {
+          if (readOnlies.value[i]) {
+            continue;
+          }
+          console.log("ready socket emit: ", battleInfo.value[i].fileContent);
+          props.socket.socketEmit("newCodes", {
+            battleID: props.battleID,
+            userID: userID.value,
+            newCodes: battleInfo.value[i].fileContent,
+          });
+        }
+      }
     }, 2500);
   });
 
@@ -342,7 +341,12 @@ onBeforeMount(async () => {
 
 onBeforeRouteLeave((to, from, next) => {
   const readOnly = readOnlies.value[0] && readOnlies.value[1];
-  if (start.value === true && !readOnly && props.socket !== undefined) {
+  if (
+    start.value === true &&
+    battleOver.value === false &&
+    !readOnly &&
+    props.socket !== undefined
+  ) {
     Swal.fire({
       title: "Leaving battle will make you lose the game !",
       text: "You won't be able to revert this !",
@@ -523,7 +527,23 @@ onBeforeUnmount(() => {
             {{ Object.values(test)[0] }}
           </div>
           <div class="compile-result return-value">
-            {{ test["Compile result"] }}
+            <div
+              v-if="
+                info.testCases.length !== 0 &&
+                !battleOver &&
+                testIndex === info.testCases.length - 1
+              "
+              style="position: relative; width: 0; height: 0"
+            >
+              <img
+                id="incorrect-icon"
+                src="@/assets/incorrect.png"
+                alt="Failed"
+              />
+            </div>
+            <div>
+              {{ test["Compile result"] }}
+            </div>
           </div>
         </div>
       </div>
@@ -595,6 +615,19 @@ onBeforeUnmount(() => {
   height: 200px;
   align-self: center;
 }
+
+#incorrect-icon {
+  z-index: 99;
+  position: absolute;
+  left: 110px;
+  background-color: rgb(228, 62, 62);
+  padding: 2%;
+  border-radius: 50%;
+  height: 25px;
+  width: 25px;
+  text-align: center;
+}
+
 #terminal-2 {
   background-color: rgb(36, 36, 36);
   color: white;

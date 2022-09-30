@@ -1442,7 +1442,13 @@ onBeforeUnmount(() => {
   <div @input="updateContent" @keydown="checkEventUp">
     <div v-if="props.readOnly" @click="userClick">
       <div id="read-only-tag">Read only</div>
-      <textarea :value="fileContent" id="editor" cols="30" rows="10"></textarea>
+      <textarea
+        :value="fileContent"
+        id="editor"
+        cols="30"
+        rows="10"
+        hidden
+      ></textarea>
     </div>
     <div v-else @click="userClick">
       <textarea
@@ -1451,6 +1457,7 @@ onBeforeUnmount(() => {
         cols="30"
         rows="12"
         style="pointer-events: none"
+        hidden
       ></textarea>
     </div>
   </div>
@@ -1631,7 +1638,7 @@ onBeforeUnmount(() => {
         class="tool-btn play-btn"
         @click="playFaster"
         v-else
-        style="margin-left: 5px; background-color: white;"
+        style="margin-left: 5px; background-color: white"
         disabled
       >
         <svg
@@ -1736,9 +1743,9 @@ onBeforeUnmount(() => {
 }
 
 #run-btn {
-  z-index: 100;
+  z-index: 99;
   position: absolute;
-  bottom: 0%;
+  bottom: 4%;
   left: 1%;
 }
 button:hover {

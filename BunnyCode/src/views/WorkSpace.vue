@@ -283,7 +283,6 @@ onMounted(() => {
       console.log("add project view count");
       await axios.put(
         `${productionServer}/api/1.0/project/watch?projectID=${projectDetail.value.projectID}`
-        // `http://localhost:3000/api/1.0/project/watch?projectID=${projectDetail.value.projectID}`,
       );
     }
   }, 5000);

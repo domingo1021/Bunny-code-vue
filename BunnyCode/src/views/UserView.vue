@@ -214,7 +214,13 @@ onBeforeUnmount(() => {
   <main style="display: flex">
     <div id="user-profile-component">
       <UserProfileComponent :userInfo="userInfo" />
-      <button id="logout-btn" @click="logOut()">Log out</button>
+      <button
+        v-if="pageUserID == userID + ''"
+        id="logout-btn"
+        @click="logOut()"
+      >
+        Log out
+      </button>
     </div>
     <div id="user-project-detail">
       <div
@@ -513,15 +519,15 @@ onBeforeUnmount(() => {
   margin: 5% 10% 5% 5%;
   width: 90%;
 }
-#logout-btn{
+#logout-btn {
   width: 100%;
-  height:50px;
+  height: 50px;
   font-size: 1.5rem;
   border-radius: 10px;
   color: azure;
   background-color: rgb(95, 90, 110);
 }
-#logout-btn:hover{
+#logout-btn:hover {
   background-color: rgba(139, 110, 163);
 }
 

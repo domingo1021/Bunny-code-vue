@@ -39,8 +39,9 @@ watch(
 }
 
 #result-area{
+  height:80%;
   font-size: 1.25rem;
-  margin-top:5%;
+  margin-top: 8%;
 }
 
 ::-webkit-scrollbar {

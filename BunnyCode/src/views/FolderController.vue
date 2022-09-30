@@ -18,6 +18,7 @@
         id="version"
         cols="20"
         rows="10"
+        hidden
       ></textarea>
       <div style="display: flex; width: 100%; justify-content: right; font-size: 1.25rem;">
         <button @click="intoFolder" style="margin:3% 5% 0% 0%; border-radius: 5px;">

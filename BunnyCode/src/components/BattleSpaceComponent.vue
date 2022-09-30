@@ -17,6 +17,7 @@
       :id="`user-${info.userID}-editor`"
       cols="30"
       rows="10"
+      hidden
     ></textarea>
   </div>
 </template>
@@ -26,7 +27,7 @@ import * as CodeMirror from "codemirror";
 import "codemirror/lib/codemirror.css";
 import "codemirror/theme/dracula.css";
 import "codemirror/mode/javascript/javascript.js";
-import { nextTick, onMounted, onUpdated, ref, watch } from "vue";
+import { nextTick, onUpdated, ref, watch } from "vue";
 import { Swal } from "sweetalert2/dist/sweetalert2";
 
 const props = defineProps({
@@ -55,6 +56,8 @@ const mirrorCreated = ref(false);
 const autoComplete = ["[", "(", "{", '"', "'"];
 
 function updateContent(e) {
+  console.log("read only: ", props.readOnly);
+  console.log("Data: ", e.data);
   if (props.readOnly) {
     editor.getDoc().setValue(props.info.fileContent);
     editor.getDoc().setCursor({ line: props.info.line, ch: props.info.index });
@@ -174,6 +177,7 @@ watch(
 );
 
 function initEditor(){
+  console.log("read only: ", props.readOnly);
   if (!mirrorCreated.value) {
     let tmpReadOnly = props.readOnly;
     if (tmpReadOnly) {
