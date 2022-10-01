@@ -143,6 +143,10 @@ const readOnly = ref(true);
 const emits = defineEmits(["setUserID"]);
 
 const router = useRouter();
+const route = useRoute();
+
+// set for set 5 sec increase watch count by 1.
+let watchCountTimeout;
 
 function setEditStatus(status) {
   editing.value = status;
@@ -275,11 +279,9 @@ onBeforeMount(async () => {
   await updateProjectDetail();
 });
 
-const route = useRoute();
-
 onMounted(() => {
   console.log("autorization: ", authorization.value);
-  setTimeout(async () => {
+  watchCountTimeout = setTimeout(async () => {
     if (props.userID !== projectDetail.value.userID) {
       console.log("add project view count");
       await axios.put(
@@ -295,11 +297,7 @@ watch(editing, () => {
 });
 
 onUnmounted(() => {
-  console.log(
-    editing.value,
-    props.socket !== undefined,
-    editing.value === 1 && props.socket !== undefined
-  );
+  clearTimeout(watchCountTimeout);
 });
 
 onBeforeRouteLeave((to, from, next) => {
