@@ -1279,7 +1279,7 @@ onBeforeUnmount(() => {
       </svg>
     </button>
     <button
-      id="tool-btn"
+      class="tool-btn"
       style="margin-left: 1%; width: 35px; border-radius: 5px"
       @click="showIntroModal"
     >
@@ -1298,11 +1298,16 @@ onBeforeUnmount(() => {
         props.records.length === 0
       "
     >
-      <button id="tool-btn" @click="props.changeEdit" v-if="props.readOnly">
+      <button
+        class="tool-btn"
+        style="width: 35px; height: 37px; margin-left: 8px"
+        @click="props.changeEdit"
+        v-if="props.readOnly"
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
+          width="20"
+          height="20"
           fill="currentColor"
           class="bi bi-pencil-square"
           viewBox="0 0 16 16"
