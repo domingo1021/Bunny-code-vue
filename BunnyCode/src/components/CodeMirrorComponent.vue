@@ -668,8 +668,6 @@ function playSlower() {
     console.log("speed: ", playSpeed.value[speedIndex.value]);
   }
 }
-let processing = 0;
-let waiting = [];
 
 async function playback() {
   // setValue 所有上一個版本的 Code 作為初始值
@@ -714,7 +712,6 @@ async function playback() {
               clearTimeout(myTimeout);
               return reject();
             }
-            console.log("My speed: ", playSpeed.value[speedIndex.value]);
             const currObject = props.info.codeRecords[playIndex];
             currObject.line = Number(currObject.line);
             currObject.index = Number(currObject.index);
@@ -978,16 +975,6 @@ function triggerEvent(recordObject) {
       fileNumber: props.info.fileNumber,
       code: allCodes,
     });
-    emit("pushCodeRecords", {
-      fileNumber: props.info.fileNumber,
-      newRecords: {
-        action: "DeleteLine",
-        line: props.info.line,
-        index: props.info.index,
-        code: "",
-        timestamp: Date.now().toString() + "000000",
-      },
-    });
     emit("updateCurrIndex", {
       fileNumber: props.info.fileNumber,
       index: 0,
@@ -999,7 +986,6 @@ function triggerEvent(recordObject) {
     const { line } = editor.getDoc().getCursor();
     const splitContents = props.info.fileContent.split("\n");
     const lineContent = splitContents[line];
-    console.log("Line content: ", lineContent);
     const allCodes = splitContents.reduce((prev, curr, lineIndex) => {
       if (lineIndex === line) {
         if (lineIndex !== splitContents.length - 1) {
@@ -1027,7 +1013,6 @@ function triggerEvent(recordObject) {
       fileNumber: props.info.fileNumber,
       index: lineContent.length,
     });
-    console.log("allCodes: ", allCodes);
     editor.getDoc().setCursor({ line: props.info.line, ch: props.info.index });
   } else {
     editor.getDoc().setValue(props.info.fileContent);
@@ -1056,7 +1041,6 @@ async function initSaveRecords() {
     console.log(error);
   }
   recordResponse = recordResponse.data.data;
-  console.log("records", props.info.fileNumber, recordResponse);
   emit("updateAllRecords", {
     fileNumber: props.info.fileNumber,
     codeRecords: recordResponse,
@@ -1178,6 +1162,9 @@ watch(
 function userClick() {
   if (!props.readOnly) {
     const { line, ch } = editor.getDoc().getCursor();
+    if (line === props.info.line && ch === props.info.index) {
+      return;
+    }
     emit("updateCurrLine", {
       fileNumber: props.info.fileNumber,
       line,
