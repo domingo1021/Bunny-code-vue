@@ -687,6 +687,10 @@ async function playback() {
       fileNumber: props.info.fileNumber,
       index: baseIndex,
     });
+    emit("updateCurrCodes", {
+      fileNumber: props.info.fileNumber,
+      code: baseContent,
+    });
   }
   editor.getDoc().setValue(baseContent);
   editor.options.readOnly = false;
