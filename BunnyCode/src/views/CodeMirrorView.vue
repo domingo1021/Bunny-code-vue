@@ -52,7 +52,6 @@ function pushCodeRecords(emitObject) {
     emitObject.newRecords
   );
   props.setEditStatus(1);
-  console.log(folderInfo.value[emitObject.fileNumber].codeRecords);
 }
 
 function pushTerminal(emitObject) {
@@ -72,6 +71,7 @@ function pushSaveRecords(emitObject) {
     targetVersionIndex: props.targetVersionIndex,
     newSaveRecords: emitObject,
   });
+  props.setEditStatus(0);
 }
 
 function updateParentVersionFile(emitObject) {
