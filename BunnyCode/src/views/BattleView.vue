@@ -211,6 +211,9 @@ onBeforeMount(async () => {
     baseContent.value = questionBaseContent.data;
     const question = await axios.get(questionURL.value);
     questionContent.value = question.data;
+    if (start.value) {
+      boardContent.value = questionContent.value;
+    }
   });
 
   props.socket.socketOn("in", (msg) => {
