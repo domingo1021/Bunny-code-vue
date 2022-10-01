@@ -17,11 +17,6 @@
           Version
         </div>
       </div>
-      <!-- <div>
-        <div id="shortcuts" class="workspace-func">
-          <div @click="showIntroModal">Shortcuts</div>
-        </div>
-      </div> -->
     </div>
     <div id="info-bar">
       <div

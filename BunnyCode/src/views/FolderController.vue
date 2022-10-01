@@ -96,9 +96,8 @@ onBeforeMount(async () => {
 
 #files-bar {
   font-size: 1.25rem;
-  margin-left: 1px;
-  padding: 20px 0px 0px 40px;
-  width: 250px;
+  padding: 20px 10px 0px 40px;
+  width: 200px;
   height: 100vh;
   background-color: rgb(36, 36, 36);
   color: rgb(255, 255, 255);
