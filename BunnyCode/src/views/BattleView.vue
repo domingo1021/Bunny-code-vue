@@ -329,12 +329,20 @@ onBeforeMount(async () => {
     battleOver.value = true;
   });
 
-  props.socket.socketOn("battleNotFound", () => {
+  props.socket.socketOn("battleFinished", () => {
+    console.log("receive battle finished");
     router.push({
       name: "battle_review",
       params: {
         battleID: props.battleID,
       },
+    });
+  });
+
+  props.socket.socketOn("battleNotFound", () => {
+    console.log("receive battle not found");
+    router.push({
+      name: "notFound",
     });
   });
 });

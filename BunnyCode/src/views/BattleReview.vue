@@ -60,6 +60,10 @@ const questionConfig = {
 
 let editor = null;
 
+watch(winnerCode, () => {
+  editor.getDoc().setValue(winnerCode.value);
+});
+
 onBeforeMount(() => {
   if (!props.socket) {
     return;
@@ -86,14 +90,7 @@ onBeforeMount(() => {
       picture: winnerData.picture,
       userLevel: winnerData.userLevel,
     };
-    //TODO: set question content and question title;
-    //TODO: set winner User Info data.
-    //TODO: set winner code.
   });
-});
-
-watch(winnerCode, () => {
-  editor.getDoc().setValue(winnerCode.value);
 });
 
 onMounted(() => {
