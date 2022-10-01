@@ -1472,6 +1472,7 @@ onBeforeUnmount(() => {
       role="dialog"
       aria-labelledby="myModalLabel"
       aria-hidden="false"
+      style="margin-top:8%"
     >
       <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -1712,11 +1713,6 @@ onBeforeUnmount(() => {
   height: 500px;
 }
 
-.confirm-btn {
-  border-radius: 5px;
-  margin: 5%;
-}
-
 #tool-bar {
   padding-top: 1%;
   padding-bottom: 0.5%;
@@ -1833,9 +1829,9 @@ button:hover {
 
 .confirm-btn {
   background-color: rgb(205, 204, 203);
-  color: azure;
+  color: black;
   border-radius: 10px;
-  margin: 5%;
+  margin: 8%;
 }
 
 ::-webkit-scrollbar {

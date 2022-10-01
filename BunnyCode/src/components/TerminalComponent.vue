@@ -19,10 +19,10 @@ watch(
   <div id="terminal" ref="terminalScroll">
     <div id="result-area">
       <div v-for="(result, index) in terminalResult" :key="index">
-        <div style="display: flex">
+        <div style="display: flex;">
           Bunny-Code&nbsp;/&nbsp;{{ projectName }}&nbsp; % &nbsp;
         </div>
-        <div style="white-space: pre-line">
+        <div style="white-space: pre-line; margin-bottom: 2%;">
           {{ result }}
         </div>
       </div>
@@ -39,13 +39,14 @@ watch(
   width: 100%;
   height: 300px;
   overflow-y: auto;
-  padding: 1% 0% 0% 2%;
+  padding: 1% 0% 5% 2%;
 }
 
 #result-area {
   height: 80%;
   font-size: 1.25rem;
-  margin-top: 8%;
+  margin-top: 5%;
+  padding-bottom: 5%;
 }
 
 ::-webkit-scrollbar {
