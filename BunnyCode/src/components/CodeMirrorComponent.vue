@@ -819,10 +819,16 @@ function triggerEvent(recordObject) {
     let lineCode = codes[props.info.line];
     let tmpCodes = [...codes.slice(0, props.info.line)];
     tmpCodes.push(lineCode.substring(0, props.info.index));
+    // check the fist character that is not space.
+    const checkSpace = lineCode.substring(props.info.index).match(/[^-\s]/);
+    let lineSplit = "";
+    if (checkSpace !== null) {
+      lineSplit = lineCode
+        .substring(props.info.index)
+        .substring(checkSpace.index);
+    }
     if (targetIndex > 1) {
-      tmpCodes.push(
-        " ".repeat(targetIndex) + lineCode.substring(props.info.index)
-      );
+      tmpCodes.push(" ".repeat(targetIndex) + lineSplit);
     } else {
       tmpCodes.push(lineCode.substring(props.info.index));
     }
