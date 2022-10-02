@@ -1619,7 +1619,6 @@ onBeforeUnmount(() => {
         class="tool-btn play-btn"
         @click="playFaster"
         v-if="speedIndex < 6 && props.info.timeBetween.length !== 0"
-        style="margin-left: 5px"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -1641,7 +1640,7 @@ onBeforeUnmount(() => {
         class="tool-btn play-btn"
         @click="playFaster"
         v-else
-        style="margin-left: 5px; background-color: white"
+        style="background-color: white"
         disabled
       >
         <svg
