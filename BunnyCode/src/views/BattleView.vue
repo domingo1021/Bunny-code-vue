@@ -379,6 +379,7 @@ onBeforeRouteLeave((to, from, next) => {
 });
 
 onBeforeUnmount(() => {
+  props.socket.socketEmit("leaveBattle");
   props.socket.socketOff("returnBattler");
   props.socket.socketOff("in");
   props.socket.socketOff("newCodes");
