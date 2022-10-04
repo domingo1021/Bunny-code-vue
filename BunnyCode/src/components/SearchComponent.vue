@@ -6,7 +6,7 @@
 </template>
 
 <script setup>
-import { onBeforeMount, onMounted, ref, watch } from "vue";
+import { ref } from "vue";
 import { useRouter } from "vue-router";
 let keywords = ref("");
 const router = useRouter();
@@ -14,6 +14,7 @@ const router = useRouter();
 
 async function searchProject() {
   router.push({ path: "/workspace", query: { keywords: `${keywords.value}` } });
+  keywords.value = "";
 }
 
 async function enterSearch(e) {
@@ -27,6 +28,7 @@ async function enterSearch(e) {
 #search-area {
   display: flex;
   background-color: #161b22;
+  margin-right: 10%;
 }
 
 #input-area{

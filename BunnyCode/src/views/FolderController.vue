@@ -18,9 +18,10 @@
         id="version"
         cols="20"
         rows="10"
+        hidden
       ></textarea>
-      <div style="display: flex; width: 100%; justify-content: right">
-        <button @click="intoFolder" style="margin-right: 5%; border-radius: 5px;">
+      <div style="display: flex; width: 100%; justify-content: right; font-size: 1.25rem;">
+        <button @click="intoFolder" style="margin:3% 5% 0% 0%; border-radius: 5px;">
           Go to version
         </button>
       </div>
@@ -33,7 +34,7 @@ import { nextTick, onBeforeMount, ref, watch } from "vue";
 import * as CodeMirror from "codemirror";
 import "codemirror/lib/codemirror.css";
 import "codemirror/theme/night.css";
-import "codemirror/theme/material-darker.css";
+import "codemirror/theme/dracula.css";
 import "codemirror/mode/javascript/javascript.js";
 import axios from "axios";
 
@@ -67,7 +68,7 @@ async function initVersionContent() {
     indentWithTab: true,
     tabSize: 2,
     autocorrect: true,
-    theme: "material-darker",
+    theme: "dracula",
     mode: "javascript",
   });
   editor.getDoc().setValue(text.value);
@@ -92,10 +93,11 @@ onBeforeMount(async () => {
 </script>
 
 <style scoped>
+
 #files-bar {
-  margin-left: 1px;
-  padding-left: 20px;
-  width: 250px;
+  font-size: 1.25rem;
+  padding: 20px 10px 0px 40px;
+  width: 200px;
   height: 100vh;
   background-color: rgb(36, 36, 36);
   color: rgb(255, 255, 255);

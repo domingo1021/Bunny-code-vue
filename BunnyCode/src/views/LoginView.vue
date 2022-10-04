@@ -62,6 +62,13 @@
 import axios from "axios";
 import { ref, onBeforeMount } from "vue";
 import { useRouter, useRoute } from "vue-router";
+import Socket from "../socket";
+
+const props = defineProps({
+  socket: Socket,
+  userID: Number,
+  terminateSocket: Function,
+})
 
 const route = useRoute();
 const router = useRouter();
@@ -183,10 +190,13 @@ async function login() {
   }
   let loginResopnse;
   try {
-    loginResopnse = await axios.post(productionServer + "/api/1.0/user/signin", {
-      email: loginEmail.value,
-      password: loginPassword.value,
-    });
+    loginResopnse = await axios.post(
+      productionServer + "/api/1.0/user/signin",
+      {
+        email: loginEmail.value,
+        password: loginPassword.value,
+      }
+    );
   } catch (error) {
     loginMessage.value = error.response.data.msg;
     setTimeout(() => {

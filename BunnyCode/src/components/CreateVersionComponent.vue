@@ -7,22 +7,7 @@
         data-bs-target="#exampleModal"
         style="border-radius: 5px; margin: 5% 5% 5%"
       >
-        <div style="font-size: 1.25rem; width: 20px;">+</div>
-        <!-- <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
-          fill="currentColor"
-          class="bi bi-file-plus"
-          viewBox="0 0 16 16"
-        >
-          <path
-            d="M8.5 6a.5.5 0 0 0-1 0v1.5H6a.5.5 0 0 0 0 1h1.5V10a.5.5 0 0 0 1 0V8.5H10a.5.5 0 0 0 0-1H8.5V6z"
-          />
-          <path
-            d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2zm10-1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1z"
-          />
-        </svg> -->
+        <div style="font-size: 1.25rem; width: 20px">+</div>
       </button>
     </div>
     <div
@@ -110,11 +95,14 @@
 <script setup>
 import { ref, onUpdated } from "vue";
 import axios from "axios";
+import Swal from "sweetalert2";
 
 const props = defineProps({
   projectID: Number,
   currentVersionLength: Number,
 });
+
+const jwt = localStorage.getItem("jwt");
 
 const emit = defineEmits([
   "updateFunction",
@@ -139,7 +127,7 @@ async function createVersion() {
       url: `https://domingoos.store/api/1.0/project/${props.projectID}/version`,
       // url: `http://localhost:3000/api/1.0/project/${props.projectID}/version`,
       headers: {
-        Authorization: `Bearer ${props.jwt}`,
+        Authorization: `Bearer ${jwt}`,
       },
       data: {
         versionName: versionName.value,
@@ -147,7 +135,12 @@ async function createVersion() {
       },
     });
   } catch (error) {
-    console.log(error.response.data.msg);
+    console.log(error);
+    Swal.fire({
+      icon: "error",
+      title: "Create version failed",
+      text: `${error.response.data.msg}`,
+    });
     return;
   }
   console.log("response: ", createVersionResponse.data.data);

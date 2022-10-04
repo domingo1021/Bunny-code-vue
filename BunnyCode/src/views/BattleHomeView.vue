@@ -3,7 +3,7 @@
     <div id="user-battle-detail">
       <div
         id="search-battle-area"
-        @keyup.enter="searchBattle"
+        @keyup.enter="searchBattle(1)"
         style="display: flex !important"
       >
         <input
@@ -13,14 +13,14 @@
           v-model="battleKeyword"
         />
         <select name="" id="type-selector" v-model="searchType">
-          <option value="" disabled selected>Search by</option>
-          <option :value="'battle'">Battle name</option>
-          <option :value="'user'">User name</option>
-          <option :value="'question'">Battle question</option>
+          <option value="" disabled selected>Search By</option>
+          <option :value="'battle'">Battle Name</option>
+          <option :value="'user'">User Name</option>
+          <option :value="'question'">Battle Question</option>
         </select>
         <select name="" id="status-selector" v-model="currentStatus">
-          <option value="" disabled selected>Battle status</option>
-          <option :value="'still'">Still battling</option>
+          <option value="" disabled selected>Battle Status</option>
+          <option :value="'still'">Still Battling</option>
           <option :value="'finished'">Finished</option>
         </select>
         <div id="new-battle" v-if="props.userID !== -1 && props.socket">
@@ -85,6 +85,7 @@
                       data-error="wrong"
                       data-success="right"
                       for="form3"
+                      style="top: 5px; font-size: 1rem"
                       >Battle name</label
                     >
                     <input
@@ -94,8 +95,8 @@
                       v-model="battleName"
                     />
                   </div>
-                  <div class="warning" v-if="battleName.length > 29">
-                    battle name length too long.
+                  <div class="warning">
+                    {{ battleMsg }}
                   </div>
                   <div class="md-form mb-4" style="display: flex">
                     <i class="fas fa-envelope prefix grey-text"></i>
@@ -107,7 +108,7 @@
                         value="0"
                         v-model="battleLevel"
                       />
-                      <label for="easy">簡單</label>
+                      <label for="easy">Easy</label>
                     </div>
                     <div>
                       <input
@@ -117,9 +118,9 @@
                         value="1"
                         v-model="battleLevel"
                       />
-                      <label for="middle">中等</label>
+                      <label for="middle">Medium</label>
                     </div>
-                    <div>
+                    <div style="margin-left: 12px">
                       <input
                         type="radio"
                         id="hard"
@@ -127,7 +128,7 @@
                         value="2"
                         v-model="battleLevel"
                       />
-                      <label for="hard">困難</label>
+                      <label for="hard">Hard</label>
                     </div>
                   </div>
                 </div>
@@ -139,9 +140,9 @@
                     @click="inviteBattle"
                     v-if="buttonClickable"
                   >
-                    Submit <i class="fas fa-paper-plane-o ml-1"></i>
+                    Submit
                   </button>
-                  <button id="invalid-btn" class="btn btn-indigo" v-else>
+                  <button v-else id="invalid-btn" class="btn btn-indigo">
                     Submit
                   </button>
                 </div>
@@ -153,10 +154,15 @@
       <div id="battle-card-long" v-if="battleDisplayed.length !== 0">
         <div
           clsss="card"
+          style="
+            display: flex;
+            border-top: 1px solid rgba(189, 189, 189, 0.5);
+            padding: 4% 2% 5% 2%;
+          "
           v-for="(battle, index) in battleDisplayed"
           :key="index"
         >
-          <div class="card-body battle-card-detail">
+          <div class="card-body battle-card-detail" style="width: 40%">
             <h5 class="card-title" style="display: flex">
               <div id="battle-title" @click="renderPath(index)">
                 {{ battle.battleName }}
@@ -164,27 +170,32 @@
               <div
                 id="battle-status"
                 style="
-                  margin-left: 3%;
+                  margin-left: 7%;
                   padding: 0% 1.5% 0% 1.5%;
                   border: 0.5px solid rgb(100, 100, 100);
                   border-radius: 20px;
                 "
               >
-                <span v-if="battle.isPublic" class="battle-status-span"
-                  >Public</span
+                <span
+                  v-if="battle.isFinish"
+                  id="finish-battle-span"
+                  class="battle-status-span"
+                  >Finished</span
                 >
-                <span v-else class="battle-status-span">Private</span>
+                <span v-else id="still-battling-span" class="battle-status-span"
+                  >Still battling</span
+                >
               </div>
             </h5>
             <p id="battle-description" class="card-text">
-              {{ battle.battleDescription }}
+              {{ battle.questionName }}
             </p>
-            <div style="display: flex">
+            <div style="display: flex; margin-top: 2%">
               <svg
                 id="watch-icon"
                 xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
+                width="23"
+                height="23"
                 fill="currentColor"
                 class="bi bi-eye-fill"
                 viewBox="0 0 16 16"
@@ -194,118 +205,114 @@
                   d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"
                 />
               </svg>
-              <div style="margin-left: 10px; bottom: 2px">
+              <div style="margin: 0px 0px 0px 10px; font-size: 1rem">
                 {{ battle.watchCount }}
+              </div>
+            </div>
+          </div>
+          <div id="battle-content" style="height: 0px">
+            <div>
+              <div class="flex-box">
+                <div>
+                  <div style="position: relative; width: 0; height: 0">
+                    <div
+                      class="first-win"
+                      v-if="battle.firstUserID === battle.winnerID"
+                    >
+                      win
+                    </div>
+                  </div>
+                  <img
+                    class="battler-image"
+                    :src="battle.firstUserPicture"
+                    alt="picture-1"
+                  />
+                  <div class="name">{{ battle.firstUserName }}</div>
+                </div>
+                <div style="align-self: center; font-size: 1.5rem">v.s.</div>
+                <div>
+                  <div style="position: relative; width: 0; height: 0">
+                    <div
+                      class="second-win"
+                      v-if="battle.secondUserID === battle.winnerID"
+                    >
+                      win
+                    </div>
+                  </div>
+                  <img
+                    class="battler-image"
+                    :src="battle.secondUserPicture"
+                    alt="picture-1"
+                  />
+                  <div class="name">{{ battle.secondUserName }}</div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-      <div id="battle-card-long" v-if="battleDisplayed.length === 0">
-        <div id="no-battles">No more battles ...</div>
-      </div>
-      <div id="page-render" style="display: flex; justify-content: center">
-        <button
-          id="page-previous-btn"
-          class="user-page-btn"
-          type="button"
-          @click="prevPage()"
-          v-if="currentPage > 1"
-        >
-          previous
-        </button>
-        <button
-          id="page-previous-btn"
-          class="user-page-btn"
-          type="button"
-          style="color: rgb(100, 100, 100)"
-          v-else
-        >
-          previous
-        </button>
-        <button
-          id="page-next-btn"
-          class="user-page-btn"
-          type="button"
-          @click="nextPage()"
-          v-if="battleDisplayed.length === 6"
-        >
-          next
-        </button>
-        <button
-          id="page-next-btn"
-          class="user-page-btn"
-          type="button"
-          style="color: rgb(100, 100, 100)"
-          v-else
-        >
-          next
-        </button>
-      </div>
+    </div>
+    <div id="page-render" style="display: flex; justify-content: center">
+      <button
+        id="page-previous-btn"
+        class="user-page-btn"
+        type="button"
+        @click="prevPage()"
+        v-if="currentPage > 1"
+      >
+        previous
+      </button>
+      <button
+        id="page-previous-btn"
+        class="user-page-btn"
+        type="button"
+        style="color: rgb(100, 100, 100)"
+        v-else
+      >
+        previous
+      </button>
+      <button
+        id="page-next-btn"
+        class="user-page-btn"
+        type="button"
+        @click="nextPage()"
+        v-if="battleDisplayed.length === 6"
+      >
+        next
+      </button>
+      <button
+        id="page-next-btn"
+        class="user-page-btn"
+        type="button"
+        style="color: rgb(100, 100, 100)"
+        v-else
+      >
+        next
+      </button>
     </div>
   </main>
-  <!-- <main>
-    <div id="battle-content">
-      <div>
-        <div class="battle-field">
-          <h3 class="battle-title">Finished</h3>
-          <div id="flex-box">
-            <div
-              clsss="flex-item"
-              style="margin: 1%"
-              v-for="(finish, index) in finishBattles"
-              :key="index"
-            >
-              <BattleCardComponent
-                :battleObject="finish"
-                @click="goBattle('finish', index)"
-              />
-            </div>
-          </div>
-        </div>
-        <div class="battle-field">
-          <h3 class="battle-title" style="width: 100vw">Still battling...</h3>
-          <div id="flex-box">
-            <div
-              clsss="flex-item"
-              style="margin: 1%"
-              v-for="(still, index) in stillBattles"
-              :key="index"
-            >
-              <BattleCardComponent
-                :battleObject="still"
-                @click="goBattle('still', index)"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </main> -->
 </template>
 
 <script setup>
-import { ref, onBeforeMount, watch } from "vue";
+import { ref, onBeforeMount, watch, onBeforeUnmount } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import axios from "axios";
 import Socket from "../socket";
-// import BattleCardComponent from "../components/BattleCardComponent.vue";
 import Swal from "sweetalert2";
 
 const props = defineProps({
   userID: Number,
   socket: Socket,
+  terminateSocket: Function,
 });
 const emits = defineEmits(["setUserID"]);
 const productionServer = "https://domingoos.store";
-const localhostServer = "http://localhost:3000";
 
 const router = useRouter();
 const route = useRoute();
 // the battles.
-const finishBattles = ref([]);
-const stillBattles = ref([]);
 const battleDisplayed = ref([]);
+const battleMsg = ref("");
 
 // search battle
 const battleKeyword = ref("");
@@ -340,30 +347,25 @@ function inviteBattle() {
         text: error.response.data.msg,
       });
     });
-  //TODO: set 20 秒鐘 unclickable, 限制使用者頻繁送出請求
 }
 
-function goBattle(status, index) {
-  if (status === "finished") {
+async function searchBattle(searchPage) {
+  console.log(searchPage);
+  if (searchPage !== undefined) {
     router.push({
-      name: "battle_review",
-      params: { battleID: finishBattles.value[index].battleID },
-    });
-  } else if (status === "still") {
-    router.push({
-      name: "battle",
-      params: { battleID: stillBattles.value[index].battleID },
+      name: "battle_home",
+      query: {
+        paging: `${searchPage}`,
+      },
     });
   }
-}
-
-async function searchBattle() {
   const battleResponse = await axios.get(
     `${productionServer}/api/1.0/battle?keyword=${battleKeyword.value}&status=${
       currentStatus.value
     }&type=${searchType.value}&paging=${currentPage.value - 1}`
   );
   battleDisplayed.value = battleResponse.data.data;
+  battleKeyword.value = "";
   console.log("Search response: ", battleDisplayed.value);
 }
 
@@ -384,40 +386,38 @@ function renderPath(index) {
 function prevPage() {
   router.push({
     name: "battle_home",
-    // params: {
-    //   pageUserID: props.pageUserID,
-    // },
     query: {
       paging: `${currentPage.value - 1}`,
     },
   });
 }
+
 async function nextPage() {
   router.push({
     name: "battle_home",
-    // params: {
-    //   pageUserID: props.pageUserID,
-    // },
     query: {
       paging: `${currentPage.value + 1}`,
     },
   });
 }
 
-onBeforeMount(async () => {
-  //TODO: update battle data. order by watch and question level ...
-  // const allBattles = await axios.get("https://domingoos.store/api/1.0/battle");
-  // const allBattles = await axios.get(`${productionServer}/api/1.0/battle`);
-  // finishBattles.value = allBattles.data.data.finish;
-  // stillBattles.value = allBattles.data.data.still;
-  // console.log(finishBattles.value);
-  await searchBattle();
+watch(currentStatus, () => {
+  searchBattle();
+});
+
+watch(searchType, () => {
+  searchBattle();
 });
 
 watch(battleName, () => {
-  if (battleName.value.length > 29 || battleName.value.length === 0) {
+  if (battleName.value.length > 19 || battleName.value.length === 0) {
+    battleMsg.value = "Battle name should be between 1 ~ 20 characters.";
+    buttonClickable.value = false;
+  } else if (battleName.value.includes(" ")) {
+    battleMsg.value = "Battle name should not include spaces."
     buttonClickable.value = false;
   } else {
+    battleMsg.value = "";
     buttonClickable.value = true;
   }
 });
@@ -429,25 +429,41 @@ watch(
     await searchBattle();
   }
 );
+
+onBeforeMount(async () => {
+  if (props.socket) {
+    props.socket.socketOn("inviteFailed", (msg) => {
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: msg,
+      });
+    });
+  }
+  await searchBattle();
+});
+
+onBeforeUnmount(() => {
+  if (props.socket) {
+    props.socket.socketOff("inviteFailed");
+  }
+});
 </script>
 
 <style scoped>
-#battle-content {
-  text-align: center;
-  margin-left: 5%;
-  margin-right: 5%;
+label {
+  margin-left: 5px;
+  bottom: 2px;
 }
-#flex-box {
+img {
+  border-radius: 10px;
+}
+.flex-box {
   display: flex;
-  margin: auto;
-  margin-top: 3%;
-  justify-content: center;
-  flex-wrap: wrap;
   flex-direction: row;
-  max-width: 90%;
-  border-bottom: 1px solid rgb(142, 142, 142);
-  padding-bottom: 3%;
-  margin-bottom: 5%;
+  justify-content: space-around;
+  margin-right: 8%;
+  margin-left: 10%;
 }
 
 #valid-btn {
@@ -462,6 +478,8 @@ watch(
 
 .battle-title {
   margin-left: 5%;
+  padding-right: 5%;
+  margin-right: 5%;
   font-weight: bold;
   font-size: 2rem;
   width: 100vw;
@@ -475,9 +493,9 @@ watch(
   height: 30%;
   padding-top: 10px;
 }
+
 .label-header {
   width: 200px;
-  top: 5px;
 }
 
 #battleModal {
@@ -556,12 +574,6 @@ watch(
   background-color: #f1f1f1;
 }
 
-#user-profile-component {
-  display: inline-block !important;
-  margin: 8% 3% 0% 3%;
-  height: 30%;
-  width: 40%;
-}
 #user-battle-detail {
   margin: 5% 10% 5% 5%;
   width: 90%;
@@ -570,14 +582,12 @@ watch(
 #battle-card-long {
   width: 100%;
 }
-.battle-card-detail {
-  /* background-color: rgb(35, 35, 35); */
-  /* border-bottom: 1px solid rgb(189, 189, 189); */
-  margin: 3% 0% 2% 0%;
-  padding: 4% 2% 2% 2%;
 
-  border-top: 1px solid rgba(189, 189, 189, 0.5);
-  /* border-bottom: 1px solid rgba(189, 189, 189, 0.5); */
+#battle-content {
+  width: 50%;
+  text-align: left;
+  margin-left: 5%;
+  margin-right: 5%;
 }
 
 #valid-btn {
@@ -603,6 +613,7 @@ watch(
 #search-battle-area {
   display: flex;
   height: 60px;
+  margin-bottom: 3%;
 }
 
 #search-input-area {
@@ -628,7 +639,6 @@ select {
   margin-left: 15px;
   color: rgb(255, 255, 255);
   background-color: #6a6b6c;
-  /* padding: 2%; */
   font-weight: bold;
   font-size: 1rem;
   text-align: center;
@@ -637,15 +647,17 @@ select {
 }
 select:focus {
   outline: none;
-  /* border: 0px; */
 }
 
 #new-battle {
+  position: relative;
   display: flex;
   width: 25%;
   height: 50px;
-  margin-left: 2.3%;
-  bottom: 10px;
+  margin-left: 3.5%;
+  right: 15px;
+  bottom: 9px;
+  margin-bottom: 5px;
   color: rgb(36, 34, 34);
 }
 
@@ -672,7 +684,7 @@ select:focus {
 
 #battle-title {
   color: #58a6ff;
-  font-size: 1.8rem;
+  font-size: 1.75rem;
   font-weight: bold;
   /* text-decoration: underline; */
   bottom: 4px;
@@ -699,13 +711,18 @@ select:focus {
   font-size: 1rem;
   text-align: center;
   font-weight: bold;
-  width: 50px;
-  margin-left: 3%;
+  margin-left: 4%;
+}
+#still-battling-span {
+  width: 110px;
+}
+#finish-battle-span {
+  width: 70px;
 }
 
 #battle-description {
-  margin-top: 1%;
-  font-size: 1.25rem;
+  margin-top: 2%;
+  font-size: 1.2rem;
   color: rgb(150, 150, 150);
 }
 
@@ -736,5 +753,47 @@ select:focus {
   font-size: 2rem;
   color: rgb(148, 147, 147);
   margin: 25px 0px 50px 0px;
+}
+
+#name-flex {
+  display: flex;
+  justify-content: center;
+  /* padding-left:30px */
+}
+.name {
+  margin-top: 5%;
+  text-align: center;
+  font-size: 1.3rem;
+}
+
+.battler-image {
+  width: 189px;
+  height: 130px;
+}
+
+.first-win {
+  z-index: 99;
+  position: absolute;
+  top: 5px;
+  left: 150px;
+  background-color: rgb(228, 62, 62);
+  padding: 2%;
+  border-radius: 50%;
+  height: 25px;
+  width: 25px;
+  text-align: center;
+}
+
+.second-win {
+  z-index: 99;
+  position: absolute;
+  top: 5px;
+  left: 150px;
+  background-color: rgb(228, 62, 62);
+  padding: 2%;
+  border-radius: 50%;
+  height: 25px;
+  width: 25px;
+  text-align: center;
 }
 </style>
