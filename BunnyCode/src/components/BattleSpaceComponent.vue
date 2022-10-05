@@ -28,7 +28,7 @@ import "codemirror/lib/codemirror.css";
 import "codemirror/theme/dracula.css";
 import "codemirror/mode/javascript/javascript.js";
 import { nextTick, onUpdated, ref, watch } from "vue";
-import { Swal } from "sweetalert2/dist/sweetalert2";
+import Swal from "sweetalert2";
 
 const props = defineProps({
   id: String,
@@ -118,25 +118,26 @@ async function checkEventDown(e) {
     editor.getDoc().setCursor({ line: props.info.line, ch: props.info.index });
     return;
   }
-  if (e.ctrlKey && e.code === "KeyV") {
-    e.preventDefault();
-    if (!props.readOnly) {
-      Swal.fire({
-        icon: "error",
-        title: "Warning !",
-        text: "Cannot copy & paste during the battle.",
-      });
-    }
-  } else if (e.metaKey && e.code === "KeyV") {
-    e.preventDefault();
-    if (!props.readOnly) {
-      Swal.fire({
-        icon: "error",
-        title: "Warning !",
-        text: "Cannot copy & paste during the battle.",
-      });
-    }
-  } else {
+  // if (e.ctrlKey && e.code === "KeyV") {
+  //   e.preventDefault();
+  //   if (!props.readOnly) {
+  //     Swal.fire({
+  //       icon: "error",
+  //       title: "Warning !",
+  //       text: "Cannot copy & paste during the battle.",
+  //     });
+  //   }
+  // } else if (e.metaKey && e.code === "KeyV") {
+  //   e.preventDefault();
+  //   if (!props.readOnly) {
+  //     Swal.fire({
+  //       icon: "error",
+  //       title: "Warning !",
+  //       text: "Cannot copy & paste during the battle.",
+  //     });
+  //   }
+  // } 
+  else {
     let allCode = editor.getDoc().getValue();
     emit("updateCurrCodes", {
       battlerNumber: props.info.battlerNumber,
