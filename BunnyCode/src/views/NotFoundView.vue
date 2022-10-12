@@ -1,5 +1,6 @@
 <template>
   <div id="hello-window">
+    <div>Test</div>
     <div id="hello-content">{{ helloContent }}</div>
   </div>
   <div id="workspace-introduce">
@@ -13,139 +14,139 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue";
-import { useRouter } from "vue-router"
-import Socket from "../socket";
+import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import Socket from '../socket'
 
 const props = defineProps({
   userID: Number,
   socket: Socket,
   terminateSocket: Function,
-});
+})
 
-const emits = defineEmits(["setUserID"]);
-const helloContent = ref("");
-const router = useRouter();
+const emits = defineEmits(['setUserID'])
+const helloContent = ref('')
+const router = useRouter()
 const pendingContent = ref([
   {
-    content: "4",
-    action: "create",
-    time: "20",
+    content: '4',
+    action: 'create',
+    time: '20',
   },
   {
-    content: "0",
-    action: "create",
-    time: "100",
+    content: '0',
+    action: 'create',
+    time: '100',
   },
   {
-    content: "4",
-    action: "create",
-    time: "100",
+    content: '4',
+    action: 'create',
+    time: '100',
   },
   {
-    content: "  ",
-    action: "create",
-    time: "500",
+    content: '  ',
+    action: 'create',
+    time: '500',
   },
   {
-    content: "P",
-    action: "create",
-    time: "80",
+    content: 'P',
+    action: 'create',
+    time: '80',
   },
   {
-    content: "a",
-    action: "create",
-    time: "80",
+    content: 'a',
+    action: 'create',
+    time: '80',
   },
   {
-    content: "g",
-    action: "create",
-    time: "80",
+    content: 'g',
+    action: 'create',
+    time: '80',
   },
   {
-    content: "e",
-    action: "create",
-    time: "80",
+    content: 'e',
+    action: 'create',
+    time: '80',
   },
   {
-    content: "  ",
-    action: "create",
-    time: "200",
+    content: '  ',
+    action: 'create',
+    time: '200',
   },
   {
-    content: "N",
-    action: "create",
-    time: "80",
+    content: 'N',
+    action: 'create',
+    time: '80',
   },
   {
-    content: "o",
-    action: "create",
-    time: "80",
+    content: 'o',
+    action: 'create',
+    time: '80',
   },
   {
-    content: "t",
-    action: "create",
-    time: "80",
+    content: 't',
+    action: 'create',
+    time: '80',
   },
   {
-    content: "  ",
-    action: "create",
-    time: "150",
+    content: '  ',
+    action: 'create',
+    time: '150',
   },
   {
-    content: "F",
-    action: "create",
-    time: "80",
+    content: 'F',
+    action: 'create',
+    time: '80',
   },
   {
-    content: "o",
-    action: "create",
-    time: "80",
+    content: 'o',
+    action: 'create',
+    time: '80',
   },
   {
-    content: "u",
-    action: "create",
-    time: "80",
+    content: 'u',
+    action: 'create',
+    time: '80',
   },
   {
-    content: "n",
-    action: "create",
-    time: "80",
+    content: 'n',
+    action: 'create',
+    time: '80',
   },
   {
-    content: "d",
-    action: "create",
-    time: "80",
+    content: 'd',
+    action: 'create',
+    time: '80',
   },
   {
-    content: ".",
-    action: "create",
-    time: "50",
-  }
-]);
+    content: '.',
+    action: 'create',
+    time: '50',
+  },
+])
 
 function checkAction(index) {
-  if (pendingContent.value[index].action === "create") {
-    helloContent.value += pendingContent.value[index].content;
-  } else if (pendingContent.value[index].action === "replace") {
+  if (pendingContent.value[index].action === 'create') {
+    helloContent.value += pendingContent.value[index].content
+  } else if (pendingContent.value[index].action === 'replace') {
     helloContent.value =
       helloContent.value.substring(0, helloContent.value.length - 1) +
-      pendingContent.value[index].content;
+      pendingContent.value[index].content
   }
-  index += 1;
+  index += 1
   if (index < pendingContent.value.length) {
     setTimeout(() => {
-      checkAction(index);
-    }, pendingContent.value[index].time);
+      checkAction(index)
+    }, pendingContent.value[index].time)
   }
 }
 
 onMounted(() => {
-  let index = 0;
+  let index = 0
   setTimeout(() => {
-    checkAction(index);
-  }, pendingContent.value[index].time);
-});
+    checkAction(index)
+  }, pendingContent.value[index].time)
+})
 </script>
 
 <style scoped>
