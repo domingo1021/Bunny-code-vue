@@ -102,20 +102,13 @@ function changeEdit() {
 }
 
 function socketInit() {
-  console.log("Socket initing...", `${props.recordInfo.length}`);
   props.socket.socketOn("statusChecked", (responseObject) => {
     if (props.recordInfo.length !== 0) {
       responseObject.readOnly = true;
     }
-    console.log(
-      "responseObject after update: ",
-      responseObject,
-      props.recordInfo
-    );
     emit("changeUserStatus", responseObject);
   });
   if (props.recordInfo.length === 0) {
-    console.log("projectInfo: ", props.recordInfo.length);
     props.socket.socketEmit("checkProjectStatus", {
       projectID: props.projectID,
       versionID: props.version.versionID,
@@ -145,7 +138,6 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
-  console.log("view unmount");
   if (props.socket) {
     props.socket.socketOff("statusChecked");
   }

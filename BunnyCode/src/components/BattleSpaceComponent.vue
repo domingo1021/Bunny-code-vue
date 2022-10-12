@@ -56,8 +56,6 @@ const mirrorCreated = ref(false);
 const autoComplete = ["[", "(", "{", '"', "'"];
 
 function updateContent(e) {
-  console.log("read only: ", props.readOnly);
-  console.log("Data: ", e.data);
   if (props.readOnly) {
     editor.getDoc().setValue(props.info.fileContent);
     editor.getDoc().setCursor({ line: props.info.line, ch: props.info.index });
@@ -177,7 +175,6 @@ watch(
 );
 
 function initEditor(){
-  console.log("read only: ", props.readOnly);
   if (!mirrorCreated.value) {
     let tmpReadOnly = props.readOnly;
     if (tmpReadOnly) {
@@ -201,7 +198,6 @@ function initEditor(){
     mirrorCreated.value = true;
   }
   if (props.readOnly) {
-    console.log("updated");
     editor.getDoc().setValue(props.info.fileContent);
     editor.getDoc().setCursor({ line: props.info.line, ch: props.info.index });
   }

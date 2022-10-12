@@ -55,7 +55,6 @@ async function initVersionContent() {
   text.value = fileContent.data;
   const editors = Array.from(document.getElementsByClassName("CodeMirror"));
   editors.forEach((element) => {
-    console.log("removeing...");
     element.remove();
   });
   editor = CodeMirror.fromTextArea(document.getElementById("version"), {

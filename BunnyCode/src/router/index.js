@@ -70,7 +70,6 @@ const localhostServer = "http://localhost:3000";
 const productionServer = "https://domingoos.store";
 
 router.beforeEach(async (to, from, next) => {
-  console.log("fullpath: ", to.fullPath);
   if (to.matched.some((record) => record.meta.requireAuth)) {
     let isLogin = false;
     try {

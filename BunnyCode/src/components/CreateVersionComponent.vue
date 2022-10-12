@@ -135,7 +135,6 @@ async function createVersion() {
       },
     });
   } catch (error) {
-    console.log(error);
     Swal.fire({
       icon: "error",
       title: "Create version failed",
@@ -143,7 +142,6 @@ async function createVersion() {
     });
     return;
   }
-  console.log("response: ", createVersionResponse.data.data);
   const newVersionObject = createVersionResponse.data.data;
   if (newVersionObject.files.length !== 0) {
     newVersionObject.files.forEach((file, index) => {
@@ -161,7 +159,6 @@ async function createVersion() {
       file.timeBetween = [];
     });
   }
-  console.log("Create version response: ", createVersionResponse.data.data);
   emit("pushVersionObject", newVersionObject);
 }
 // Version Object:

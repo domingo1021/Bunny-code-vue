@@ -350,7 +350,6 @@ function inviteBattle() {
 }
 
 async function searchBattle(searchPage) {
-  console.log(searchPage);
   if (searchPage !== undefined) {
     router.push({
       name: "battle_home",
@@ -366,7 +365,6 @@ async function searchBattle(searchPage) {
   );
   battleDisplayed.value = battleResponse.data.data;
   battleKeyword.value = "";
-  console.log("Search response: ", battleDisplayed.value);
 }
 
 function renderPath(index) {

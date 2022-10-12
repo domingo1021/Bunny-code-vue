@@ -213,9 +213,7 @@ async function login() {
 }
 
 onBeforeMount(() => {
-  console.log(route.fullPath);
   redirect.value = route.query.redirect;
-  console.log("Router query: ", route.query);
 });
 </script>
 

@@ -82,7 +82,6 @@ async function nextPage() {
 }
 
 async function createProject() {
-  console.log("Is public: ", +projectPublic.value);
   let responseProjects;
   try {
     if (!fileName.value.includes(".js")) {
@@ -180,14 +179,12 @@ onBeforeMount(async () => {
     `${productionServer}/api/1.0/user/${props.pageUserID}/detail`
   );
   userInfo.value = userDetail.data.data;
-  console.log("User Info: ", userInfo.value);
 });
 
 onMounted(async () => {
   // onBeforeMount(async () => {
   await nextTick();
   await getUserProject();
-  console.log("All project item: ", projectsDisplayed.value);
   try {
     const authResponse = await axios({
       method: "get",

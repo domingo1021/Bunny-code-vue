@@ -61,8 +61,6 @@ let playSpeed = ref([0.25, 0.5, 0.75, 1, 1.25, 1.5, 2]);
 let speedIndex = ref(3);
 
 function updateContent(e) {
-  console.log(props.info.line, props.info.index);
-  console.log("input: ", e.data, e.metaKey);
   if (props.readOnly) {
     editor.getDoc().setValue(props.info.fileContent);
     editor.getDoc().setCursor({ line: props.info.line, ch: props.info.index });
@@ -143,9 +141,7 @@ async function checkEventUp(e) {
     editor.getDoc().setCursor({ line: props.info.line, ch: props.info.index });
     return;
   }
-  console.log("key: ", e.key, e.keyCode, e.metaKey);
   if (e.key === "Enter") {
-    console.log("Enter");
     let allCode = editor.getDoc().getValue();
     emit("updateCurrCodes", {
       fileNumber: props.info.fileNumber,
@@ -248,10 +244,8 @@ async function checkEventUp(e) {
       fileNumber: props.info.fileNumber,
       index: lineContent.length,
     });
-    console.log("allCodes: ", allCodes);
     editor.getDoc().setCursor({ line: props.info.line, ch: props.info.index });
   } else if (e.metaKey && e.key === "x") {
-    console.log("delete a line !");
     e.preventDefault();
     const splitContents = editor.getDoc().getValue().split("\n");
     if (props.info.fileContent === "") {
@@ -303,7 +297,6 @@ async function checkEventUp(e) {
       }
       return prev;
     }, "");
-    console.log("all codes: ", allCodes);
     if (line === splitContents.length - 1) {
       // 代表在最後一行刪除整行
       emit("updateCurrCodes", {
@@ -417,7 +410,6 @@ async function checkEventUp(e) {
       index: currentIndex,
     });
   } else if (e.metaKey && e.keyCode === 83) {
-    console.log("Command + Save");
     e.preventDefault();
     if (props.records.length !== 0) {
       return;
@@ -427,7 +419,6 @@ async function checkEventUp(e) {
     if (e.repeat) {
       return;
     }
-    console.log("To Front");
     const currentCursor = editor.getDoc().getCursor();
     const currentLine = currentCursor.line;
     const currentIndex = currentCursor.ch;
@@ -453,7 +444,6 @@ async function checkEventUp(e) {
     if (e.repeat) {
       return;
     }
-    console.log("To end");
     const currentCursor = editor.getDoc().getCursor();
     const currentLine = currentCursor.line;
     const currentIndex = currentCursor.ch;
@@ -581,11 +571,9 @@ async function saveFileRecord() {
     });
     return;
   }
-  // console.log(saveResponse.data);
   emit("pushSaveRecords", saveResponse.data);
   // Save code file.
   const allCodes = props.info.fileContent;
-  console.log("entire code:", allCodes);
   const submitForm = new FormData();
   const blob = new Blob([JSON.stringify(allCodes)], {
     type: "application/javascript",
@@ -594,7 +582,6 @@ async function saveFileRecord() {
   submitForm.append("projectID", props.projectID);
   submitForm.append("versionID", props.info.versionID);
   submitForm.append("reqCategory", "code_file");
-  console.log("prepare to submit !");
   const response = await axios({
     method: "post",
     url: "https://domingoos.store/api/1.0/record/file",
@@ -635,7 +622,6 @@ async function runCode() {
         fileName: props.info.fileName,
       }
     );
-    console.log("Compile result: ", compilerResult);
     result = compilerResult.data;
     codeRunning.value = false;
   } catch (error) {
@@ -659,13 +645,11 @@ function clickPlay() {
 function playFaster() {
   if (speedIndex.value < 6) {
     speedIndex.value += 1;
-    console.log("speed: ", playSpeed.value[speedIndex.value]);
   }
 }
 function playSlower() {
   if (speedIndex.value > 0) {
     speedIndex.value -= 1;
-    console.log("speed: ", playSpeed.value[speedIndex.value]);
   }
 }
 
@@ -982,7 +966,6 @@ function triggerEvent(recordObject) {
     editor.getDoc().setValue(allCodes);
     editor.getDoc().setCursor({ line: line, ch: 0 });
   } else if (action === "CopyLine") {
-    console.log("Copy Line!");
     const { line } = editor.getDoc().getCursor();
     const splitContents = props.info.fileContent.split("\n");
     const lineContent = splitContents[line];
@@ -1027,8 +1010,6 @@ async function initSaveRecords() {
     return;
   }
   try {
-    console.log("start time: ", props.records[0].startTime);
-    console.log(`stopTime: ${props.records[0].endTime}`);
     recordResponse = await axios.post(
       `https://domingoos.store/api/1.0/history/${props.projectID}`,
       {
@@ -1038,7 +1019,6 @@ async function initSaveRecords() {
       }
     );
   } catch (error) {
-    console.log(error);
     Swal.fire({
       icon: "error",
       title: "Warning !",
@@ -1086,17 +1066,14 @@ async function initCodeMirror() {
   let tmpReadOnly = props.readOnly;
   let cursorHeight = 0.85;
   if (tmpReadOnly === undefined) {
-    console.log("props.readOnly: ", props.readOnly);
     return;
   }
   if (tmpReadOnly) {
     // tmpReadOnly = "nocursor";
     cursorHeight = 0;
   }
-  console.log("read only: ", props.readOnly);
   const editors = document.getElementsByClassName("CodeMirror");
   if (editors.length !== 0) {
-    console.log("in");
     Array.from(editors).forEach((element) => {
       element.remove();
     });
@@ -1150,7 +1127,6 @@ async function initCodeMirror() {
 watch(
   () => props.readOnly,
   async (newReadOnly, prevReadOnly) => {
-    console.log("readOnly change: ", newReadOnly);
     await nextTick();
     await initCodeMirror();
   }
@@ -1159,7 +1135,6 @@ watch(
 watch(
   () => props.records,
   async (newRecords, prevRecords) => {
-    console.log("records updated");
     await initSaveRecords();
   }
 );
@@ -1204,7 +1179,6 @@ if (prevIntroStatus === "0" || prevIntroStatus === null) {
 }
 
 watch(stopIntro, () => {
-  console.log("stopIntro changed. ");
   if (stopIntro.value) {
     localStorage.setItem("stopIntro", "1");
   } else {
