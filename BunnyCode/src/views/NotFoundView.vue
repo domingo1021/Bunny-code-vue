@@ -1,6 +1,5 @@
 <template>
   <div id="hello-window">
-    <div>Test</div>
     <div id="hello-content">{{ helloContent }}</div>
   </div>
   <div id="workspace-introduce">
