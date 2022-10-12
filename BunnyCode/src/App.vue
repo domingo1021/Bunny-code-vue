@@ -3,7 +3,6 @@
     <nav id="top-navbar">
       <div class="flex-container">
         <div class="flex-container-2">
-          <!-- <div>Bunny code</div> -->
           <RouterLink to="/" class="nav-item link left-item">
             <img
               src="@/assets/logo4.png"
@@ -19,20 +18,37 @@
           >
         </div>
         <div class="right-flex">
-          <RouterLink class="nav-item link" to="/login">
+          <RouterLink
+            v-if="userID !== -1"
+            class="link"
+            :to="{ name: 'user', params: { pageUserID: `${userID}` } }"
+            style="margin: 0px 2px 5px 2px"
+          >
             <img
               src="@/assets/login.png"
               alt="login-icon"
-              style="width: 35px; margin-bottom: 5px"
+              style="width: 38px"
             />
           </RouterLink>
+          <RouterLink
+            v-else
+            class="link"
+            to="/login"
+            style="margin: 0px 2px 5px 2px"
+            >Login</RouterLink
+          >
           <SearchComponent :socket="socket" />
         </div>
       </div>
     </nav>
   </header>
   <body>
-    <RouterView :userID="userID" :socket="socket" @setUserID="setUserID" />
+    <RouterView
+      :userID="userID"
+      :socket="socket"
+      :terminateSocket="terminateSocket"
+      @setUserID="setUserID"
+    />
     <div id="battle-invitation">
       <div
         class="modal fade"
@@ -78,16 +94,13 @@
 
 <script setup>
 import Socket from "./socket";
-import { RouterLink, RouterView, useRouter } from "vue-router";
+import { RouterLink, RouterView, useRouter, useRoute } from "vue-router";
 import SearchComponent from "./components/SearchComponent.vue";
 import { ref, onMounted, onUnmounted, watch } from "vue";
 import axios from "axios";
 import io from "socket.io-client";
-// import NotificationView from "./views/NotificationView.vue";
 import { createToaster } from "@meforma/vue-toaster";
-// import BattleLaunchComponent from "./components/BattleLaunchComponent.vue";
 import { Modal } from "bootstrap";
-// import BattleLaunchComponent from "./components/BattleLaunchComponent.vue";
 import Swal from "sweetalert2";
 
 let myModal;
@@ -101,6 +114,7 @@ const userID = ref(-1);
 let socket = ref();
 const view = ref("home");
 const router = useRouter();
+const route = useRoute();
 const battleName = ref();
 const battleLevel = ref();
 const firstUserID = ref();
@@ -144,7 +158,9 @@ const toaster = createToaster({
 });
 
 watch(userID, () => {
-  initiateSocket();
+  if (route.name === "login") {
+    initiateSocket();
+  }
 });
 
 axios({
@@ -166,7 +182,7 @@ axios({
   });
 
 function initiateSocket() {
-  jwt = localStorage.getItem('jwt');
+  jwt = localStorage.getItem("jwt");
   socket.value = new Socket(
     io(productionSocket, {
       // io(localhostServer, {
@@ -177,16 +193,19 @@ function initiateSocket() {
     })
   );
   socket.value.socketOn("userInvite", (emitObject) => {
-    console.log("invite user: ", emitObject);
+    if (route.name === "battle") {
+      return;
+    }
     battleName.value = emitObject.name;
     battleLevel.value = battleLevelConfig[emitObject.level];
     firstUserID.value = emitObject.firstUserID;
     firstUserName.value = emitObject.firstUserName;
     targetSocketID.value = emitObject.socketID;
     toaster.success(
-      `<div>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!</div>
-        <div>User ${emitObject.firstUserName} launch ${emitObject.name}</div>
-        <div>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!</div>`
+      `
+      <div>&nbsp;</div>
+      <div><strong>User ${emitObject.firstUserName} launch ${emitObject.name}</strong></div>
+        <div>&nbsp;</div>`
     );
   });
   socket.value.socketOn("battleFailed", (msg) => {
@@ -208,9 +227,11 @@ function initiateSocket() {
   });
 }
 
-// async function updateView(viewPage) {
-//   view.value = viewPage;
-// }
+function terminateSocket() {
+  socket.value.socketDisconnect();
+  userID.value = -1;
+  socket.value = undefined;
+}
 
 function acceptBattle() {
   if (socket.value) {
@@ -241,6 +262,10 @@ onUnmounted(() => {
 
 nav a:first-of-type {
   border: 0;
+}
+
+nav a.router-link-exact-active {
+  color: rgb(211, 162, 250);
 }
 
 #top-navbar {
@@ -302,10 +327,11 @@ header + body {
 }
 
 .confirm-btn {
+  border-radius: 10px;
   margin: 5%;
 }
 
-#battle-modal{
-  color:black;
+#battle-modal {
+  color: black;
 }
 </style>

@@ -4,36 +4,16 @@
   </div>
   <div id="workspace-introduce">
     <img
-      src="@/assets/pair_programming.png"
+      src="@/assets/404.png"
       width="500"
       height="500"
       alt="work-space-introduction"
     />
-    <div id="workspace-introduce-word" class="intro-bar">
-      <div><strong>Mentor</strong> your coding journey</div>
-      <div>just like</div>
-      <div><strong>pair programming.</strong></div>
-      <div class="learn-more" @click="goWorkspace">+ &nbsp; Learn more</div>
-    </div>
-  </div>
-  <div id="battle-introduce">
-    <img
-      src="@/assets/battling1.png"
-      width="500"
-      height="500"
-      alt="work-space-introduction"
-    />
-    <div id="battle-introduce-word" class="intro-bar">
-      <div>Improve coding speed & quality</div>
-      <div>while <strong>battling</strong> !</div>
-      <div class="learn-more" @click="goBattleHome">+ &nbsp; Learn more</div>
-    </div>
   </div>
 </template>
 
 <script setup>
 import { onMounted, ref } from "vue";
-// import rout
 import { useRouter } from "vue-router"
 import Socket from "../socket";
 
@@ -48,29 +28,39 @@ const helloContent = ref("");
 const router = useRouter();
 const pendingContent = ref([
   {
-    content: "|",
+    content: "4",
     action: "create",
     time: "20",
   },
   {
-    content: " ",
-    action: "replace",
-    time: "500",
-  },
-  {
-    content: "|",
-    action: "replace",
-    time: "500",
-  },
-  {
-    content: " ",
-    action: "replace",
-    time: "500",
-  },
-  {
-    content: "W",
+    content: "0",
     action: "create",
-    time: "400",
+    time: "100",
+  },
+  {
+    content: "4",
+    action: "create",
+    time: "100",
+  },
+  {
+    content: "  ",
+    action: "create",
+    time: "500",
+  },
+  {
+    content: "P",
+    action: "create",
+    time: "80",
+  },
+  {
+    content: "a",
+    action: "create",
+    time: "80",
+  },
+  {
+    content: "g",
+    action: "create",
+    time: "80",
   },
   {
     content: "e",
@@ -78,12 +68,12 @@ const pendingContent = ref([
     time: "80",
   },
   {
-    content: "l",
+    content: "  ",
     action: "create",
-    time: "80",
+    time: "200",
   },
   {
-    content: "c",
+    content: "N",
     action: "create",
     time: "80",
   },
@@ -91,26 +81,21 @@ const pendingContent = ref([
     content: "o",
     action: "create",
     time: "80",
-  },
-  {
-    content: "m",
-    action: "create",
-    time: "80",
-  },
-  {
-    content: "e",
-    action: "create",
-    time: "80",
-  },
-  {
-    content: " ",
-    action: "create",
-    time: "140",
   },
   {
     content: "t",
     action: "create",
-    time: "140",
+    time: "80",
+  },
+  {
+    content: "  ",
+    action: "create",
+    time: "150",
+  },
+  {
+    content: "F",
+    action: "create",
+    time: "80",
   },
   {
     content: "o",
@@ -118,80 +103,25 @@ const pendingContent = ref([
     time: "80",
   },
   {
-    content: " ",
-    action: "create",
-    time: "500",
-  },
-  {
-    content: "b",
-    action: "create",
-    time: "100",
-  },
-  {
     content: "u",
     action: "create",
-    time: "100",
+    time: "80",
   },
   {
     content: "n",
     action: "create",
-    time: "100",
-  },
-  {
-    content: "n",
-    action: "create",
-    time: "100",
-  },
-  {
-    content: "y",
-    action: "create",
-    time: "100",
-  },
-  {
-    content: " ",
-    action: "create",
-    time: "100",
-  },
-  {
-    content: "c",
-    action: "create",
-    time: "50",
-  },
-  {
-    content: "o",
-    action: "create",
-    time: "50",
+    time: "80",
   },
   {
     content: "d",
     action: "create",
-    time: "50",
+    time: "80",
   },
   {
-    content: "e",
+    content: ".",
     action: "create",
     time: "50",
-  },
-  {
-    content: " ",
-    action: "create",
-    time: "50",
-  },
-  {
-    content: "!",
-    action: "create",
-    time: "50",
-  },
-  {
-    content: "!",
-    action: "create",
-    time: "50",
-  },
-  {
-    content: "!",
-    action: "create",
-    time: "50",
-  },
+  }
 ]);
 
 function checkAction(index) {
@@ -208,14 +138,6 @@ function checkAction(index) {
       checkAction(index);
     }, pendingContent.value[index].time);
   }
-}
-
-function goWorkspace(){
-  router.push({name: "workspace_home"})
-}
-
-function goBattleHome(){
-  router.push({name: "battle_home"})
 }
 
 onMounted(() => {
@@ -259,7 +181,8 @@ onMounted(() => {
 
 #workspace-introduce {
   display: flex;
-  margin: 130px 2% 0% 5%;
+  justify-content: center;
+  margin: 0px 2% 0% 5%;
 }
 
 #workspace-introduce-word {
@@ -268,26 +191,4 @@ onMounted(() => {
   margin-left: 100px;
   font-size: 2.5rem;
 }
-
-.learn-more{
-  margin-top: 5%;
-  margin-left: 3%;
-  font-size: 1.25rem;
-}
-
-.learn-more:hover{
-  cursor: pointer;
-}
-
-#battle-introduce{
-  display:flex;
-  margin: 100px 2% 5% 5%;
-}
-
-#battle-introduce-word{
-  align-self: center;
-  margin-left: 100px;
-  font-size: 2.5rem;
-}
-
 </style>

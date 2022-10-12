@@ -11,4 +11,7 @@ export default class Socket {
   socketEmit(name, data){
     this.ws.emit(name, data);
   }
+  socketDisconnect(){
+    this.ws.disconnect();
+  }
 };

@@ -11,10 +11,10 @@
           :id="`battle-editor`"
           cols="30"
           rows="10"
+          hidden
         ></textarea>
       </div>
     </div>
- 
   </div>
 </template>
 
@@ -34,6 +34,7 @@ const props = defineProps({
   battleID: String,
   socket: Socket,
   userID: Number,
+  terminateSocket: Function,
 });
 const emits = defineEmits(["setUserID"]);
 
@@ -58,6 +59,10 @@ const questionConfig = {
 };
 
 let editor = null;
+
+watch(winnerCode, () => {
+  editor.getDoc().setValue(winnerCode.value);
+});
 
 onBeforeMount(() => {
   if (!props.socket) {
@@ -85,14 +90,7 @@ onBeforeMount(() => {
       picture: winnerData.picture,
       userLevel: winnerData.userLevel,
     };
-    //TODO: set question content and question title;
-    //TODO: set winner User Info data.
-    //TODO: set winner code.
   });
-});
-
-watch(winnerCode, () => {
-  editor.getDoc().setValue(winnerCode.value);
 });
 
 onMounted(() => {
@@ -118,11 +116,8 @@ onBeforeUnmount(() => {
 
 <style scoped>
 #mark-down {
-  padding-top: 3vh;
-  padding-left: 5%;
-  padding-right: 5%;
-  margin-left: 5%;
-  margin-right: 5%;
+  padding: 3vh 5% 0% 5%;
+  margin: 3% 5% 0% 5%;
   font-size: 0.8rem;
   min-height: 100px;
   overflow: hidden;
@@ -134,11 +129,11 @@ onBeforeUnmount(() => {
   margin-top: 1%;
   left: -27vw;
 }
-#winner-editor{
+#winner-editor {
   position: absolute;
   top: 0%;
   right: 5%;
-  width: 600px;
+  width: 700px;
   margin-top: 2%;
   /* padding: 5; */
 }

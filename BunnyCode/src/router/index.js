@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 import HomeView from "../views/HomeView.vue";
 import axios from "axios";
+import Swal from "sweetalert2";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -53,8 +54,9 @@ const router = createRouter({
       component: () => import("../views/LoginView.vue"),
     },
     {
-      path: "/*",
-      redirect: "/login",
+      path: "/:pathMatch(.*)*",
+      name: "notFound",
+      component: () => import("../views/NotFoundView.vue"),
     },
   ],
 });
@@ -71,14 +73,17 @@ router.beforeEach(async (to, from, next) => {
       await axios({
         method: "get",
         url: productionServer + "/api/1.0/user/auth",
-        // url: localhostServer + "/api/1.0/user/auth",
         headers: {
           Authorization: `Bearer ${jwt}`,
         },
       });
       isLogin = true;
     } catch (error) {
-      alert("Please log in !");
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: "Please log in",
+      });
       isLogin = false;
     }
     if (!isLogin) {
@@ -97,7 +102,6 @@ router.beforeEach(async (to, from, next) => {
       const authResponse = await axios({
         method: "get",
         url: productionServer + "/api/1.0/user/auth",
-        // url: localhostServer + "/api/1.0/user/auth",
         headers: {
           Authorization: `Bearer ${jwt}`,
         },

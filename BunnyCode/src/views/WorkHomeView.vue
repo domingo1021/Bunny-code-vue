@@ -1,52 +1,53 @@
 <script setup>
-import { onBeforeMount, onUpdated, ref, watch } from "vue";
+import { nextTick, onBeforeMount, onUpdated, ref, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import ProjectCardComponent from "../components/ProjectCardComponent.vue";
+import Socket from "../socket";
 import axios from "axios";
+
+const propes = {
+  socket: Socket,
+  userID: Number,
+  terminateSocket: Function,
+};
 
 const router = useRouter();
 const route = useRoute();
 const projectsDisplayed = ref([]);
-const localhostServer = "http://localhost:3000";
 const productionServer = "https://domingoos.store";
 const emits = defineEmits(["setUserID"]);
 const topThreeProejct = ref();
 const projectPageArray = ref([]);
-
-// function renderPath(index) {
-//   router.push(
-//     `/workspace/${projectsDisplayed.value.projects[index].projectName}`
-//   );
-// }
+const keywords = ref(route.query.keywords);
 
 function updateProjects(emitObject) {
   projectsDisplayed.value = emitObject;
   console.log(projectsDisplayed.value);
 }
 
-function searchProjectPage(pageing) {
-  const { keywords } = route.query;
-  if (keywords) {
+function searchProjectPage(paging) {
+  if (keywords.value) {
     router.push({
       path: "/workspace",
-      query: { keywords: `${keywords}`, paging: `${pageing}` },
+      query: { keywords: `${keywords.value}`, paging: `${paging}` },
     });
   } else {
-    router.push({ path: "/workspace", query: { paging: `${pageing}` } });
+    router.push({ path: "/workspace", query: { paging: `${paging}` } });
   }
 }
 
 async function queryProjects() {
-  const { keywords } = route.query;
+  await nextTick();
   let paging = +route.query.paging - 1;
   if (!paging || +paging < 0) {
     paging = 0;
   }
   let responseProjects;
-  if (keywords) {
+  console.log("keyword: ", keywords.value);
+  if (keywords.value) {
     responseProjects = await axios.get(
       productionServer +
-        `/api/1.0/project/search?keywords=${keywords}&paging=${paging}`
+        `/api/1.0/project/search?keywords=${keywords.value}&paging=${paging}`
     );
     console.log("responseData: ", responseProjects.data.data);
     projectsDisplayed.value = responseProjects.data.data;
@@ -58,7 +59,6 @@ async function queryProjects() {
   }
   projectPageArray.value = [];
   for (let i = 1; i <= responseProjects.data.data.allPage; i++) {
-    console.log("push");
     projectPageArray.value.push(i);
   }
   let topThreeResponse = await axios.get(
@@ -79,6 +79,14 @@ watch(
   }
 );
 
+watch(
+  () => route.query.keywords,
+  (now, prev) => {
+    console.log("keyword change: ", now, prev);
+    keywords.value = now;
+  }
+);
+
 onBeforeMount(async () => {
   await queryProjects();
 });
@@ -92,7 +100,7 @@ defineExpose({
   <main>
     <div id="project-content">
       <div class="projects-title">Top three projects</div>
-      <div id="top-three" class="projects-display">
+      <div id="top-three" class="projects-display" style="padding-bottom: 0%">
         <div
           clsss="flex-item"
           style="margin: 1%"
@@ -101,8 +109,20 @@ defineExpose({
         >
           <ProjectCardComponent :projectObject="project" />
         </div>
+        <div style="display: flex; padding-top: 3%; padding-bottom: 1%">
+          <div id="did-you-know">DID YOU KNOW: &nbsp;</div>
+          <div>
+            Users can create their <strong>awesome project</strong> on their
+            user page !
+          </div>
+        </div>
       </div>
-      <div class="projects-title">Project you may like</div>
+      <div style="display: flex">
+        <div v-if="keywords" class="projects-title">
+          Search keywords: &nbsp;{{ keywords }}
+        </div>
+        <div v-else class="projects-title">Project you may like</div>
+      </div>
       <div id="search-result" class="projects-display">
         <div
           class="project-component"
@@ -153,6 +173,13 @@ defineExpose({
   font-size: 2rem;
   width: 100vw;
   text-align: left;
+}
+#did-you-know {
+  /* display:inline; */
+  font-weight: bold;
+  color: rgb(192, 124, 219);
+  font-size: 1.25rem;
+  bottom: 6px;
 }
 
 .projects-display {
