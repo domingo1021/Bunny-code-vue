@@ -114,7 +114,7 @@ async function createProject() {
     projectsDisplayed.value.unshift({
       projectID: responseProjects.data.data.projectID,
       projectName: projectName.value,
-      isPublic: projectPublic.value,
+      isPublic: +projectPublic.value,
       projectDescription: projectDescription.value,
       versionName: versionName.value,
       starCount: 0,
@@ -427,7 +427,7 @@ onBeforeUnmount(() => {
                 id="project-status"
                 style="
                   margin-left: 3%;
-                  padding: 0% 1.5% 0% 1.5%;
+                  padding: 0% 2% 0% 2%;
                   border: 0.5px solid rgb(100, 100, 100);
                   border-radius: 20px;
                 "
@@ -644,7 +644,7 @@ onBeforeUnmount(() => {
   font-size: 1rem;
   text-align: center;
   font-weight: bold;
-  width: 50px;
+  width: 55px;
   margin-left: 3%;
 }
 
