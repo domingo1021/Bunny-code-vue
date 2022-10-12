@@ -1039,6 +1039,11 @@ async function initSaveRecords() {
     );
   } catch (error) {
     console.log(error);
+    Swal.fire({
+      icon: "error",
+      title: "Warning !",
+      text: error.msg,
+    });
   }
   recordResponse = recordResponse.data.data;
   emit("updateAllRecords", {

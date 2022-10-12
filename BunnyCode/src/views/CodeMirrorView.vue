@@ -148,12 +148,6 @@ onBeforeUnmount(() => {
   console.log("view unmount");
   if (props.socket) {
     props.socket.socketOff("statusChecked");
-    console.log(props.readOnly, props.authorization);
-    if (!props.readOnly || props.authorization) {
-      props.socket.socketEmit("unEdit", {
-        versionID: props.version.versionID,
-      });
-    }
   }
 });
 </script>
