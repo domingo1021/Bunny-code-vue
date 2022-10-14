@@ -137,8 +137,6 @@ function updateContent(e) {
 
 async function checkEventUp(e) {
   if (props.readOnly) {
-    editor.getDoc().setValue(props.info.fileContent);
-    editor.getDoc().setCursor({ line: props.info.line, ch: props.info.index });
     return;
   }
   if (e.key === "Enter") {
@@ -1110,6 +1108,7 @@ async function initCodeMirror() {
     identUnit: 2,
     autofocus: true,
     readOnly: tmpReadOnly,
+    // readOnly: false,
     cursorHeight: cursorHeight,
     indentWithTab: true,
     tabSize: 2,
@@ -1140,32 +1139,31 @@ watch(
 );
 
 function userClick() {
-  if (!props.readOnly) {
-    const { line, ch } = editor.getDoc().getCursor();
-    if (line === props.info.line && ch === props.info.index) {
-      return;
-    }
-    emit("updateCurrLine", {
-      fileNumber: props.info.fileNumber,
-      line,
-    });
-    emit("updateCurrIndex", {
-      fileNumber: props.info.fileNumber,
-      index: ch,
-    });
-    emit("pushCodeRecords", {
-      fileNumber: props.info.fileNumber,
-      newRecords: {
-        action: "click",
-        line: line,
-        index: ch,
-        code: "",
-        timestamp: Date.now().toString() + "000000",
-      },
-    });
-  } else {
-    editor.getDoc().setCursor({ line: props.info.line, ch: props.info.index });
+  if (props.readOnly) {
+    return;
   }
+  const { line, ch } = editor.getDoc().getCursor();
+  if (line === props.info.line && ch === props.info.index) {
+    return;
+  }
+  emit("updateCurrLine", {
+    fileNumber: props.info.fileNumber,
+    line,
+  });
+  emit("updateCurrIndex", {
+    fileNumber: props.info.fileNumber,
+    index: ch,
+  });
+  emit("pushCodeRecords", {
+    fileNumber: props.info.fileNumber,
+    newRecords: {
+      action: "click",
+      line: line,
+      index: ch,
+      code: "",
+      timestamp: Date.now().toString() + "000000",
+    },
+  });
 }
 
 const prevIntroStatus = localStorage.getItem("stopIntro");
