@@ -623,8 +623,8 @@ async function runCode() {
     result = compilerResult.data;
     codeRunning.value = false;
   } catch (error) {
+    result = error.response.data.msg;
     codeRunning.value = false;
-    return;
   }
   emit("pushTerminal", {
     fileNumber: props.fileNumber,
