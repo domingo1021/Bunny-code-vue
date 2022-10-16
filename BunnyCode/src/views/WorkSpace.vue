@@ -153,12 +153,10 @@ function updateTarget(target) {
 }
 
 function updateTargetVersion(versionIndex) {
-  console.log("updateTargetVersion:", versionIndex);
   targetVersionIndex.value = versionIndex;
 }
 
 function updatePreviewVersion(versionIndex) {
-  console.log("updatePreviewVersion:", versionIndex);
   previewVersionIndex.value = versionIndex;
 }
 function syncVersion() {
@@ -169,7 +167,6 @@ function pushVersionObject(versionObject) {
   projectDetail.value.version.push(versionObject);
   targetFunction.value = "Folder";
   targetVersionIndex.value = projectDetail.value.version.length - 1;
-  console.log(projectDetail.value.version[targetVersionIndex.value].files);
 }
 
 function changeUserStatus(emitObject) {
@@ -199,7 +196,6 @@ async function updateProjectDetail() {
         `/api/1.0/project/detail?projectName=${props.projectName}`
     );
   } catch (error) {
-    console.log(error);
     Swal.fire({
       icon: "error",
       title: "Oops...",
@@ -239,7 +235,6 @@ async function updateProjectDetail() {
     });
     targetVersionIndex.value = 0;
   }
-  console.log("Project content: ", projectDetail.value);
 }
 
 watch(
@@ -275,20 +270,16 @@ onBeforeMount(async () => {
 });
 
 onMounted(() => {
-  console.log("autorization: ", authorization.value);
   watchCountTimeout = setTimeout(async () => {
     if (props.userID !== projectDetail.value.userID) {
-      console.log("add project view count");
       await axios.put(
         `${productionServer}/api/1.0/project/watch?projectID=${projectDetail.value.projectID}`
       );
     }
   }, 5000);
-  console.log("Mounted: ", route.fullPath);
 });
 
 watch(editing, () => {
-  console.log("editing change to: ", editing.value);
 });
 
 onUnmounted(() => {

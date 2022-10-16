@@ -22,7 +22,6 @@ const keywords = ref(route.query.keywords);
 
 function updateProjects(emitObject) {
   projectsDisplayed.value = emitObject;
-  console.log(projectsDisplayed.value);
 }
 
 function searchProjectPage(paging) {
@@ -43,13 +42,11 @@ async function queryProjects() {
     paging = 0;
   }
   let responseProjects;
-  console.log("keyword: ", keywords.value);
   if (keywords.value) {
     responseProjects = await axios.get(
       productionServer +
         `/api/1.0/project/search?keywords=${keywords.value}&paging=${paging}`
     );
-    console.log("responseData: ", responseProjects.data.data);
     projectsDisplayed.value = responseProjects.data.data;
   } else {
     responseProjects = await axios.get(
@@ -64,17 +61,14 @@ async function queryProjects() {
   let topThreeResponse = await axios.get(
     `${productionServer}/api/1.0/project/top`
   );
-  console.log(topThreeResponse.data.data);
   topThreeProejct.value = topThreeResponse.data.data;
   if (projectsDisplayed.value.projects.length === 0) {
-    console.log("search 1");
     searchProjectPage(1);
   }
 }
 watch(
   () => route.fullPath,
   async (newRoute, prevRoute) => {
-    console.log("route change");
     await queryProjects();
   }
 );
@@ -82,7 +76,6 @@ watch(
 watch(
   () => route.query.keywords,
   (now, prev) => {
-    console.log("keyword change: ", now, prev);
     keywords.value = now;
   }
 );

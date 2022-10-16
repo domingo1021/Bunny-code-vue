@@ -177,7 +177,6 @@ axios({
     initiateSocket();
   })
   .catch((error) => {
-    console.log("error message: ", error.response.data.msg);
     isLogin.value = false;
   });
 

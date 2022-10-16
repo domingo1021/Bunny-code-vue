@@ -73,8 +73,8 @@ const props = defineProps({
 const route = useRoute();
 const router = useRouter();
 const redirect = ref("");
-const loginEmail = ref("");
-const loginPassword = ref("");
+const loginEmail = ref("domingoos@gmail.com");
+const loginPassword = ref("test1234");
 const loginMessage = ref("");
 const signUpName = ref("");
 const signUpEmail = ref("");
@@ -213,9 +213,7 @@ async function login() {
 }
 
 onBeforeMount(() => {
-  console.log(route.fullPath);
   redirect.value = route.query.redirect;
-  console.log("Router query: ", route.query);
 });
 </script>
 

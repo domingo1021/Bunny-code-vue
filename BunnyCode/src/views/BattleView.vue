@@ -86,7 +86,6 @@ function updateCurrCodes(emitObject) {
   if (!start.value) {
     return;
   }
-  console.log(battleInfo.value[emitObject.battlerNumber].fileContent);
   props.socket.socketEmit("newCodes", {
     battleID: props.battleID,
     userID: userID.value,
@@ -113,7 +112,6 @@ function pushTerminal(battlerNumber, result) {
 }
 
 function pushTestCase(battlerNumber, testCases) {
-  console.log("testCases: ", testCases);
   battleInfo.value[battlerNumber].testCases = testCases;
 }
 
@@ -171,7 +169,6 @@ onBeforeMount(async () => {
     battleID: props.battleID,
   });
   props.socket.socketOn("returnBattler", async (responseObject) => {
-    console.log("response object: ", responseObject);
     battleName.value = responseObject.battleResponse.battleName;
     battleInfo.value[0].userID = responseObject.battleResponse.firstUserID;
     battleInfo.value[0].userName = responseObject.battleResponse.firstUserName;
@@ -260,7 +257,6 @@ onBeforeMount(async () => {
           if (readOnlies.value[i]) {
             continue;
           }
-          console.log("ready socket emit: ", battleInfo.value[i].fileContent);
           props.socket.socketEmit("newCodes", {
             battleID: props.battleID,
             userID: userID.value,
@@ -333,7 +329,6 @@ onBeforeMount(async () => {
   });
 
   props.socket.socketOn("battleFinished", () => {
-    console.log("receive battle finished");
     router.push({
       name: "battle_review",
       params: {
@@ -343,7 +338,6 @@ onBeforeMount(async () => {
   });
 
   props.socket.socketOn("battleNotFound", () => {
-    console.log("receive battle not found");
     router.push({
       name: "notFound",
     });

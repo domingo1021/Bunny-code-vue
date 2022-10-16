@@ -72,7 +72,6 @@ onBeforeMount(() => {
     battleID: props.battleID,
   });
   props.socket.socketOn("winnerData", async (winnerData) => {
-    console.log("Winner data: ", winnerData);
     battleName.value = winnerData.battleName;
     watchCount.value = winnerData.watchCount;
     const winnerCodeResponse = await axios.get(winnerData.winnerURL);

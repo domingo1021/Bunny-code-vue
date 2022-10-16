@@ -54,6 +54,11 @@ const router = createRouter({
       component: () => import("../views/LoginView.vue"),
     },
     {
+      path: "/not-found",
+      name: "notFound",
+      component: () => import("../views/NotFoundView.vue"),
+    },
+    {
       path: "/:pathMatch(.*)*",
       name: "notFound",
       component: () => import("../views/NotFoundView.vue"),
@@ -65,7 +70,6 @@ const localhostServer = "http://localhost:3000";
 const productionServer = "https://domingoos.store";
 
 router.beforeEach(async (to, from, next) => {
-  console.log("fullpath: ", to.fullPath);
   if (to.matched.some((record) => record.meta.requireAuth)) {
     let isLogin = false;
     try {
